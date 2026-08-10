@@ -1,0 +1,848 @@
+{
+  "7": [
+    {
+      "epoch": 0.0,
+      "topology_nll": -0.06929387152194977,
+      "dfwm_nll": 0.05483422800898552,
+      "residual_only_nll": -0.1357429176568985,
+      "monolithic_nll": 0.07221611589193344
+    },
+    {
+      "epoch": 1.0,
+      "topology_nll": -2.0380191802978516,
+      "dfwm_nll": -1.8494236469268799,
+      "residual_only_nll": -2.1070241928100586,
+      "monolithic_nll": -2.0374135971069336
+    },
+    {
+      "epoch": 2.0,
+      "topology_nll": -4.546810626983643,
+      "dfwm_nll": -4.279685974121094,
+      "residual_only_nll": -4.430428504943848,
+      "monolithic_nll": -4.718864917755127
+    },
+    {
+      "epoch": 3.0,
+      "topology_nll": -8.889187812805176,
+      "dfwm_nll": -8.49925422668457,
+      "residual_only_nll": -7.934455394744873,
+      "monolithic_nll": -9.288592338562012
+    },
+    {
+      "epoch": 4.0,
+      "topology_nll": -16.51580238342285,
+      "dfwm_nll": -16.4681453704834,
+      "residual_only_nll": -13.733623504638672,
+      "monolithic_nll": -16.822383880615234
+    },
+    {
+      "epoch": 5.0,
+      "topology_nll": -20.613895416259766,
+      "dfwm_nll": -19.196348190307617,
+      "residual_only_nll": -20.937410354614258,
+      "monolithic_nll": -26.048561096191406
+    },
+    {
+      "epoch": 6.0,
+      "topology_nll": 25.943628311157227,
+      "dfwm_nll": 18.038110733032227,
+      "residual_only_nll": -11.27761173248291,
+      "monolithic_nll": 31.870656967163086
+    },
+    {
+      "epoch": 7.0,
+      "topology_nll": 135.1018829345703,
+      "dfwm_nll": 171.4458770751953,
+      "residual_only_nll": 59.665916442871094,
+      "monolithic_nll": 321.082763671875
+    },
+    {
+      "epoch": 8.0,
+      "topology_nll": 494.92303466796875,
+      "dfwm_nll": 428.23883056640625,
+      "residual_only_nll": 222.20361328125,
+      "monolithic_nll": 365.4222717285156
+    },
+    {
+      "epoch": 9.0,
+      "topology_nll": 482.34539794921875,
+      "dfwm_nll": 351.217041015625,
+      "residual_only_nll": 124.42848205566406,
+      "monolithic_nll": 738.4261474609375
+    },
+    {
+      "epoch": 10.0,
+      "topology_nll": 500.1507263183594,
+      "dfwm_nll": 608.4653930664062,
+      "residual_only_nll": 717.1946411132812,
+      "monolithic_nll": 479.54522705078125
+    },
+    {
+      "epoch": 11.0,
+      "topology_nll": 644.0803833007812,
+      "dfwm_nll": 495.3241882324219,
+      "residual_only_nll": 242.166015625,
+      "monolithic_nll": 398.2093200683594
+    },
+    {
+      "epoch": 12.0,
+      "topology_nll": 565.8359985351562,
+      "dfwm_nll": 687.3411865234375,
+      "residual_only_nll": 780.1791381835938,
+      "monolithic_nll": 760.895751953125
+    },
+    {
+      "epoch": 13.0,
+      "topology_nll": 684.6519165039062,
+      "dfwm_nll": 650.488037109375,
+      "residual_only_nll": 482.45269775390625,
+      "monolithic_nll": 650.175537109375
+    },
+    {
+      "epoch": 14.0,
+      "topology_nll": 465.10589599609375,
+      "dfwm_nll": 352.62078857421875,
+      "residual_only_nll": 483.0619201660156,
+      "monolithic_nll": 365.3866271972656
+    },
+    {
+      "epoch": 15.0,
+      "topology_nll": 368.6391296386719,
+      "dfwm_nll": 388.5578918457031,
+      "residual_only_nll": 298.1644287109375,
+      "monolithic_nll": 459.150146484375
+    },
+    {
+      "epoch": 16.0,
+      "topology_nll": 245.83917236328125,
+      "dfwm_nll": 249.7869110107422,
+      "residual_only_nll": 490.07342529296875,
+      "monolithic_nll": 537.6918334960938
+    },
+    {
+      "epoch": 17.0,
+      "topology_nll": 345.3116149902344,
+      "dfwm_nll": 182.2945098876953,
+      "residual_only_nll": 180.38938903808594,
+      "monolithic_nll": 255.9949493408203
+    },
+    {
+      "epoch": 18.0,
+      "topology_nll": 156.42184448242188,
+      "dfwm_nll": 203.9311065673828,
+      "residual_only_nll": 252.88430786132812,
+      "monolithic_nll": 334.5658264160156
+    },
+    {
+      "epoch": 19.0,
+      "topology_nll": 191.16879272460938,
+      "dfwm_nll": 120.48846435546875,
+      "residual_only_nll": 138.8075714111328,
+      "monolithic_nll": 265.78118896484375
+    },
+    {
+      "epoch": 20.0,
+      "topology_nll": 118.78013610839844,
+      "dfwm_nll": 143.4701385498047,
+      "residual_only_nll": 193.08212280273438,
+      "monolithic_nll": 282.2736511230469
+    },
+    {
+      "epoch": 21.0,
+      "topology_nll": 148.67431640625,
+      "dfwm_nll": 78.71926879882812,
+      "residual_only_nll": 122.92659759521484,
+      "monolithic_nll": 203.62123107910156
+    },
+    {
+      "epoch": 22.0,
+      "topology_nll": 67.7164535522461,
+      "dfwm_nll": 86.74412536621094,
+      "residual_only_nll": 161.64756774902344,
+      "monolithic_nll": 240.18894958496094
+    },
+    {
+      "epoch": 23.0,
+      "topology_nll": 94.62283325195312,
+      "dfwm_nll": 68.4657974243164,
+      "residual_only_nll": 126.20568084716797,
+      "monolithic_nll": 72.77124786376953
+    },
+    {
+      "epoch": 24.0,
+      "topology_nll": 55.857418060302734,
+      "dfwm_nll": 58.9404182434082,
+      "residual_only_nll": 150.1775665283203,
+      "monolithic_nll": 184.66824340820312
+    },
+    {
+      "epoch": 25.0,
+      "topology_nll": 88.63059997558594,
+      "dfwm_nll": 50.12897872924805,
+      "residual_only_nll": 161.56385803222656,
+      "monolithic_nll": 98.80289459228516
+    },
+    {
+      "epoch": 26.0,
+      "topology_nll": 45.906455993652344,
+      "dfwm_nll": 38.30656433105469,
+      "residual_only_nll": 41.47201919555664,
+      "monolithic_nll": 111.50373840332031
+    },
+    {
+      "epoch": 27.0,
+      "topology_nll": 28.462202072143555,
+      "dfwm_nll": 79.5184097290039,
+      "residual_only_nll": 145.79525756835938,
+      "monolithic_nll": 153.7594757080078
+    },
+    {
+      "epoch": 28.0,
+      "topology_nll": 16.294389724731445,
+      "dfwm_nll": 29.65045928955078,
+      "residual_only_nll": 61.03560256958008,
+      "monolithic_nll": 100.13086700439453
+    },
+    {
+      "epoch": 29.0,
+      "topology_nll": 2.2921335697174072,
+      "dfwm_nll": 95.96247100830078,
+      "residual_only_nll": 105.28925323486328,
+      "monolithic_nll": 162.74642944335938
+    },
+    {
+      "epoch": 30.0,
+      "topology_nll": 6.204375267028809,
+      "dfwm_nll": 24.29328155517578,
+      "residual_only_nll": 64.05653381347656,
+      "monolithic_nll": 116.75102233886719
+    },
+    {
+      "epoch": 31.0,
+      "topology_nll": 10.790306091308594,
+      "dfwm_nll": 47.99760437011719,
+      "residual_only_nll": 122.74198150634766,
+      "monolithic_nll": 145.7255859375
+    },
+    {
+      "epoch": 32.0,
+      "topology_nll": -1.6778957843780518,
+      "dfwm_nll": 23.559181213378906,
+      "residual_only_nll": 124.43700408935547,
+      "monolithic_nll": 116.32218933105469
+    },
+    {
+      "epoch": 33.0,
+      "topology_nll": 3.8788981437683105,
+      "dfwm_nll": 33.98017501831055,
+      "residual_only_nll": 38.64223098754883,
+      "monolithic_nll": 129.8220977783203
+    },
+    {
+      "epoch": 34.0,
+      "topology_nll": -4.115976810455322,
+      "dfwm_nll": 45.34897232055664,
+      "residual_only_nll": 128.06846618652344,
+      "monolithic_nll": 101.48365783691406
+    },
+    {
+      "epoch": 35.0,
+      "topology_nll": 1.486780047416687,
+      "dfwm_nll": 20.34659767150879,
+      "residual_only_nll": 31.660356521606445,
+      "monolithic_nll": 80.79095458984375
+    },
+    {
+      "epoch": 36.0,
+      "topology_nll": 12.522162437438965,
+      "dfwm_nll": 115.14119720458984,
+      "residual_only_nll": 115.23680114746094,
+      "monolithic_nll": 138.4164581298828
+    },
+    {
+      "epoch": 37.0,
+      "topology_nll": -0.9158437848091125,
+      "dfwm_nll": 21.697237014770508,
+      "residual_only_nll": 147.91781616210938,
+      "monolithic_nll": 121.12669372558594
+    },
+    {
+      "epoch": 38.0,
+      "topology_nll": 3.5107812881469727,
+      "dfwm_nll": 73.47093963623047,
+      "residual_only_nll": 20.966367721557617,
+      "monolithic_nll": 93.51910400390625
+    },
+    {
+      "epoch": 39.0,
+      "topology_nll": -7.243183135986328,
+      "dfwm_nll": 60.547027587890625,
+      "residual_only_nll": 119.44126892089844,
+      "monolithic_nll": 104.26478576660156
+    }
+  ],
+  "17": [
+    {
+      "epoch": 0.0,
+      "topology_nll": 0.25492748618125916,
+      "dfwm_nll": 0.4327799081802368,
+      "residual_only_nll": -0.012859144248068333,
+      "monolithic_nll": -0.09058119356632233
+    },
+    {
+      "epoch": 1.0,
+      "topology_nll": -1.59774911403656,
+      "dfwm_nll": -1.6153333187103271,
+      "residual_only_nll": -2.349797487258911,
+      "monolithic_nll": -2.288679361343384
+    },
+    {
+      "epoch": 2.0,
+      "topology_nll": -4.167960166931152,
+      "dfwm_nll": -4.288785457611084,
+      "residual_only_nll": -5.444180965423584,
+      "monolithic_nll": -5.333337306976318
+    },
+    {
+      "epoch": 3.0,
+      "topology_nll": -8.843277931213379,
+      "dfwm_nll": -9.051764488220215,
+      "residual_only_nll": -10.366694450378418,
+      "monolithic_nll": -10.706940650939941
+    },
+    {
+      "epoch": 4.0,
+      "topology_nll": -17.831546783447266,
+      "dfwm_nll": -17.253089904785156,
+      "residual_only_nll": -18.030065536499023,
+      "monolithic_nll": -18.520160675048828
+    },
+    {
+      "epoch": 5.0,
+      "topology_nll": -6.4055891036987305,
+      "dfwm_nll": -1.2349190711975098,
+      "residual_only_nll": -20.48657989501953,
+      "monolithic_nll": -11.576441764831543
+    },
+    {
+      "epoch": 6.0,
+      "topology_nll": -3.699012517929077,
+      "dfwm_nll": 25.661893844604492,
+      "residual_only_nll": -9.499393463134766,
+      "monolithic_nll": 89.17514038085938
+    },
+    {
+      "epoch": 7.0,
+      "topology_nll": 277.49298095703125,
+      "dfwm_nll": 89.35077667236328,
+      "residual_only_nll": 284.97088623046875,
+      "monolithic_nll": 108.9142074584961
+    },
+    {
+      "epoch": 8.0,
+      "topology_nll": 533.5144653320312,
+      "dfwm_nll": 311.20111083984375,
+      "residual_only_nll": 174.25413513183594,
+      "monolithic_nll": 309.15765380859375
+    },
+    {
+      "epoch": 9.0,
+      "topology_nll": 315.2848815917969,
+      "dfwm_nll": 545.7767944335938,
+      "residual_only_nll": 505.84930419921875,
+      "monolithic_nll": 202.5772247314453
+    },
+    {
+      "epoch": 10.0,
+      "topology_nll": 770.6376342773438,
+      "dfwm_nll": 386.0523986816406,
+      "residual_only_nll": 650.6202392578125,
+      "monolithic_nll": 606.0255737304688
+    },
+    {
+      "epoch": 11.0,
+      "topology_nll": 575.618408203125,
+      "dfwm_nll": 259.0950622558594,
+      "residual_only_nll": 405.8417053222656,
+      "monolithic_nll": 475.7756652832031
+    },
+    {
+      "epoch": 12.0,
+      "topology_nll": 504.0470886230469,
+      "dfwm_nll": 301.9139404296875,
+      "residual_only_nll": 715.1454467773438,
+      "monolithic_nll": 217.6200408935547
+    },
+    {
+      "epoch": 13.0,
+      "topology_nll": 334.3235168457031,
+      "dfwm_nll": 148.0563507080078,
+      "residual_only_nll": 758.5234375,
+      "monolithic_nll": 220.695068359375
+    },
+    {
+      "epoch": 14.0,
+      "topology_nll": 329.39642333984375,
+      "dfwm_nll": 330.6495666503906,
+      "residual_only_nll": 455.4253234863281,
+      "monolithic_nll": 313.0502624511719
+    },
+    {
+      "epoch": 15.0,
+      "topology_nll": 244.3640594482422,
+      "dfwm_nll": 231.59616088867188,
+      "residual_only_nll": 401.5283203125,
+      "monolithic_nll": 165.16632080078125
+    },
+    {
+      "epoch": 16.0,
+      "topology_nll": 153.11703491210938,
+      "dfwm_nll": 217.4745635986328,
+      "residual_only_nll": 576.7396240234375,
+      "monolithic_nll": 149.46359252929688
+    },
+    {
+      "epoch": 17.0,
+      "topology_nll": 131.2687225341797,
+      "dfwm_nll": 124.62578582763672,
+      "residual_only_nll": 240.91110229492188,
+      "monolithic_nll": 47.98237609863281
+    },
+    {
+      "epoch": 18.0,
+      "topology_nll": 135.1344451904297,
+      "dfwm_nll": 139.15478515625,
+      "residual_only_nll": 524.785400390625,
+      "monolithic_nll": 127.31071472167969
+    },
+    {
+      "epoch": 19.0,
+      "topology_nll": 155.80857849121094,
+      "dfwm_nll": 71.8407211303711,
+      "residual_only_nll": 504.3108215332031,
+      "monolithic_nll": 81.35533142089844
+    },
+    {
+      "epoch": 20.0,
+      "topology_nll": 25.64813804626465,
+      "dfwm_nll": 41.811500549316406,
+      "residual_only_nll": 218.0183868408203,
+      "monolithic_nll": 93.66622161865234
+    },
+    {
+      "epoch": 21.0,
+      "topology_nll": 103.08845520019531,
+      "dfwm_nll": 60.79104232788086,
+      "residual_only_nll": 346.4111633300781,
+      "monolithic_nll": 81.46000671386719
+    },
+    {
+      "epoch": 22.0,
+      "topology_nll": -2.0188939571380615,
+      "dfwm_nll": 49.43817901611328,
+      "residual_only_nll": 256.3324890136719,
+      "monolithic_nll": 22.42185401916504
+    },
+    {
+      "epoch": 23.0,
+      "topology_nll": 50.87920379638672,
+      "dfwm_nll": 36.54925537109375,
+      "residual_only_nll": 157.26170349121094,
+      "monolithic_nll": 69.6939926147461
+    },
+    {
+      "epoch": 24.0,
+      "topology_nll": -3.9165754318237305,
+      "dfwm_nll": -1.2449764013290405,
+      "residual_only_nll": 205.6466827392578,
+      "monolithic_nll": 1.3075861930847168
+    },
+    {
+      "epoch": 25.0,
+      "topology_nll": 21.109851837158203,
+      "dfwm_nll": 44.01585388183594,
+      "residual_only_nll": 142.11380004882812,
+      "monolithic_nll": 29.028240203857422
+    },
+    {
+      "epoch": 26.0,
+      "topology_nll": 0.75785893201828,
+      "dfwm_nll": -9.86900806427002,
+      "residual_only_nll": 86.67548370361328,
+      "monolithic_nll": -17.241371154785156
+    },
+    {
+      "epoch": 27.0,
+      "topology_nll": 33.47565841674805,
+      "dfwm_nll": 24.565521240234375,
+      "residual_only_nll": 152.50369262695312,
+      "monolithic_nll": 13.921207427978516
+    },
+    {
+      "epoch": 28.0,
+      "topology_nll": 23.501388549804688,
+      "dfwm_nll": -17.581499099731445,
+      "residual_only_nll": 23.460773468017578,
+      "monolithic_nll": -8.659602165222168
+    },
+    {
+      "epoch": 29.0,
+      "topology_nll": 96.62784576416016,
+      "dfwm_nll": 17.87859344482422,
+      "residual_only_nll": 203.50404357910156,
+      "monolithic_nll": -7.501056671142578
+    },
+    {
+      "epoch": 30.0,
+      "topology_nll": 207.2662353515625,
+      "dfwm_nll": -6.732701301574707,
+      "residual_only_nll": 108.9291000366211,
+      "monolithic_nll": 6.449352741241455
+    },
+    {
+      "epoch": 31.0,
+      "topology_nll": -31.528751373291016,
+      "dfwm_nll": -2.3355307579040527,
+      "residual_only_nll": 109.04159545898438,
+      "monolithic_nll": 13.66934871673584
+    },
+    {
+      "epoch": 32.0,
+      "topology_nll": 133.70809936523438,
+      "dfwm_nll": -24.671743392944336,
+      "residual_only_nll": 70.98662567138672,
+      "monolithic_nll": -19.06206512451172
+    },
+    {
+      "epoch": 33.0,
+      "topology_nll": 64.59615325927734,
+      "dfwm_nll": 0.75492262840271,
+      "residual_only_nll": 111.54568481445312,
+      "monolithic_nll": -27.00599479675293
+    },
+    {
+      "epoch": 34.0,
+      "topology_nll": -7.950524806976318,
+      "dfwm_nll": -24.401626586914062,
+      "residual_only_nll": 29.735273361206055,
+      "monolithic_nll": -13.527592658996582
+    },
+    {
+      "epoch": 35.0,
+      "topology_nll": 10.420347213745117,
+      "dfwm_nll": -8.067449569702148,
+      "residual_only_nll": 145.759033203125,
+      "monolithic_nll": -0.2938218116760254
+    },
+    {
+      "epoch": 36.0,
+      "topology_nll": -8.653570175170898,
+      "dfwm_nll": -16.77933692932129,
+      "residual_only_nll": 22.531713485717773,
+      "monolithic_nll": -19.108762741088867
+    },
+    {
+      "epoch": 37.0,
+      "topology_nll": -14.933023452758789,
+      "dfwm_nll": -9.65259838104248,
+      "residual_only_nll": 350.2300720214844,
+      "monolithic_nll": 95.55520629882812
+    },
+    {
+      "epoch": 38.0,
+      "topology_nll": 18.10899543762207,
+      "dfwm_nll": -14.75793170928955,
+      "residual_only_nll": 333.0352783203125,
+      "monolithic_nll": 75.501953125
+    },
+    {
+      "epoch": 39.0,
+      "topology_nll": 14.719221115112305,
+      "dfwm_nll": -14.914846420288086,
+      "residual_only_nll": 70.61353302001953,
+      "monolithic_nll": -30.797622680664062
+    }
+  ],
+  "27": [
+    {
+      "epoch": 0.0,
+      "topology_nll": 0.5026823878288269,
+      "dfwm_nll": -0.23701852560043335,
+      "residual_only_nll": -0.29792436957359314,
+      "monolithic_nll": 0.544314980506897
+    },
+    {
+      "epoch": 1.0,
+      "topology_nll": -1.6718902587890625,
+      "dfwm_nll": -2.2891459465026855,
+      "residual_only_nll": -2.8783583641052246,
+      "monolithic_nll": -1.495911717414856
+    },
+    {
+      "epoch": 2.0,
+      "topology_nll": -4.247066020965576,
+      "dfwm_nll": -5.105269908905029,
+      "residual_only_nll": -6.326829433441162,
+      "monolithic_nll": -4.089378356933594
+    },
+    {
+      "epoch": 3.0,
+      "topology_nll": -8.281598091125488,
+      "dfwm_nll": -10.175983428955078,
+      "residual_only_nll": -11.769816398620605,
+      "monolithic_nll": -8.462713241577148
+    },
+    {
+      "epoch": 4.0,
+      "topology_nll": -15.4568510055542,
+      "dfwm_nll": -19.129688262939453,
+      "residual_only_nll": -20.019948959350586,
+      "monolithic_nll": -16.125377655029297
+    },
+    {
+      "epoch": 5.0,
+      "topology_nll": -20.209794998168945,
+      "dfwm_nll": -14.644305229187012,
+      "residual_only_nll": 9.777067184448242,
+      "monolithic_nll": -21.229028701782227
+    },
+    {
+      "epoch": 6.0,
+      "topology_nll": 20.135780334472656,
+      "dfwm_nll": 70.15707397460938,
+      "residual_only_nll": 35.279075622558594,
+      "monolithic_nll": 68.65753173828125
+    },
+    {
+      "epoch": 7.0,
+      "topology_nll": 301.421142578125,
+      "dfwm_nll": 84.0843505859375,
+      "residual_only_nll": 141.6907501220703,
+      "monolithic_nll": 264.2352600097656
+    },
+    {
+      "epoch": 8.0,
+      "topology_nll": 570.2115478515625,
+      "dfwm_nll": 310.6356506347656,
+      "residual_only_nll": 412.40802001953125,
+      "monolithic_nll": 231.02064514160156
+    },
+    {
+      "epoch": 9.0,
+      "topology_nll": 430.019775390625,
+      "dfwm_nll": 501.1507263183594,
+      "residual_only_nll": 447.09246826171875,
+      "monolithic_nll": 398.6179504394531
+    },
+    {
+      "epoch": 10.0,
+      "topology_nll": 356.845458984375,
+      "dfwm_nll": 559.0972900390625,
+      "residual_only_nll": 660.181640625,
+      "monolithic_nll": 388.25408935546875
+    },
+    {
+      "epoch": 11.0,
+      "topology_nll": 756.3890991210938,
+      "dfwm_nll": 249.77938842773438,
+      "residual_only_nll": 360.409912109375,
+      "monolithic_nll": 463.9109802246094
+    },
+    {
+      "epoch": 12.0,
+      "topology_nll": 309.2254333496094,
+      "dfwm_nll": 366.7221984863281,
+      "residual_only_nll": 367.9007568359375,
+      "monolithic_nll": 241.02169799804688
+    },
+    {
+      "epoch": 13.0,
+      "topology_nll": 374.10333251953125,
+      "dfwm_nll": 374.9404602050781,
+      "residual_only_nll": 419.86126708984375,
+      "monolithic_nll": 456.3546447753906
+    },
+    {
+      "epoch": 14.0,
+      "topology_nll": 391.5594482421875,
+      "dfwm_nll": 370.8482666015625,
+      "residual_only_nll": 229.5666046142578,
+      "monolithic_nll": 253.9062957763672
+    },
+    {
+      "epoch": 15.0,
+      "topology_nll": 330.91571044921875,
+      "dfwm_nll": 339.09405517578125,
+      "residual_only_nll": 229.2996826171875,
+      "monolithic_nll": 196.59353637695312
+    },
+    {
+      "epoch": 16.0,
+      "topology_nll": 348.591064453125,
+      "dfwm_nll": 193.62448120117188,
+      "residual_only_nll": 209.5265655517578,
+      "monolithic_nll": 224.17269897460938
+    },
+    {
+      "epoch": 17.0,
+      "topology_nll": 124.10321044921875,
+      "dfwm_nll": 278.5324401855469,
+      "residual_only_nll": 152.50088500976562,
+      "monolithic_nll": 88.9182357788086
+    },
+    {
+      "epoch": 18.0,
+      "topology_nll": 126.36055755615234,
+      "dfwm_nll": 74.13433074951172,
+      "residual_only_nll": 130.00865173339844,
+      "monolithic_nll": 67.07096862792969
+    },
+    {
+      "epoch": 19.0,
+      "topology_nll": 88.97984313964844,
+      "dfwm_nll": 165.0669403076172,
+      "residual_only_nll": 151.3034210205078,
+      "monolithic_nll": 109.38786315917969
+    },
+    {
+      "epoch": 20.0,
+      "topology_nll": 102.111083984375,
+      "dfwm_nll": 82.82540893554688,
+      "residual_only_nll": 118.1158676147461,
+      "monolithic_nll": 72.99729919433594
+    },
+    {
+      "epoch": 21.0,
+      "topology_nll": 20.078365325927734,
+      "dfwm_nll": 167.85037231445312,
+      "residual_only_nll": 42.44614028930664,
+      "monolithic_nll": 51.083251953125
+    },
+    {
+      "epoch": 22.0,
+      "topology_nll": 50.92649459838867,
+      "dfwm_nll": 94.17903900146484,
+      "residual_only_nll": 81.13401794433594,
+      "monolithic_nll": 51.870216369628906
+    },
+    {
+      "epoch": 23.0,
+      "topology_nll": 6.999727725982666,
+      "dfwm_nll": 136.34239196777344,
+      "residual_only_nll": 8.448835372924805,
+      "monolithic_nll": 27.985239028930664
+    },
+    {
+      "epoch": 24.0,
+      "topology_nll": 16.08968162536621,
+      "dfwm_nll": 60.46175765991211,
+      "residual_only_nll": 26.924833297729492,
+      "monolithic_nll": 26.38669776916504
+    },
+    {
+      "epoch": 25.0,
+      "topology_nll": -5.541745185852051,
+      "dfwm_nll": 136.17466735839844,
+      "residual_only_nll": -5.029916286468506,
+      "monolithic_nll": 65.95042419433594
+    },
+    {
+      "epoch": 26.0,
+      "topology_nll": 12.71666431427002,
+      "dfwm_nll": 18.2375431060791,
+      "residual_only_nll": -6.944293975830078,
+      "monolithic_nll": 25.82318687438965
+    },
+    {
+      "epoch": 27.0,
+      "topology_nll": 18.137250900268555,
+      "dfwm_nll": 239.98988342285156,
+      "residual_only_nll": -15.535219192504883,
+      "monolithic_nll": 118.1359634399414
+    },
+    {
+      "epoch": 28.0,
+      "topology_nll": 64.22479248046875,
+      "dfwm_nll": 94.39998626708984,
+      "residual_only_nll": -20.39642333984375,
+      "monolithic_nll": 99.25746154785156
+    },
+    {
+      "epoch": 29.0,
+      "topology_nll": -8.284607887268066,
+      "dfwm_nll": 151.8651885986328,
+      "residual_only_nll": -23.822643280029297,
+      "monolithic_nll": 51.52635955810547
+    },
+    {
+      "epoch": 30.0,
+      "topology_nll": 52.200042724609375,
+      "dfwm_nll": 89.69340515136719,
+      "residual_only_nll": -11.09898853302002,
+      "monolithic_nll": 72.05479431152344
+    },
+    {
+      "epoch": 31.0,
+      "topology_nll": 1.0596213340759277,
+      "dfwm_nll": 89.89683532714844,
+      "residual_only_nll": -24.115013122558594,
+      "monolithic_nll": 12.86133098602295
+    },
+    {
+      "epoch": 32.0,
+      "topology_nll": 21.0421142578125,
+      "dfwm_nll": 86.61557006835938,
+      "residual_only_nll": -22.008670806884766,
+      "monolithic_nll": 58.70468521118164
+    },
+    {
+      "epoch": 33.0,
+      "topology_nll": 20.259933471679688,
+      "dfwm_nll": 54.89697265625,
+      "residual_only_nll": -31.856637954711914,
+      "monolithic_nll": -10.113235473632812
+    },
+    {
+      "epoch": 34.0,
+      "topology_nll": -5.351656913757324,
+      "dfwm_nll": 97.9875717163086,
+      "residual_only_nll": -29.94089698791504,
+      "monolithic_nll": 58.23288345336914
+    },
+    {
+      "epoch": 35.0,
+      "topology_nll": 40.61495590209961,
+      "dfwm_nll": 51.785526275634766,
+      "residual_only_nll": -28.030216217041016,
+      "monolithic_nll": 4.7776288986206055
+    },
+    {
+      "epoch": 36.0,
+      "topology_nll": -24.114103317260742,
+      "dfwm_nll": 97.34602355957031,
+      "residual_only_nll": -32.57134246826172,
+      "monolithic_nll": 37.02470397949219
+    },
+    {
+      "epoch": 37.0,
+      "topology_nll": -4.6308488845825195,
+      "dfwm_nll": 48.404056549072266,
+      "residual_only_nll": -28.91164207458496,
+      "monolithic_nll": 14.745987892150879
+    },
+    {
+      "epoch": 38.0,
+      "topology_nll": 1.370487093925476,
+      "dfwm_nll": 119.31233978271484,
+      "residual_only_nll": -33.28208923339844,
+      "monolithic_nll": 23.442075729370117
+    },
+    {
+      "epoch": 39.0,
+      "topology_nll": -19.69474220275879,
+      "dfwm_nll": 75.92855072021484,
+      "residual_only_nll": -31.8934268951416,
+      "monolithic_nll": 48.877357482910156
+    }
+  ]
+}

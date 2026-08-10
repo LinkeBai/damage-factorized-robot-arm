@@ -1,0 +1,228 @@
+{
+  "status": "g1_control_gate_complete",
+  "seeds": [
+    17,
+    27
+  ],
+  "domains": [
+    "D2__mixed_composition",
+    "D3__mixed_composition"
+  ],
+  "shots": [
+    0,
+    1,
+    2,
+    5
+  ],
+  "evaluation_targets": [
+    "eval_00"
+  ],
+  "actor_or_world_model_updated_at_deployment": false,
+  "data_policy": "controller_induced",
+  "multi_step_training_horizon": 5,
+  "planner_candidates": 64,
+  "max_steps": 400,
+  "wall_clock_seconds": 758.3410666999989,
+  "rows": [
+    {
+      "seed": 17,
+      "domain": "D2__mixed_composition",
+      "model": "topology_only",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.37795755072744475,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.350097820096926,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 1,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.354099838268408,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 2,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.36266678522775886,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 5,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.3606129812748662,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D3__mixed_composition",
+      "model": "topology_only",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5908787376014849,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.3226922656771953,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 1,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.466265859555134,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 2,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.45077237551489063,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 17,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 5,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.47769061707929505,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D2__mixed_composition",
+      "model": "topology_only",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.22955411859791905,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5507829588816725,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 1,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5763038560413981,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 2,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5589675528568798,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 5,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5808078403340717,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D3__mixed_composition",
+      "model": "topology_only",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.30920959879981985,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5975998302332364,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 1,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5803214816766961,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 2,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5982953760955075,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 27,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 5,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.5889273212938594,
+      "mean_steps": 400.0,
+      "episodes": 1
+    }
+  ]
+}

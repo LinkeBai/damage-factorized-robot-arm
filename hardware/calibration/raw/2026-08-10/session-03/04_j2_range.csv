@@ -1,0 +1,4 @@
+joint,position,raw,deg_from_zero
+J2,negative_limit,1013,-92.5
+J2,zero_reference,2066,0.0
+J2,positive_limit,3165,96.6

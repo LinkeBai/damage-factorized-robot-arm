@@ -1,0 +1,5 @@
+moving_joint,locked_joint,motion_deg,hold_s,locked_drift_ticks,max_current_raw,max_temp_c,result
+J2,J3,15,5,0,0,32,pass
+J2,J4,15,5,0,0,32,pass
+J3,J2,15,5,0,1,31,pass
+J3,J4,15,5,0,1,32,pass

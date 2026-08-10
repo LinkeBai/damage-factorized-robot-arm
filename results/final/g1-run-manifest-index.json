@@ -1,0 +1,421 @@
+{
+  "stage": "G1",
+  "runs": [
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_split\\20260810-175651",
+      "created_at_utc": "2026-08-10T14:00:35.641643+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7
+      ],
+      "protocol": {
+        "version": "g1_5dof_v1",
+        "sha256": "ad48c6045ffd28f713ca1496f80a804dddf8bd519890a04a793549c97fe60c6a",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\g1_5dof_v1.yaml",
+        "train": [
+          "intact__nominal",
+          "intact__weak_motor",
+          "intact__high_damping",
+          "intact__delay_1",
+          "D2__nominal",
+          "D2__high_damping",
+          "D2__delay_1",
+          "D3__nominal",
+          "D3__weak_motor",
+          "D3__delay_1"
+        ],
+        "validation": [
+          "D2__weak_motor",
+          "D3__high_damping",
+          "intact__noisy_deadband"
+        ],
+        "test": [
+          "D2__mixed_composition",
+          "D3__mixed_composition"
+        ],
+        "calibration_evaluation_disjoint": true,
+        "validation_usage": "reserved; fixed-hyperparameter benchmark did not select on validation"
+      },
+      "target_split": {
+        "version": "reach_targets_5dof_provisional_v1",
+        "status": "frozen_after_g0_2026-08-10",
+        "sha256": "4c0fa5e9aad3fe1be0f283ef0f5529832b255786400366295a2738d14000bb2e",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\reach_targets_5dof_provisional_v1.yaml",
+        "calibration_ids": [
+          "cal_00",
+          "cal_01",
+          "cal_02",
+          "cal_03"
+        ],
+        "evaluation_ids": [
+          "eval_00",
+          "eval_01",
+          "eval_02",
+          "eval_03"
+        ]
+      },
+      "settings": {
+        "epochs": 60,
+        "train_trajectories": 2,
+        "trajectory_steps": 100,
+        "latent_steps": 50,
+        "data_policy": "controller"
+      },
+      "compute": {
+        "wall_clock_seconds": 629.0853462999803,
+        "gpu_hours": 0.1747459295277723,
+        "peak_gpu_memory_mb": 184.27734375
+      },
+      "claim_scope": "simulation-only G1 prediction evidence after G0",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_split\\20260810-181355",
+      "created_at_utc": "2026-08-10T14:00:35.642642+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7
+      ],
+      "protocol": {
+        "version": "g1_5dof_v1",
+        "sha256": "ad48c6045ffd28f713ca1496f80a804dddf8bd519890a04a793549c97fe60c6a",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\g1_5dof_v1.yaml",
+        "train": [
+          "intact__nominal",
+          "intact__weak_motor",
+          "intact__high_damping",
+          "intact__delay_1",
+          "D2__nominal",
+          "D2__high_damping",
+          "D2__delay_1",
+          "D3__nominal",
+          "D3__weak_motor",
+          "D3__delay_1"
+        ],
+        "validation": [
+          "D2__weak_motor",
+          "D3__high_damping",
+          "intact__noisy_deadband"
+        ],
+        "test": [
+          "D2__mixed_composition",
+          "D3__mixed_composition"
+        ],
+        "calibration_evaluation_disjoint": true,
+        "validation_usage": "reserved; fixed-hyperparameter benchmark did not select on validation"
+      },
+      "target_split": {
+        "version": "reach_targets_5dof_provisional_v1",
+        "status": "frozen_after_g0_2026-08-10",
+        "sha256": "4c0fa5e9aad3fe1be0f283ef0f5529832b255786400366295a2738d14000bb2e",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\reach_targets_5dof_provisional_v1.yaml",
+        "calibration_ids": [
+          "cal_00",
+          "cal_01",
+          "cal_02",
+          "cal_03"
+        ],
+        "evaluation_ids": [
+          "eval_00",
+          "eval_01",
+          "eval_02",
+          "eval_03"
+        ]
+      },
+      "settings": {
+        "epochs": 60,
+        "train_trajectories": 2,
+        "trajectory_steps": 100,
+        "latent_steps": 50,
+        "data_policy": "controller"
+      },
+      "compute": {
+        "wall_clock_seconds": 602.9049902000115,
+        "gpu_hours": 0.16747360838889208,
+        "peak_gpu_memory_mb": 184.27734375
+      },
+      "claim_scope": "simulation-only G1 prediction evidence after G0",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_split\\20260810-182417",
+      "created_at_utc": "2026-08-10T14:00:35.643641+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        17
+      ],
+      "protocol": {
+        "version": "g1_5dof_v1",
+        "sha256": "ad48c6045ffd28f713ca1496f80a804dddf8bd519890a04a793549c97fe60c6a",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\g1_5dof_v1.yaml",
+        "train": [
+          "intact__nominal",
+          "intact__weak_motor",
+          "intact__high_damping",
+          "intact__delay_1",
+          "D2__nominal",
+          "D2__high_damping",
+          "D2__delay_1",
+          "D3__nominal",
+          "D3__weak_motor",
+          "D3__delay_1"
+        ],
+        "validation": [
+          "D2__weak_motor",
+          "D3__high_damping",
+          "intact__noisy_deadband"
+        ],
+        "test": [
+          "D2__mixed_composition",
+          "D3__mixed_composition"
+        ],
+        "calibration_evaluation_disjoint": true,
+        "validation_usage": "reserved; fixed-hyperparameter benchmark did not select on validation"
+      },
+      "target_split": {
+        "version": "reach_targets_5dof_provisional_v1",
+        "status": "frozen_after_g0_2026-08-10",
+        "sha256": "4c0fa5e9aad3fe1be0f283ef0f5529832b255786400366295a2738d14000bb2e",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\reach_targets_5dof_provisional_v1.yaml",
+        "calibration_ids": [
+          "cal_00",
+          "cal_01",
+          "cal_02",
+          "cal_03"
+        ],
+        "evaluation_ids": [
+          "eval_00",
+          "eval_01",
+          "eval_02",
+          "eval_03"
+        ]
+      },
+      "settings": {
+        "epochs": 60,
+        "train_trajectories": 2,
+        "trajectory_steps": 100,
+        "latent_steps": 50,
+        "data_policy": "controller"
+      },
+      "compute": {
+        "wall_clock_seconds": 579.2245536000119,
+        "gpu_hours": 0.16089570933333663,
+        "peak_gpu_memory_mb": 184.27734375
+      },
+      "claim_scope": "simulation-only G1 prediction evidence after G0",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_split\\20260810-183415",
+      "created_at_utc": "2026-08-10T14:00:35.645649+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        27
+      ],
+      "protocol": {
+        "version": "g1_5dof_v1",
+        "sha256": "ad48c6045ffd28f713ca1496f80a804dddf8bd519890a04a793549c97fe60c6a",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\g1_5dof_v1.yaml",
+        "train": [
+          "intact__nominal",
+          "intact__weak_motor",
+          "intact__high_damping",
+          "intact__delay_1",
+          "D2__nominal",
+          "D2__high_damping",
+          "D2__delay_1",
+          "D3__nominal",
+          "D3__weak_motor",
+          "D3__delay_1"
+        ],
+        "validation": [
+          "D2__weak_motor",
+          "D3__high_damping",
+          "intact__noisy_deadband"
+        ],
+        "test": [
+          "D2__mixed_composition",
+          "D3__mixed_composition"
+        ],
+        "calibration_evaluation_disjoint": true,
+        "validation_usage": "reserved; fixed-hyperparameter benchmark did not select on validation"
+      },
+      "target_split": {
+        "version": "reach_targets_5dof_provisional_v1",
+        "status": "frozen_after_g0_2026-08-10",
+        "sha256": "4c0fa5e9aad3fe1be0f283ef0f5529832b255786400366295a2738d14000bb2e",
+        "source": "C:\\Users\\asus\\Desktop\\robot-arm\\config\\splits\\reach_targets_5dof_provisional_v1.yaml",
+        "calibration_ids": [
+          "cal_00",
+          "cal_01",
+          "cal_02",
+          "cal_03"
+        ],
+        "evaluation_ids": [
+          "eval_00",
+          "eval_01",
+          "eval_02",
+          "eval_03"
+        ]
+      },
+      "settings": {
+        "epochs": 60,
+        "train_trajectories": 2,
+        "trajectory_steps": 100,
+        "latent_steps": 50,
+        "data_policy": "controller"
+      },
+      "compute": {
+        "wall_clock_seconds": 566.5431313000154,
+        "gpu_hours": 0.15737309202778205,
+        "peak_gpu_memory_mb": 184.27734375
+      },
+      "claim_scope": "simulation-only G1 prediction evidence after G0",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-162149",
+      "created_at_utc": "2026-08-10T14:00:35.665184+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7,
+        17,
+        27
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-163207",
+      "created_at_utc": "2026-08-10T14:00:35.682209+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-164025",
+      "created_at_utc": "2026-08-10T14:00:35.694745+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7,
+        17,
+        27
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-164301",
+      "created_at_utc": "2026-08-10T14:00:35.707752+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-164854",
+      "created_at_utc": "2026-08-10T14:00:35.709751+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-165436",
+      "created_at_utc": "2026-08-10T14:00:35.710520+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        17,
+        27
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-191414",
+      "created_at_utc": "2026-08-10T14:00:35.712526+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        7
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-191923",
+      "created_at_utc": "2026-08-10T14:00:35.724037+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        17
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    },
+    {
+      "stage": "G1",
+      "run_dir": "runs\\g1_control_gate\\20260810-192523",
+      "created_at_utc": "2026-08-10T14:00:35.736038+00:00",
+      "git_commit": "recorded_at_closeout_pending_worktree_audit",
+      "seeds": [
+        27
+      ],
+      "protocol": {},
+      "target_split": {},
+      "settings": {},
+      "compute": {},
+      "claim_scope": "G1 simulation evidence",
+      "source_summary": "summary.json"
+    }
+  ]
+}

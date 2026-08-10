@@ -1,0 +1,22 @@
+version: reach_targets_6dof_provisional_v1
+status: provisional_until_g0
+source: nominal_fk_common_reach_intact_d2_d3
+voxel_size_m: 0.025
+
+calibration:
+  - {id: cal_00, xyz: [0.277650, 0.065573, 0.265467]}
+  - {id: cal_01, xyz: [0.002650, -0.259427, 0.215467]}
+  - {id: cal_02, xyz: [0.077650, -0.309427, 0.190467]}
+  - {id: cal_03, xyz: [0.127650, 0.265573, 0.240467]}
+
+validation:
+  - {id: val_00, xyz: [0.302650, 0.140573, 0.140467]}
+  - {id: val_01, xyz: [0.177650, -0.284427, 0.165467]}
+  - {id: val_02, xyz: [0.077650, -0.234427, 0.315467]}
+  - {id: val_03, xyz: [0.127650, -0.184427, 0.315467]}
+
+evaluation:
+  - {id: eval_00, xyz: [0.252650, 0.265573, 0.140467]}
+  - {id: eval_01, xyz: [0.327650, 0.065573, 0.190467]}
+  - {id: eval_02, xyz: [0.102650, -0.309427, 0.065467]}
+  - {id: eval_03, xyz: [0.302650, 0.015573, 0.265467]}

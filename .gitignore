@@ -1,0 +1,45 @@
+# Python and virtual environments
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+
+# Downloaded wheels
+.wheels/
+*.whl
+
+# Data and run artifacts
+runs/
+datasets/
+checkpoints/
+results/*
+!results/final/
+*.jsonl
+*.npz
+*.npy
+*.h5
+
+# Full upstream/reference projects are archived locally only
+external/*
+!external/README.md
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and caches
+*.log
+tmp/
+.cache/
+
+# Credentials
+*.pem
+*.key
+.env

@@ -1,0 +1,68 @@
+{
+  "status": "pass_with_gain",
+  "fixed_scope": {
+    "task": "Reach",
+    "domains": [
+      "D2",
+      "D3"
+    ],
+    "seeds": [
+      7,
+      17,
+      27
+    ],
+    "shots": [
+      0,
+      5
+    ]
+  },
+  "criteria": {
+    "hybrid_stability": true,
+    "world_model_independent_gain": true,
+    "baseline_mean_steps": 72.875,
+    "best_world_model_mean_steps": 72.125,
+    "same_target_split": true,
+    "leakage_detected": false
+  },
+  "summaries": [
+    {
+      "method": "ik_pd",
+      "n": 8,
+      "successes": 8,
+      "success_rate": 1.0,
+      "mean_steps": 72.875,
+      "mean_final_distance_mm": 48.97975205250967
+    },
+    {
+      "method": "jacobian_residual",
+      "n": 8,
+      "successes": 8,
+      "success_rate": 1.0,
+      "mean_steps": 76.125,
+      "mean_final_distance_mm": 48.77088401148529
+    },
+    {
+      "method": "worldmodel_hybrid_k0",
+      "n": 24,
+      "successes": 24,
+      "success_rate": 1.0,
+      "mean_steps": 72.125,
+      "mean_final_distance_mm": 48.74223941820119
+    },
+    {
+      "method": "worldmodel_hybrid_k5",
+      "n": 24,
+      "successes": 24,
+      "success_rate": 1.0,
+      "mean_steps": 72.16666666666667,
+      "mean_final_distance_mm": 48.72209955122407
+    }
+  ],
+  "source_files": [
+    "results/final/g1-hybrid-baseline.csv",
+    "results/final/g1-residual-feedback.csv",
+    "results/final/g1-worldmodel-hybrid-seed7.csv",
+    "results/final/g1-worldmodel-hybrid-seed17.csv",
+    "results/final/g1-worldmodel-hybrid-seed27.csv"
+  ]
+}

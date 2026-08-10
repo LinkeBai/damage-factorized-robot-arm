@@ -1,0 +1,7 @@
+joint,raw,zero_raw,error_deg,result
+J1,2011,2023,-1.1,pass
+J2,2070,2066,0.4,pass
+J3,2045,2058,-1.1,pass
+J4,2062,2076,-1.2,pass
+J5,2062,2066,-0.4,pass
+gripper_open,1649,1646,0.3,pass

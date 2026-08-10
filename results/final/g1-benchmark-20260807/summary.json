@@ -1,0 +1,121 @@
+{
+  "status": "g1_mechanism_benchmark_complete",
+  "device": "cuda",
+  "seeds": [
+    7,
+    17,
+    27
+  ],
+  "protocol": {
+    "train": [
+      "intact__nominal",
+      "intact__weak_motor",
+      "intact__high_damping",
+      "intact__delay_1",
+      "D2__nominal",
+      "D2__high_damping",
+      "D2__delay_1",
+      "D3__nominal",
+      "D3__weak_motor",
+      "D3__delay_1",
+      "D4__nominal",
+      "D4__weak_motor",
+      "D4__high_damping"
+    ],
+    "validation": [
+      "D2__weak_motor",
+      "D3__high_damping",
+      "D4__delay_1",
+      "intact__noisy_deadband"
+    ],
+    "test": [
+      "intact__mixed_unseen",
+      "D2__mixed_unseen",
+      "D3__mixed_unseen",
+      "D4__mixed_unseen"
+    ],
+    "calibration_evaluation_disjoint": true
+  },
+  "settings": {
+    "epochs": 60,
+    "train_trajectories": 2,
+    "trajectory_steps": 30,
+    "latent_steps": 50
+  },
+  "aggregate": [
+    {
+      "model": "dfwm",
+      "shots": 0,
+      "n": 12,
+      "eval_nll_mean": -19.213297128677368,
+      "eval_nll_std": 1.5734506869476168,
+      "eval_rmse_mean": 0.09905205046137174,
+      "eval_rmse_std": 0.022580387178494945
+    },
+    {
+      "model": "dfwm",
+      "shots": 1,
+      "n": 12,
+      "eval_nll_mean": -22.580103715260822,
+      "eval_nll_std": 1.5368079970515613,
+      "eval_rmse_mean": 0.07579232938587666,
+      "eval_rmse_std": 0.014226308092015314
+    },
+    {
+      "model": "dfwm",
+      "shots": 3,
+      "n": 12,
+      "eval_nll_mean": -22.704487323760986,
+      "eval_nll_std": 1.3797352534703926,
+      "eval_rmse_mean": 0.075115864786009,
+      "eval_rmse_std": 0.011392840222516699
+    },
+    {
+      "model": "dfwm",
+      "shots": 5,
+      "n": 12,
+      "eval_nll_mean": -22.678282260894775,
+      "eval_nll_std": 1.3139788700059454,
+      "eval_rmse_mean": 0.07419868372380733,
+      "eval_rmse_std": 0.011389995776702595
+    },
+    {
+      "model": "topology_only",
+      "shots": 0,
+      "n": 12,
+      "eval_nll_mean": -20.210374037424724,
+      "eval_nll_std": 0.8473720136014864,
+      "eval_rmse_mean": 0.08659560792148113,
+      "eval_rmse_std": 0.015320900214476308
+    },
+    {
+      "model": "topology_only",
+      "shots": 1,
+      "n": 12,
+      "eval_nll_mean": -20.210374037424724,
+      "eval_nll_std": 0.8473720136014864,
+      "eval_rmse_mean": 0.08659560792148113,
+      "eval_rmse_std": 0.015320900214476308
+    },
+    {
+      "model": "topology_only",
+      "shots": 3,
+      "n": 12,
+      "eval_nll_mean": -20.210374037424724,
+      "eval_nll_std": 0.8473720136014864,
+      "eval_rmse_mean": 0.08659560792148113,
+      "eval_rmse_std": 0.015320900214476308
+    },
+    {
+      "model": "topology_only",
+      "shots": 5,
+      "n": 12,
+      "eval_nll_mean": -20.210374037424724,
+      "eval_nll_std": 0.8473720136014864,
+      "eval_rmse_mean": 0.08659560792148113,
+      "eval_rmse_std": 0.015320900214476308
+    }
+  ],
+  "plot_written": true,
+  "claim_scope": "simulation-only mechanism evidence; not real-arm G0 evidence"
+}

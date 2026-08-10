@@ -1,0 +1,26 @@
+protocol:
+  split_file: config/splits/g1_5dof_v1.yaml
+  topologies: [D2, D3]
+  train_residuals: [nominal, weak_motor, high_damping, delay_1]
+  validation_residuals: [weak_motor, high_damping, delay_1, noisy_deadband]
+  test_residual: mixed_composition
+  calibration_shots: [0, 1, 2, 5]
+  calibration_evaluation_disjoint: true
+
+training:
+  seeds: [7, 17, 27]
+  epochs: 40
+  trajectories_per_train_domain: 2
+  trajectory_steps: 50
+  learning_rate: 0.003
+
+adaptation:
+  residual_dim: 8
+  latent_steps: 20
+  latent_learning_rate: 0.1
+  frozen_world_model: true
+  frozen_topology_encoder: true
+
+report:
+  primary_prediction_metrics: [eval_nll, eval_rmse]
+  claim_scope: simulation_only

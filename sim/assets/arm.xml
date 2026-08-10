@@ -1,0 +1,87 @@
+<!--
+arm.xml: 5-DoF actuated arm plus a fixed gripper tool.
+
+Kinematic parameters are derived from genkiarm.urdf and core.py kinematics,
+codified in hardware/arm_spec.yaml (single source of truth).
+
+Kinematic chain (all lengths in metres, angles in rad):
+    j1 (base yaw)  about world Z, J2 pitch axis at z = BASE_HEIGHT = 0.120
+    j2 (shoulder)  about arm-local Y, intersecting J1 at the same origin
+    j3 (elbow)     about arm-local Y, at L_UPPER = 0.110 from J2
+    j4 (wrist pit) about arm-local Y, at L_FOREARM = 0.120 from J3
+    j5 (wrist roll) about arm-local Z, at L_WRIST = 0.060 from J4
+    fixed tool offset [0,-0.0132,0.110] from J5; ee tip is 0.02 m farther
+
+The sixth servo opens the gripper and is not part of the positioning chain.
+
+Joint ranges are SAFE limits from core.py, not mechanical URDF limits.
+-->
+<mujoco model="arm5dof">
+  <compiler angle="radian" autolimits="true" coordinate="local" eulerseq="xyz"/>
+
+  <option gravity="0 0 -9.81" integrator="implicitfast" timestep="0.005"/>
+
+  <default>
+    <joint type="hinge" damping="0.1" armature="0.01" limited="true"/>
+    <geom type="capsule" rgba="0.55 0.6 0.65 1" contype="0" conaffinity="0"/>
+    <motor ctrllimited="true" ctrlrange="-1.5 1.5" forcerange="-1 1"/>
+  </default>
+
+  <worldbody>
+    <!-- Fixed base -->
+    <body name="base" pos="0 0 0">
+      <geom name="base_geom" type="box" size="0.045 0.045 0.03" pos="0 0 0.03"
+            rgba="0.35 0.38 0.42 1"/>
+      <body name="shoulder" pos="0 0 0.120">
+        <joint name="j1" axis="0 0 1" range="-1.4835 1.4835"/>
+        <geom name="shoulder_geom" type="sphere" size="0.025" pos="0 0 0"/>
+        <!-- J1/J2 origins intersect; J1 is Z-axis and J2 is local Y-axis. -->
+        <body name="shoulder_link" pos="0 0 0">
+          <body name="upper_arm" pos="0 0 0">
+            <joint name="j2" axis="0 1 0" range="-1.4835 1.4835"/>
+            <geom name="upper_geom" type="capsule" fromto="0 0 0 0 0 0.110" size="0.018"/>
+            <body name="elbow" pos="0 0 0.110">
+              <joint name="j3" axis="0 1 0" range="-1.6057 1.6057"/>
+              <geom name="forearm_geom" type="capsule" fromto="0 0 0 0 0 0.120" size="0.016"/>
+              <body name="wrist_pitch" pos="0 0 0.120">
+                <joint name="j4" axis="0 1 0" range="-1.6406 1.6057"/>
+                <geom name="wrist_pitch_geom" type="capsule" fromto="0 0 0 0 0 0.060" size="0.014"/>
+                <body name="wrist_roll" pos="0 0 0.060">
+                  <joint name="j5" axis="0 0 1" range="-1.5708 1.5708"/>
+                  <geom name="wrist_roll_geom" type="sphere" size="0.015"/>
+                  <body name="tool" pos="0 -0.0132 0.110">
+                    <geom name="tool_geom" type="capsule" fromto="0 0 0 0.02 0 0" size="0.012"/>
+                    <site name="ee" pos="0.02 0 0" size="0.008" rgba="1 0.2 0.2 1"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- Task frame: a reach target marked in world space -->
+    <body name="goal" pos="0.25 0.15 0.15">
+      <geom name="goal_geom" type="sphere" size="0.008" rgba="0.2 0.9 0.3 1"/>
+    </body>
+
+    <camera name="overview" pos="0.6 -0.8 0.7" xyaxes="1 0 0 0 1 0"/>
+  </worldbody>
+
+  <actuator>
+    <motor name="m1" joint="j1"/>
+    <motor name="m2" joint="j2"/>
+    <motor name="m3" joint="j3"/>
+    <motor name="m4" joint="j4"/>
+    <motor name="m5" joint="j5"/>
+  </actuator>
+
+  <sensor>
+    <jointpos name="qpos" joint="j1"/>
+    <jointpos name="qpos2" joint="j2"/>
+    <jointpos name="qpos3" joint="j3"/>
+    <jointpos name="qpos4" joint="j4"/>
+    <jointpos name="qpos5" joint="j5"/>
+  </sensor>
+</mujoco>

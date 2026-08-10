@@ -1,0 +1,6 @@
+actuator,position,raw
+gripper_open,closed_limit,1032
+gripper_open,safe_closed,1050
+gripper_open,half_open_reference,1646
+gripper_open,safe_open,2185
+gripper_open,open_limit,2203

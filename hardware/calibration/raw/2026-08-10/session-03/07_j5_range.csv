@@ -1,0 +1,6 @@
+joint,measurement,raw,deg_from_nearest_zero,notes
+J5,zero_reference,2066,0.0,reference pose
+J5,multiturn_observation,332,-152.4,mechanical stop required multiple turns; raw encoder wraps
+J5,returned_near_zero,2037,-2.5,cable relaxed and gripper horizontal
+J5,software_min,, -150.0,software limit chosen to prevent cable winding
+J5,software_max,,150.0,software limit chosen to prevent cable winding

@@ -1,0 +1,9 @@
+seed,domain,target,success,steps,final_distance_m,candidates
+17,D2__mixed_composition,eval_00,1,105,0.04995409438404964,16
+17,D2__mixed_composition,eval_01,1,75,0.048890501457523654,16
+17,D2__mixed_composition,eval_02,1,85,0.04983608761959434,16
+17,D2__mixed_composition,eval_03,1,65,0.04845982714920398,16
+17,D3__mixed_composition,eval_00,1,81,0.046059708088093634,16
+17,D3__mixed_composition,eval_01,1,72,0.04452898732500801,16
+17,D3__mixed_composition,eval_02,1,93,0.04993231730464391,16
+17,D3__mixed_composition,eval_03,1,63,0.04794816578009607,16

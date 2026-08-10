@@ -1,0 +1,36 @@
+{
+  "status": "five_dof_frozen_mpc_smoke_complete",
+  "scope": "engineering smoke, not G1 gate evidence",
+  "domain": "D3__mixed_composition",
+  "actor_or_wm_updated_at_deployment": false,
+  "topology_only": {
+    "success_rate": 0.0,
+    "mean_final_distance": 0.3679743392704442,
+    "mean_steps": 350.0,
+    "episodes": 2
+  },
+  "dfwm_0shot": {
+    "success_rate": 0.5,
+    "mean_final_distance": 0.07667045981796981,
+    "mean_steps": 334.0,
+    "episodes": 2
+  },
+  "dfwm_1shot": {
+    "success_rate": 1.0,
+    "mean_final_distance": 0.04856910518638918,
+    "mean_steps": 283.5,
+    "episodes": 2
+  },
+  "dfwm_2shot": {
+    "success_rate": 1.0,
+    "mean_final_distance": 0.04919803391696756,
+    "mean_steps": 273.5,
+    "episodes": 2
+  },
+  "dfwm_5shot": {
+    "success_rate": 1.0,
+    "mean_final_distance": 0.04992382439218365,
+    "mean_steps": 272.0,
+    "episodes": 2
+  }
+}

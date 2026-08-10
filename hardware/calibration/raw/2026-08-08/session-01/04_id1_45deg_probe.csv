@@ -1,0 +1,2 @@
+servo_id,origin_raw,start_raw,target_raw,target_read_raw,final_raw,requested_deg,reached_delta_deg,return_error_raw,speed_raw,acc_raw,torque_disabled_after,physical_joint,physical_direction,observer_notes
+1,2028,2028,2540,2535,2032,45.0,44.6,4,25,1,true,,,

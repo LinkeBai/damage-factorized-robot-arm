@@ -1,0 +1,2 @@
+servo_id,start_raw,target_raw,reached_raw,final_raw,move_deg,return_error_deg,torque_disabled_after,physical_joint,physical_direction,viewpoint
+5,3726,3897,3894,3730,14.8,0.4,true,,,

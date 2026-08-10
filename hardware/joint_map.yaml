@@ -1,0 +1,70 @@
+# Canonical five-joint positioning chain plus separate gripper actuator.
+
+calibration_status: zero_reference_measured
+gripper_open_is_separate: true
+
+joints:
+  - index: 0
+    canonical: J1
+    mujoco: j1
+    urdf: Rotation
+    role: base_yaw
+    servo_id: 1
+    command_channel: direct_goal_position
+    direction: 1  # encoder positive = clockwise viewed from above
+    zero_raw: 2023
+    unit: raw_ticks
+  - index: 1
+    canonical: J2
+    mujoco: j2
+    urdf: Rotation1
+    role: intermediate_1
+    servo_id: 2
+    command_channel: direct_goal_position
+    direction: 1  # encoder positive = upper arm lifts
+    zero_raw: 2066
+    unit: raw_ticks
+  - index: 2
+    canonical: J3
+    mujoco: j3
+    urdf: Rotation2
+    role: intermediate_2
+    servo_id: 3
+    command_channel: direct_goal_position
+    direction: 1  # encoder positive = forearm lifts
+    zero_raw: 2058
+    unit: raw_ticks
+  - index: 3
+    canonical: J4
+    mujoco: j4
+    urdf: Rotation3
+    role: intermediate_3
+    servo_id: 4
+    command_channel: direct_goal_position
+    direction: 1  # encoder positive = wrist pitches upward
+    zero_raw: 2076
+    unit: raw_ticks
+  - index: 4
+    canonical: J5
+    mujoco: j5
+    urdf: Rotation4
+    role: wrist
+    servo_id: 5
+    command_channel: direct_goal_position_auto_direction
+    goal_speed_raw: 0
+    acceleration_raw: 1
+    max_increment_deg: 10
+    validation_status: bidirectional_pass
+    direction: 1  # encoder positive = clockwise viewed from above
+    zero_raw: 2066
+    unit: raw_ticks
+gripper_open:
+  servo_id: 6
+  command_channel: direct_goal_position_auto_direction
+  goal_speed_raw: 0
+  acceleration_raw: 1
+  max_increment_raw: 300
+  validation_status: bidirectional_pass
+  direction: 1  # encoder positive = fingers move outward/open
+  zero_raw: 1646
+  unit: raw_ticks

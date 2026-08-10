@@ -1,0 +1,2 @@
+joint,start_raw,target_raw,reached_raw,return_target_raw,final_raw,speed_setting,direction_observed,result
+J1,2025,2194,2190,2023,2027,20,clockwise_then_counterclockwise,pass

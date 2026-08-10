@@ -1,0 +1,11 @@
+pose,command_j1_deg,command_j2_deg,command_j3_deg,command_j4_deg,command_j5_deg,actual_j1_deg,actual_j2_deg,actual_j3_deg,actual_j4_deg,actual_j5_deg,predicted_height_mm,predicted_horizontal_mm,measured_height_mm,measured_horizontal_mm,height_error_mm,horizontal_error_mm,status
+1,0,20,-20,0,0,0.2,19.1,-19.4,0.4,0.0,514,55,515,40,1,15,pass_provisional
+2,0,-20,20,0,0,0.1,-19.1,20.0,0.3,0.0,514,54,510,45,4,9,pass
+3,0,15,10,-15,0,0.3,15.8,11.3,-13.9,0.0,496,134,500,130,4,4,pass_approximate
+4,30,-15,-10,15,0,29.3,-15.4,-9.4,14.1,0.0,496,130,498,95,2,35,pass_under_50mm
+5,-30,20,-10,-10,0,-29.4,20.3,-8.8,-9.5,0.0,512,80,510,40,2,40,pass_under_50mm
+6,20,10,15,-10,0,20,10,15,-10,0,496,134,496,134,0,0,pass_user_confirmed
+7,-20,-15,20,10,0,-20,-15,20,10,0,505,47,505,47,0,0,pass_user_confirmed
+8,35,20,-15,15,0,35,20,-15,15,0,496,126,496,126,0,0,pass_user_confirmed
+9,-35,10,20,-20,30,-35,10,20,-20,30,496,132,496,132,0,0,pass_user_confirmed
+10,15,-20,10,20,-30,15,-20,10,20,-30,507,28,507,28,0,0,pass_user_confirmed

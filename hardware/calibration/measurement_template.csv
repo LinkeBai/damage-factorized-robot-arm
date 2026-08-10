@@ -1,0 +1,7 @@
+timestamp,joint,servo_id,command_deg,feedback_deg,external_deg,current_ma,temp_c,latency_ms,load_state,lock_state,notes
+,j1,,,,,,,,free,unlocked,
+,j2,,,,,,,,free,unlocked,
+,j3,,,,,,,,free,unlocked,
+,j4,,,,,,,,free,unlocked,
+,j5,,,,,,,,free,unlocked,
+,j6,,,,,,,,free,unlocked,

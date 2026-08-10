@@ -1,0 +1,7 @@
+timestamp_local,port,baudrate,servo_id,status,present_position_raw,nominal_deg_from_2048,command_sent,notes
+2026-08-08,COM3,1000000,1,ok,2020,-2.46,false,read-only initial snapshot
+2026-08-08,COM3,1000000,2,ok,1587,-40.52,false,read-only initial snapshot
+2026-08-08,COM3,1000000,3,ok,3202,101.43,false,read-only initial snapshot
+2026-08-08,COM3,1000000,4,ok,3228,103.71,false,read-only initial snapshot
+2026-08-08,COM3,1000000,5,ok,4067,177.45,false,read-only initial snapshot
+2026-08-08,COM3,1000000,6,ok,1047,-87.98,false,read-only initial snapshot

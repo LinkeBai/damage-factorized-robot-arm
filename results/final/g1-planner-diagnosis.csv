@@ -1,0 +1,13 @@
+seed,domain,shots,horizon,candidates,iterations,success_rate,mean_final_distance,mean_steps,episodes
+17,D2__mixed_composition,0,5,32,2,0.0,0.4894793175360149,300.0,1
+17,D2__mixed_composition,0,10,128,4,0.0,0.19580268147524862,300.0,1
+17,D2__mixed_composition,0,15,256,6,0.0,0.45058518200192527,300.0,1
+17,D2__mixed_composition,5,5,32,2,0.0,0.46716239656737685,300.0,1
+17,D2__mixed_composition,5,10,128,4,0.0,0.4346609864214209,300.0,1
+17,D2__mixed_composition,5,15,256,6,0.0,0.36295826532234815,300.0,1
+17,D3__mixed_composition,0,5,32,2,0.0,0.4074944070861705,300.0,1
+17,D3__mixed_composition,0,10,128,4,0.0,0.2776651029975387,300.0,1
+17,D3__mixed_composition,0,15,256,6,0.0,0.29724532519548647,300.0,1
+17,D3__mixed_composition,5,5,32,2,0.0,0.32226788947466595,300.0,1
+17,D3__mixed_composition,5,10,128,4,0.0,0.45770078769053407,300.0,1
+17,D3__mixed_composition,5,15,256,6,0.0,0.49966457194405517,300.0,1

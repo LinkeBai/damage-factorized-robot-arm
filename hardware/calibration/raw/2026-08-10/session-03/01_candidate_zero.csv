@@ -1,0 +1,7 @@
+joint,servo_id,reference_pose,present_position_raw,accepted,notes
+J1,1,base forward,2023,true,near encoder center
+J2,2,upper arm vertical,2066,true,near encoder center
+J3,3,forearm collinear,2059,true,near encoder center
+J4,4,wrist collinear,2076,true,near encoder center
+J5,5,gripper fingers horizontal,4087,false,too close to 4095 boundary
+gripper_open,6,approximately 45 degrees open,1648,true,candidate half-open reference

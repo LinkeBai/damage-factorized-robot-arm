@@ -1,0 +1,2 @@
+servo_id,torque_before,start_raw,up_target_raw,up_read_raw,back_read_raw,requested_deg,reached_delta_deg,return_confirmed,torque_disabled_after,physical_joint,physical_direction,observer_notes
+3,0,2746,2689,2746,2746,5.0,0.0,false,true,,,upward motion did not respond; support remained in place

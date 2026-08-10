@@ -1,0 +1,2 @@
+servo_id,torque_before,origin_raw,start_raw,target_raw,target_read_raw,final_raw,requested_deg,reached_delta_deg,return_error_raw,speed_raw,acc_raw,torque_disabled_after,physical_joint,physical_direction,observer_notes
+3,0,2581,2581,2638,2637,2637,5.0,4.9,56,20,1,true,,,

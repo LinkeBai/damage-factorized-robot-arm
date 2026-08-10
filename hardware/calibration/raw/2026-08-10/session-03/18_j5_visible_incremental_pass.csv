@@ -1,0 +1,2 @@
+joint,start_raw,peak_raw,return_raw,command_profile,observed_motion,result
+J5,2023,2361,2028,speed_0_acceleration_1_max_increment_10deg,clockwise_30deg_then_counterclockwise_return,pass

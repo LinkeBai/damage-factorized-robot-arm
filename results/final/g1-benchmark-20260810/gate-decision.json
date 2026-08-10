@@ -1,0 +1,20 @@
+{
+  "stage": "G1",
+  "date": "2026-08-10",
+  "status": "complete_no_go",
+  "prediction_gate": {
+    "status": "pass_narrow",
+    "topology_only_rmse": 0.0704196487,
+    "dfwm_k5_rmse": 0.0676000000,
+    "relative_improvement_percent": 4.0,
+    "improving_seeds": [17, 27],
+    "total_seeds": 3
+  },
+  "frozen_control_gate": {
+    "status": "fail",
+    "topology_only_successes": 0,
+    "dfwm_successes_by_k": {"0": 0, "1": 0, "2": 0, "5": 0},
+    "episodes_per_method": 2
+  },
+  "decision": "Do not enter G2; execute stable-control and multi-step-model pivot."
+}

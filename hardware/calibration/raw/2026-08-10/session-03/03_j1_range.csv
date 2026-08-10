@@ -1,0 +1,4 @@
+joint,position,raw,deg_from_zero
+J1,counterclockwise_limit,981,-91.6
+J1,zero_reference,2023,0.0
+J1,clockwise_limit,3087,93.5

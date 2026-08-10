@@ -1,0 +1,4 @@
+joint,hold_s,start_raw,final_raw,drift_ticks,max_current_raw,max_temp_c,result
+J2,10,1981,1981,0,0,31,pass_unloaded
+J3,5,2059,2059,0,0,32,pass_unloaded
+J4,5,2102,2102,0,1,32,pass_unloaded

@@ -1,0 +1,2 @@
+joint,start_raw,command_target_raw,reached_raw,return_target_raw,final_raw,observed_motion,result
+J5,2060,2237,1796,2066,1490,about_45_deg_counterclockwise_and_excess_motion,fail_special_control_mode_required

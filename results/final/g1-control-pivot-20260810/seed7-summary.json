@@ -1,0 +1,127 @@
+{
+  "status": "g1_control_gate_complete",
+  "seeds": [
+    7
+  ],
+  "domains": [
+    "D2__mixed_composition",
+    "D3__mixed_composition"
+  ],
+  "shots": [
+    0,
+    1,
+    2,
+    5
+  ],
+  "evaluation_targets": [
+    "eval_00"
+  ],
+  "actor_or_world_model_updated_at_deployment": false,
+  "data_policy": "controller_induced",
+  "multi_step_training_horizon": 5,
+  "planner_candidates": 64,
+  "max_steps": 400,
+  "wall_clock_seconds": 311.7885698999744,
+  "rows": [
+    {
+      "seed": 7,
+      "domain": "D2__mixed_composition",
+      "model": "topology_only",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.335493354846464,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.09652117976982397,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 1,
+      "success_rate": 1.0,
+      "mean_final_distance": 0.049939621543168444,
+      "mean_steps": 381.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 2,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.06581017165604874,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D2__mixed_composition",
+      "model": "dfwm",
+      "shots": 5,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.07672489151311354,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D3__mixed_composition",
+      "model": "topology_only",
+      "shots": 0,
+      "success_rate": 0.0,
+      "mean_final_distance": 0.27578168288828253,
+      "mean_steps": 400.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 0,
+      "success_rate": 1.0,
+      "mean_final_distance": 0.04994047893539071,
+      "mean_steps": 318.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 1,
+      "success_rate": 1.0,
+      "mean_final_distance": 0.04921863838608063,
+      "mean_steps": 295.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 2,
+      "success_rate": 1.0,
+      "mean_final_distance": 0.04873367911820753,
+      "mean_steps": 273.0,
+      "episodes": 1
+    },
+    {
+      "seed": 7,
+      "domain": "D3__mixed_composition",
+      "model": "dfwm",
+      "shots": 5,
+      "success_rate": 1.0,
+      "mean_final_distance": 0.04756631481288449,
+      "mean_steps": 275.0,
+      "episodes": 1
+    }
+  ]
+}

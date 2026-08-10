@@ -1,0 +1,2 @@
+joint,start_raw,target_raw,before_stop_raw,at_stop_raw,position_100ms,position_500ms,command_ms,post_stop_drift_ticks,result
+J1,2026,2368,2096,2098,2098,2098,102.7,0,pass

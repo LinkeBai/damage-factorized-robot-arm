@@ -1,0 +1,5 @@
+elapsed_s,cycle,locked_joint,phase,locked_deg,drift_deg,max_temp_c
+4.0,1,J2,loaded_hold,-0.44,0.09,35
+13.1,2,J3,loaded_hold,0.18,0.53,35
+22.2,3,J4,loaded_hold,-0.70,0.44,35
+31.2,4,J2,loaded_hold,0.62,0.53,35

@@ -1,0 +1,2 @@
+joint,start_raw,target_raw,reached_raw,return_target_raw,final_raw,speed_setting,direction_observed,result
+J3,2048,2172,2170,2058,2066,20,lift_then_return,pass

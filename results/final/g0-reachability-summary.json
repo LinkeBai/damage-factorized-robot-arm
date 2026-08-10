@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "date": "2026-08-10",
+  "model": "calibrated_simple_5dof",
+  "samples_per_morphology": 50000,
+  "morphologies": ["intact", "D2", "D3", "D4"],
+  "voxel_size_m": 0.03,
+  "common_reachable_voxels": 1601,
+  "sampled_common_targets": 12,
+  "dataset_integrity": {
+    "intact": true,
+    "D2": true,
+    "D3": true,
+    "D4": true
+  }
+}

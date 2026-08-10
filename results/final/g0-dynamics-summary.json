@@ -1,0 +1,38 @@
+{
+  "date": "2026-08-10",
+  "ticks_per_degree": 11.3777778,
+  "zero_repeatability_ticks": 0,
+  "visible_round_trip_error_deg": {
+    "j1": 0.35,
+    "j2": 0.53,
+    "j3": 0.70,
+    "j4": 0.53,
+    "j5": 0.40
+  },
+  "j1_sampled_step": {
+    "motion_deg": 5.89,
+    "first_visible_response_ms": 393,
+    "settled_ms": 1522,
+    "note": "sample timestamps are relative to logging start, not a synchronized command edge"
+  },
+  "emergency_stop_command_ms": 102.7,
+  "emergency_stop_drift_ticks": 0,
+  "loaded_lock_max_drift_ticks": 0,
+  "repeatability_max_reversal_deg": 3.08,
+  "repeatability_final_run_max_drift_deg": 0.79,
+  "maximum_observed_temperature_c": 39,
+  "maximum_observed_current_raw": 2,
+  "step_response": {
+    "j2_j4_onset_ms_range": [508.2, 664.7],
+    "j2_j4_settle_ms_range": [2166.3, 2394.1],
+    "j5_onset_ms_range": [104.5, 298.1],
+    "j5_settle_ms_range": [609.5, 622.5],
+    "final_error_max_deg": 1.41
+  },
+  "current_ma_conversion": null,
+  "unmeasured": [
+    "synchronized step response for J2-J5",
+    "physical current in mA",
+    "identified mass, inertia, damping, and friction"
+  ]
+}

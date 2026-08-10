@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<robot name="genkiarm_calibrated_5dof">
+  <!-- G0-calibrated kinematic URDF. Inertials are conservative placeholders,
+       not identified hardware dynamics. Gripper opening is a separate servo. -->
+  <material name="arm_gray"><color rgba="0.72 0.76 0.80 1"/></material>
+  <material name="tool_orange"><color rgba="0.88 0.36 0.22 1"/></material>
+
+  <link name="base">
+    <visual><origin xyz="0.01274 0 0.020"/><geometry><mesh filename="genkiarm/meshes/AA.stl" scale="0.001 0.001 0.001"/></geometry><material name="arm_gray"/></visual>
+    <collision><origin xyz="0 0 0.030"/><geometry><box size="0.09 0.09 0.06"/></geometry></collision>
+    <inertial><origin xyz="0 0 0.03"/><mass value="0.10"/><inertia ixx="0.00010" ixy="0" ixz="0" iyy="0.00010" iyz="0" izz="0.00010"/></inertial>
+  </link>
+  <link name="link1">
+    <visual><origin xyz="0.01274 0 -0.100"/><geometry><mesh filename="genkiarm/meshes/BB.stl" scale="0.001 0.001 0.001"/></geometry><material name="arm_gray"/></visual>
+    <collision><geometry><sphere radius="0.025"/></geometry></collision>
+    <inertial><mass value="0.08"/><inertia ixx="0.00008" ixy="0" ixz="0" iyy="0.00008" iyz="0" izz="0.00008"/></inertial>
+  </link>
+  <link name="link2">
+    <visual><origin xyz="0.01274 0 -0.100"/><geometry><mesh filename="genkiarm/meshes/CC.stl" scale="0.001 0.001 0.001"/></geometry><material name="arm_gray"/></visual>
+    <collision><origin xyz="0 0 0.055"/><geometry><cylinder radius="0.018" length="0.110"/></geometry></collision>
+    <inertial><origin xyz="0 0 0.055"/><mass value="0.08"/><inertia ixx="0.00010" ixy="0" ixz="0" iyy="0.00010" iyz="0" izz="0.00002"/></inertial>
+  </link>
+  <link name="link3">
+    <visual><origin xyz="0.01274 0 -0.210"/><geometry><mesh filename="genkiarm/meshes/DD.stl" scale="0.001 0.001 0.001"/></geometry><material name="arm_gray"/></visual>
+    <collision><origin xyz="0 0 0.060"/><geometry><cylinder radius="0.016" length="0.120"/></geometry></collision>
+    <inertial><origin xyz="0 0 0.060"/><mass value="0.08"/><inertia ixx="0.00011" ixy="0" ixz="0" iyy="0.00011" iyz="0" izz="0.00002"/></inertial>
+  </link>
+  <link name="link4">
+    <visual><origin xyz="0.01274 0 -0.330"/><geometry><mesh filename="genkiarm/meshes/EE.stl" scale="0.001 0.001 0.001"/></geometry><material name="arm_gray"/></visual>
+    <collision><origin xyz="0 0 0.030"/><geometry><cylinder radius="0.014" length="0.060"/></geometry></collision>
+    <inertial><origin xyz="0 0 0.030"/><mass value="0.06"/><inertia ixx="0.00004" ixy="0" ixz="0" iyy="0.00004" iyz="0" izz="0.00001"/></inertial>
+  </link>
+  <link name="link5">
+    <visual><origin xyz="0.01274 0 -0.390"/><geometry><mesh filename="genkiarm/meshes/FF.stl" scale="0.001 0.001 0.001"/></geometry><material name="arm_gray"/></visual>
+    <collision><geometry><sphere radius="0.020"/></geometry></collision>
+    <inertial><mass value="0.05"/><inertia ixx="0.00003" ixy="0" ixz="0" iyy="0.00003" iyz="0" izz="0.00003"/></inertial>
+  </link>
+  <link name="tool">
+    <visual><origin xyz="0.01274 0.0132 -0.500"/><geometry><mesh filename="genkiarm/meshes/GG.stl" scale="0.001 0.001 0.001"/></geometry><material name="tool_orange"/></visual>
+    <collision><origin xyz="0.010 0 0" rpy="0 1.5708 0"/><geometry><cylinder radius="0.012" length="0.020"/></geometry></collision>
+    <inertial><mass value="0.02"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial>
+  </link>
+  <link name="tcp"/>
+
+  <joint name="j1" type="revolute"><parent link="base"/><child link="link1"/><origin xyz="0 0 0.120"/><axis xyz="0 0 1"/><limit lower="-1.4835" upper="1.4835" effort="1.0" velocity="0.0873"/><dynamics damping="0.1" friction="0.0"/></joint>
+  <joint name="j2" type="revolute"><parent link="link1"/><child link="link2"/><axis xyz="0 1 0"/><limit lower="-1.4835" upper="1.4835" effort="1.0" velocity="0.0873"/><dynamics damping="0.1" friction="0.0"/></joint>
+  <joint name="j3" type="revolute"><parent link="link2"/><child link="link3"/><origin xyz="0 0 0.110"/><axis xyz="0 1 0"/><limit lower="-1.6057" upper="1.6057" effort="1.0" velocity="0.0873"/><dynamics damping="0.1" friction="0.0"/></joint>
+  <joint name="j4" type="revolute"><parent link="link3"/><child link="link4"/><origin xyz="0 0 0.120"/><axis xyz="0 1 0"/><limit lower="-1.6406" upper="1.6057" effort="1.0" velocity="0.0873"/><dynamics damping="0.1" friction="0.0"/></joint>
+  <joint name="j5" type="revolute"><parent link="link4"/><child link="link5"/><origin xyz="0 0 0.060"/><axis xyz="0 0 1"/><limit lower="-1.5708" upper="1.5708" effort="1.0" velocity="0.0873"/><dynamics damping="0.1" friction="0.0"/></joint>
+  <joint name="tool_fixed" type="fixed"><parent link="link5"/><child link="tool"/><origin xyz="0 -0.0132 0.110"/></joint>
+  <joint name="tcp_fixed" type="fixed"><parent link="tool"/><child link="tcp"/><origin xyz="0.020 0 0"/></joint>
+</robot>

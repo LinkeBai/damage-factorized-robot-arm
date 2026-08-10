@@ -1,0 +1,2 @@
+phase,start_raw,target_raw,reached_raw,return_target_raw,abort_raw,result
+negative_test,2039,1952,1957,2066,1896,negative_direction_pass_positive_direction_failed_watchdog_abort

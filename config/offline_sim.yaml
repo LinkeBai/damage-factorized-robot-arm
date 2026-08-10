@@ -1,0 +1,33 @@
+project_dof: 5
+model:
+  algorithm_variant: simple
+  visual_variant: mesh
+  gripper_policy: separate_open_close_actuator
+
+damage:
+  conditions: [D2, D3, D4]
+  lock_angles_rad:
+    D2: 0.5
+    D3: -0.5
+    D4: 0.9
+
+reachability:
+  samples_per_morphology: 20000
+  voxel_size_m: 0.03
+  target_count: 20
+  seed: 7
+
+world_model:
+  topology_dim: 64
+  residual_dim: 8
+  context_dim: 72
+  latent_steps: 50
+  latent_lr: 0.1
+
+calibration:
+  trajectories: 5
+  steps_per_trajectory: 40
+
+notes:
+  - Mesh mass, inertia, damping and motor strength are placeholders.
+  - Replace all hardware safety nulls before real-arm motion.

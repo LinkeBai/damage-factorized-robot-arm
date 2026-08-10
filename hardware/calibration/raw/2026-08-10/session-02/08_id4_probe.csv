@@ -1,0 +1,2 @@
+servo_id,start_raw,target_raw,reached_raw,final_raw,move_deg,return_error_deg,torque_disabled_after,physical_joint,physical_direction
+4,2681,2795,2794,2716,9.9,3.1,true,,

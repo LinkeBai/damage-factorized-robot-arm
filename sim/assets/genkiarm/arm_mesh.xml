@@ -1,0 +1,89 @@
+<!--
+Full GenkiArm visual model adapted from the senior project's test4.xml.
+
+The source STL files are authored in millimetres in a shared/global CAD frame.
+Each mesh is translated onto the measured G0 skeleton without deforming it.
+The project API controls j1-j5; servo 6 opens the gripper.
+
+Masses, damping, armature, and control gains are conservative simulation
+placeholders. Replace them from hardware/calibration before sim-to-real use.
+-->
+<mujoco model="genkiarm_mesh_5dof">
+  <compiler angle="radian" meshdir="meshes" autolimits="true"/>
+  <option gravity="0 0 -9.81" timestep="0.005" integrator="implicitfast"/>
+
+  <asset>
+    <mesh name="mesh_base" file="AA.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="mesh_j1" file="BB.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="mesh_j2" file="CC.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="mesh_j3" file="DD.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="mesh_j4" file="EE.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="mesh_j5" file="FF.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="mesh_tool" file="GG.stl" scale="0.001 0.001 0.001"/>
+  </asset>
+
+  <default>
+    <joint type="hinge" limited="true" damping="0.25" armature="0.01"/>
+    <geom type="mesh" rgba="0.72 0.76 0.80 1" contype="0" conaffinity="0"/>
+    <motor ctrllimited="true" ctrlrange="-1.5 1.5" forcelimited="true"
+           forcerange="-2 2"/>
+  </default>
+
+  <worldbody>
+    <light pos="0 -1 1.5" dir="0 1 -1" diffuse="0.8 0.8 0.8"/>
+    <geom name="floor" type="plane" size="1.5 1.5 0.05"
+          rgba="0.18 0.20 0.22 1" contype="1" conaffinity="1"/>
+
+    <body name="base" pos="0 0 0">
+      <geom name="base_geom" mesh="mesh_base" pos="0.01274 0 0.020" mass="0.10" rgba="0.24 0.28 0.32 1"/>
+      <body name="link1" pos="0 0 0">
+        <joint name="j1" axis="0 0 1" range="-1.4835 1.4835" pos="0 0 0.120"/>
+        <geom name="link1_geom" mesh="mesh_j1" pos="0.01274 0 0.020" mass="0.08"/>
+        <body name="link2" pos="0 0 0">
+          <joint name="j2" axis="0 1 0" range="-1.4835 1.4835"
+                 pos="0 0 0.120"/>
+          <geom name="link2_geom" mesh="mesh_j2" pos="0.01274 0 0.020" mass="0.08"/>
+          <body name="link3" pos="0 0 0">
+            <joint name="j3" axis="0 1 0" range="-1.6057 1.6057"
+                   pos="0 0 0.230"/>
+            <geom name="link3_geom" mesh="mesh_j3" pos="0.01274 0 0.020" mass="0.08"/>
+            <body name="link4" pos="0 0 0">
+              <joint name="j4" axis="0 1 0" range="-1.6406 1.6057"
+                     pos="0 0 0.350"/>
+              <geom name="link4_geom" mesh="mesh_j4" pos="0.01274 0 0.020" mass="0.06"/>
+              <body name="link5" pos="0 0 0">
+                <joint name="j5" axis="0 0 1" range="-1.5708 1.5708"
+                       pos="0 0 0.410"/>
+                <geom name="link5_geom" mesh="mesh_j5" pos="0.01274 0 0.020" mass="0.05"/>
+                <body name="tool" pos="0 0 0">
+                  <geom name="tool_geom" mesh="mesh_tool" mass="0.02"
+                        pos="0.01274 0 0.020" rgba="0.88 0.36 0.22 1"/>
+                  <site name="ee" pos="0.020 -0.0132 0.520"
+                        size="0.012" rgba="1 0.15 0.1 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="goal" pos="0.25 0.15 0.25">
+      <geom name="goal_geom" type="sphere" size="0.015" mass="0"
+            rgba="0.2 0.9 0.3 1" contype="0" conaffinity="0"/>
+    </body>
+    <camera name="overview" pos="0.80 -1.00 0.82" xyaxes="0.8 0.6 0 -0.35 0.47 0.81"/>
+  </worldbody>
+
+  <actuator>
+    <motor name="m1" joint="j1"/>
+    <motor name="m2" joint="j2"/>
+    <motor name="m3" joint="j3"/>
+    <motor name="m4" joint="j4"/>
+    <motor name="m5" joint="j5"/>
+  </actuator>
+
+  <keyframe>
+    <key name="home" qpos="0 0 0 0 0"/>
+  </keyframe>
+</mujoco>

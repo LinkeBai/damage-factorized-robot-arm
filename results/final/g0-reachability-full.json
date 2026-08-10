@@ -1,0 +1,17 @@
+{
+  "status": "complete",
+  "samples_per_morphology": 100000,
+  "voxel_size_m": 0.025,
+  "morphologies": [
+    "intact",
+    "D2",
+    "D3",
+    "D4"
+  ],
+  "position_only_common_voxels": 2591,
+  "orientation_constraint": {
+    "tool_z_max_tilt_deg": 30.0
+  },
+  "orientation_constrained_common_voxels": 324,
+  "orientation_fraction_of_position": 0.12504824392126593
+}

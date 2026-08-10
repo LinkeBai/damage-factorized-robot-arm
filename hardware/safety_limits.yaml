@@ -1,0 +1,33 @@
+# G0 safety limits. Null values must be measured on the real arm.
+# Do not enable automated hardware motion while required J1-J5 values are null.
+
+status: g0_measured_conservative
+estop:
+  method: sequential_torque_disable_ids_1_to_6
+  tested: true
+  test_date: 2026-08-10
+  measured_command_ms: 102.7
+  post_stop_drift_ticks_500ms: 0
+
+communications:
+  command_timeout_ms: 250
+  feedback_timeout_ms: 250
+  stop_on_feedback_loss: true
+
+joints:
+  - {name: j1, servo_id: 1, zero_raw: 2023, direction: 1, min_deg: -85, max_deg: 85, max_speed_deg_s: 5, max_current_ma: null, max_temp_c: null}
+  - {name: j2, servo_id: 2, zero_raw: 2066, direction: 1, min_deg: -85, max_deg: 85, max_speed_deg_s: 5, max_current_ma: null, max_temp_c: null}
+  - {name: j3, servo_id: 3, zero_raw: 2058, direction: 1, min_deg: -92, max_deg: 92, max_speed_deg_s: 5, max_current_ma: null, max_temp_c: null}
+  - {name: j4, servo_id: 4, zero_raw: 2076, direction: 1, min_deg: -94, max_deg: 92, max_speed_deg_s: 5, max_current_ma: null, max_temp_c: null}
+  - {name: j5, servo_id: 5, zero_raw: 2066, direction: 1, min_deg: -90, max_deg: 90, max_speed_deg_s: 5, max_current_ma: null, max_temp_c: null}
+
+gripper_open:
+  {servo_id: 6, zero_raw: 1646, direction: 1, min_raw: 1050, max_raw: 2185, max_speed_raw: null}
+
+damage_test:
+  lockable_joints: [j2, j3, j4]
+  max_lock_hold_s: 10
+  abort_current_ma: null
+  abort_current_raw: 400
+  abort_temp_c: 50
+  max_lock_drift_deg: 3.5
