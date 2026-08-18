@@ -88,6 +88,8 @@ def main() -> None:
     print(f"\n=== DFWM vs baseline (K={args.shot}), paired across seed x domain ===")
     n_domain = len(domains)
     for base in BASELINES:
+        if base not in models:
+            continue
         diffs = np.zeros((len(seeds), n_domain))
         wins_by_seed = []
         for si, seed in enumerate(seeds):

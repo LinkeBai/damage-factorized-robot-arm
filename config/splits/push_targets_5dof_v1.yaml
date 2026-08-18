@@ -1,0 +1,19 @@
+version: push_targets_5dof_v1
+status: provisional_common_contact_d2_d3_2026-08-18
+source: controller_contact_probe_common_workspace
+voxel_size_m: 0.01
+
+calibration:
+  - {id: push_cal_00, xyz: [0.270, 0.100, 0.025]}
+  - {id: push_cal_01, xyz: [0.280, 0.090, 0.025]}
+  - {id: push_cal_02, xyz: [0.280, 0.110, 0.025]}
+  - {id: push_cal_03, xyz: [0.290, 0.100, 0.025]}
+
+validation:
+  - {id: push_val_00, xyz: [0.275, 0.095, 0.025]}
+  - {id: push_val_01, xyz: [0.275, 0.105, 0.025]}
+
+evaluation:
+  - {id: push_eval_00, xyz: [0.285, 0.095, 0.025]}
+  - {id: push_eval_01, xyz: [0.285, 0.105, 0.025]}
+  - {id: push_eval_02, xyz: [0.295, 0.100, 0.025]}

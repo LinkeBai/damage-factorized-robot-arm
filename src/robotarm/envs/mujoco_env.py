@@ -61,6 +61,7 @@ class MujocoArmEnv:
         *,
         model_variant: str = "simple",
         residual_physics: ResidualPhysicsConfig | None = None,
+        block_initial_xy: npt.ArrayLike | None = None,
     ) -> None:
         if xml_path is None:
             try:
@@ -105,6 +106,9 @@ class MujocoArmEnv:
             except KeyError:
                 pass
         self._residual_physics = residual_physics or ResidualPhysicsConfig()
+        self._block_initial_xy = None if block_initial_xy is None else np.asarray(
+            block_initial_xy, dtype=np.float64
+        ).reshape(2)
         self._ctrl_scale = np.asarray(
             ctrl_scale if ctrl_scale is not None else _DEFAULT_CTRL_SCALE,
             dtype=np.float64,
@@ -149,6 +153,9 @@ class MujocoArmEnv:
 
         self.model.body(self._goal_body).pos = self._target
         mujoco.mj_resetData(self.model, self.data)
+        if self._block_initial_xy is not None and len(self._block_qpos_adr) == 2:
+            block_origin = self.model.body("block").pos[:2]
+            self.data.qpos[self._block_qpos_adr] = self._block_initial_xy - block_origin
         self._rng = np.random.default_rng(
             self._residual_physics.seed + self._episode_index
         )
