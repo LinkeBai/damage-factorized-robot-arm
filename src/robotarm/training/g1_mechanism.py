@@ -662,6 +662,12 @@ def evaluate_test_domain(
                 eval_actions,
                 residual_context,
             )
+            residual_multi_rmse = multi_step_rollout_rmse(
+                models.residual_only_world_model,
+                eval_states,
+                eval_actions,
+                residual_context,
+            )
         rows.append(
             {
                 "domain": domain.domain_id,
@@ -671,6 +677,7 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(residual_nll),
                 "eval_rmse": float(residual_rmse),
+                "multi_step_rmse": float(residual_multi_rmse),
                 "residual_norm": float(residual_only_z.norm()),
                 "adaptation_seconds": residual_adaptation_seconds,
             }
@@ -709,6 +716,12 @@ def evaluate_test_domain(
                 eval_actions,
                 monolithic_batch,
             )
+            monolithic_multi_rmse = multi_step_rollout_rmse(
+                models.monolithic_world_model,
+                eval_states,
+                eval_actions,
+                monolithic_batch,
+            )
         rows.append(
             {
                 "domain": domain.domain_id,
@@ -718,6 +731,7 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(monolithic_nll),
                 "eval_rmse": float(monolithic_rmse),
+                "multi_step_rmse": float(monolithic_multi_rmse),
                 "residual_norm": float(monolithic_z.norm()),
                 "adaptation_seconds": monolithic_adaptation_seconds,
             }
@@ -750,6 +764,12 @@ def evaluate_test_domain(
                 eval_actions,
                 history_batch,
             )
+            history_multi_rmse = multi_step_rollout_rmse(
+                models.history_world_model,
+                eval_states,
+                eval_actions,
+                history_batch,
+            )
         rows.append(
             {
                 "domain": domain.domain_id,
@@ -759,6 +779,7 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(history_nll),
                 "eval_rmse": float(history_rmse),
+                "multi_step_rmse": float(history_multi_rmse),
                 "residual_norm": float(history_z.norm()),
                 "adaptation_seconds": history_adaptation_seconds,
             }
@@ -798,6 +819,12 @@ def evaluate_test_domain(
                 eval_actions,
                 pm_batch,
             )
+            pm_multi_rmse = multi_step_rollout_rmse(
+                models.pm_world_model,
+                eval_states,
+                eval_actions,
+                pm_batch,
+            )
         rows.append(
             {
                 "domain": domain.domain_id,
@@ -807,6 +834,7 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(pm_nll),
                 "eval_rmse": float(pm_rmse),
+                "multi_step_rmse": float(pm_multi_rmse),
                 "residual_norm": float(pm_z.norm()),
                 "adaptation_seconds": pm_adaptation_seconds,
             }
