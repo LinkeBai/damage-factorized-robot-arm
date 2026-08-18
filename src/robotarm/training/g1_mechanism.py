@@ -10,6 +10,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from robotarm.envs.damage import DamageConfig
+from robotarm.envs.residual_physics import residual_profile
 from robotarm.models.history_encoder import HistoryEncoder
 from robotarm.models.residual_context import (
     LatentOptConfig,
@@ -203,6 +204,9 @@ def train_mechanism_models(
     validation_trajectories: list[SimTrajectory] | None = None,
     lr_min_ratio: float = 0.1,
     early_stop_every: int = 5,
+    residual_supervision_weight: float = 0.0,
+    residual_consistency_weight: float = 0.0,
+    history_supervision_weight: float = 0.0,
 ) -> TrainedMechanismModels:
     """Train matched topology-only and DFWM predictors on identical data.
 
@@ -225,6 +229,29 @@ def train_mechanism_models(
         device=device,
     )
     states, actions = _stack_trajectories(trajectories, device)
+
+    def residual_descriptor(name: str) -> torch.Tensor:
+        cfg = residual_profile(name)
+        values = [
+            1.0 - float(np.mean(cfg.actuator_scale)),
+            float(np.log(cfg.damping_scale)),
+            float(np.log(cfg.friction_scale)),
+            cfg.control_delay_steps / 2.0,
+            cfg.action_deadband / 0.1,
+            float(np.mean(cfg.backlash)) / 0.05,
+            cfg.payload_mass_delta_kg / 0.05,
+            cfg.observation_noise_std / 0.005,
+        ]
+        return torch.tensor(values, dtype=states.dtype, device=device)
+
+    residual_targets = torch.stack([
+        residual_descriptor(trajectory.domain_id.split("__", 1)[1])
+        for trajectory in trajectories
+    ])
+    domain_residual_names = [domain.residual_name for domain in train_domains]
+    domain_residual_targets = torch.stack([
+        residual_descriptor(name) for name in domain_residual_names
+    ])
 
     topology_encoder = TopologyEncoder().to(device)
     topology_wm = WorldModel(
@@ -382,6 +409,7 @@ def train_mechanism_models(
             history_topology_encoder, damages, joint_ranges, device
         )
         history_nll = torch.zeros((), device=device)
+        history_supervision = torch.zeros((), device=device)
         for domain_idx in range(len(train_domains)):
             mask = domain_indices == domain_idx
             if not mask.any():
@@ -391,6 +419,21 @@ def train_mechanism_models(
             domain_topology = history_topology_all[mask.nonzero()[0][0]]
             history_z = history_encoder(
                 domain_states[:, :-1], domain_actions
+            )
+            # Each trajectory must identify the same residual independently.
+            # Supervising only the pooled mixture lets goal and probe histories
+            # cancel each other and fails when deployment contains probes only.
+            per_trajectory_supervision = torch.zeros((), device=device)
+            for trajectory_idx in range(domain_states.shape[0]):
+                trajectory_z = history_encoder(
+                    domain_states[trajectory_idx : trajectory_idx + 1, :-1],
+                    domain_actions[trajectory_idx : trajectory_idx + 1],
+                )
+                per_trajectory_supervision = per_trajectory_supervision + F.mse_loss(
+                    trajectory_z, domain_residual_targets[domain_idx]
+                )
+            history_supervision = history_supervision + (
+                per_trajectory_supervision / domain_states.shape[0]
             )
             domain_context = compose_context(
                 domain_topology,
@@ -404,6 +447,7 @@ def train_mechanism_models(
                 history_wm, domain_states, domain_actions, context_batch
             )
         history_nll = history_nll / len(train_domains)
+        history_supervision = history_supervision / len(train_domains)
 
         # Parameter-matched: same 72-dim context structure as DFWM but the
         # residual channel is pinned to zero during training.
@@ -425,6 +469,22 @@ def train_mechanism_models(
             + residual_only.pow(2).mean()
             + monolithic_residual.pow(2).mean()
         )
+        residual_supervision = F.mse_loss(residual, residual_targets)
+        residual_consistency = torch.zeros((), device=device)
+        consistency_groups = 0
+        for residual_name in sorted(set(domain_residual_names)):
+            indices = [
+                index for index, name in enumerate(domain_residual_names)
+                if name == residual_name
+            ]
+            if len(indices) < 2:
+                continue
+            codes = train_residuals.weight[indices]
+            residual_consistency = residual_consistency + (
+                codes - codes.mean(dim=0, keepdim=True)
+            ).pow(2).mean()
+            consistency_groups += 1
+        residual_consistency = residual_consistency / max(consistency_groups, 1)
         loss = (
             topology_nll
             + dfwm_nll
@@ -433,6 +493,9 @@ def train_mechanism_models(
             + history_nll
             + pm_nll
             + latent_prior
+            + residual_supervision_weight * residual_supervision
+            + residual_consistency_weight * residual_consistency
+            + history_supervision_weight * history_supervision
         )
         loss.backward()
         torch.nn.utils.clip_grad_norm_(parameters, 10.0)
@@ -447,6 +510,9 @@ def train_mechanism_models(
                 "monolithic_nll": float(monolithic_nll.detach()),
                 "history_nll": float(history_nll.detach()),
                 "pm_nll": float(pm_nll.detach()),
+                "residual_supervision": float(residual_supervision.detach()),
+                "residual_consistency": float(residual_consistency.detach()),
+                "history_supervision": float(history_supervision.detach()),
             }
         )
 

@@ -163,6 +163,9 @@ def main():
     ap.add_argument("--steps", type=int, default=100)
     ap.add_argument("--block-initial-xy", type=str, default="0.24,0.10")
     ap.add_argument("--target-split", type=Path, default=Path("config/splits/push_targets_5dof_v1.yaml"))
+    ap.add_argument("--residual-supervision-weight", type=float, default=0.0)
+    ap.add_argument("--residual-consistency-weight", type=float, default=0.0)
+    ap.add_argument("--history-supervision-weight", type=float, default=0.0)
     args = ap.parse_args()
     seeds = tuple(int(s) for s in args.seeds.split(",")) if args.seeds else (args.seed,)
 
@@ -193,6 +196,9 @@ def main():
         "evaluation_excitation": args.evaluation_excitation,
         "steps": args.steps,
         "target_split": str(args.target_split),
+        "residual_supervision_weight": args.residual_supervision_weight,
+        "residual_consistency_weight": args.residual_consistency_weight,
+        "history_supervision_weight": args.history_supervision_weight,
     }
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Output: {output_dir}", flush=True)
@@ -235,7 +241,14 @@ def main():
                 block_initial_xy=block_initial_xy,
             )
         models = train_mechanism_models(
-            protocol.train, train, ranges, epochs=args.epochs, device=device
+            protocol.train,
+            train,
+            ranges,
+            epochs=args.epochs,
+            device=device,
+            residual_supervision_weight=args.residual_supervision_weight,
+            residual_consistency_weight=args.residual_consistency_weight,
+            history_supervision_weight=args.history_supervision_weight,
         )
         print(f"seed {seed}: models trained", flush=True)
 
