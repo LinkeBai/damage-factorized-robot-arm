@@ -17,7 +17,7 @@ from robotarm.training.g1_mechanism import (
     train_mechanism_models,
 )
 from robotarm.training.sim_data import collect_controller_domains, collect_domains
-from robotarm.training.sim_protocol import build_g1_protocol
+from robotarm.training.sim_protocol import build_g1_protocol, load_g1_protocol
 from robotarm.training.target_split import load_target_split
 
 
@@ -72,6 +72,8 @@ def maybe_plot(path: Path, aggregates: list[dict[str, object]]) -> bool:
         figure, axis = plt.subplots(figsize=(6.4, 4.2))
         for model in (
             "topology_only",
+            "history_encoder",
+            "parameter_matched",
             "residual_only",
             "monolithic_matched",
             "dfwm",
@@ -146,12 +148,16 @@ def _plot_with_pillow(path: Path, aggregates: list[dict[str, object]]) -> bool:
 
     colors = {
         "topology_only": "#3b6fb6",
+        "history_encoder": "#8e44ad",
+        "parameter_matched": "#e67e22",
         "residual_only": "#7a7a7a",
         "monolithic_matched": "#2f8f5b",
         "dfwm": "#d1493f",
     }
     for model in (
         "topology_only",
+        "history_encoder",
+        "parameter_matched",
         "residual_only",
         "monolithic_matched",
         "dfwm",
@@ -180,7 +186,14 @@ def _plot_with_pillow(path: Path, aggregates: list[dict[str, object]]) -> bool:
     draw.text((left + 10, top + 10), "State RMSE", fill="#222222")
     legend_x = width - 260
     for index, model in enumerate(
-        ("topology_only", "residual_only", "monolithic_matched", "dfwm")
+        (
+            "topology_only",
+            "history_encoder",
+            "parameter_matched",
+            "residual_only",
+            "monolithic_matched",
+            "dfwm",
+        )
     ):
         y = top + 18 + index * 28
         draw.line((legend_x, y, legend_x + 28, y), fill=colors[model], width=4)
@@ -203,6 +216,10 @@ def main() -> None:
     parser.add_argument(
         "--data-policy", choices=["random", "controller"], default="controller"
     )
+    parser.add_argument(
+        "--split", type=Path, default=None,
+        help="Optional G1 split YAML path (default: config/splits/g1_5dof_v1.yaml)",
+    )
     args = parser.parse_args()
 
     if args.calibration_trajectories < 5:
@@ -212,7 +229,7 @@ def main() -> None:
     else:
         device = torch.device(args.device)
 
-    protocol = build_g1_protocol()
+    protocol = load_g1_protocol(args.split) if args.split else build_g1_protocol()
     target_split = load_target_split()
     calibration_targets = tuple(
         target.as_array() for target in target_split.calibration
@@ -241,6 +258,13 @@ def main() -> None:
             seed=seed * 10_000,
             targets=calibration_targets,
         )
+        validation_data = collect(
+            protocol.validation,
+            trajectories_per_domain=args.train_trajectories,
+            steps=args.trajectory_steps,
+            seed=seed * 10_000 + 1,
+            targets=calibration_targets,
+        )
         print(f"seed={seed} data_collected", flush=True)
         models = train_mechanism_models(
             protocol.train,
@@ -248,6 +272,8 @@ def main() -> None:
             joint_ranges,
             epochs=args.epochs,
             device=device,
+            validation_domains=protocol.validation,
+            validation_trajectories=validation_data,
         )
         print(f"seed={seed} models_trained", flush=True)
         histories[str(seed)] = models.history

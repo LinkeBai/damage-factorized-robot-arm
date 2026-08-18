@@ -90,6 +90,20 @@ class MujocoArmEnv:
             ) from exc
         self._qpos_adr = self.model.jnt_qposadr[self._joint_ids]
         self._qvel_adr = self.model.jnt_dofadr[self._joint_ids]
+        # Optional pushable block (Push task): detect slide joints block_x/block_y.
+        self._block_qpos_adr = np.array([], dtype=np.int32)
+        self._block_qvel_adr = np.array([], dtype=np.int32)
+        for name in ("block_x", "block_y"):
+            try:
+                jid = self.model.joint(name).id
+                self._block_qpos_adr = np.append(
+                    self._block_qpos_adr, self.model.jnt_qposadr[jid]
+                )
+                self._block_qvel_adr = np.append(
+                    self._block_qvel_adr, self.model.jnt_dofadr[jid]
+                )
+            except KeyError:
+                pass
         self._residual_physics = residual_physics or ResidualPhysicsConfig()
         self._ctrl_scale = np.asarray(
             ctrl_scale if ctrl_scale is not None else _DEFAULT_CTRL_SCALE,
@@ -121,6 +135,8 @@ class MujocoArmEnv:
         self._rng = np.random.default_rng(self._residual_physics.seed)
         self._action_queue: deque[npt.NDArray[np.float64]] = deque()
         self._last_applied_action = np.zeros(self._dof, dtype=np.float64)
+        self._backlash = self._residual_physics.backlash_array.copy()
+        self._prev_qvel_sign = np.zeros(self._dof, dtype=np.int8)
 
     # ------------------------------------------------------------------
     # RobotEnv protocol
@@ -142,6 +158,7 @@ class MujocoArmEnv:
             for _ in range(self._residual_physics.control_delay_steps)
         )
         self._last_applied_action = np.zeros(self._dof, dtype=np.float64)
+        self._prev_qvel_sign = np.zeros(self._dof, dtype=np.int8)
 
         # If a joint is locked, pin it at its lock angle even in the initial pose.
         self._apply_damage()
@@ -165,6 +182,24 @@ class MujocoArmEnv:
         self.data.ctrl[self._actuator_ids] = np.clip(
             ctrl, ctrl_range[:, 0], ctrl_range[:, 1]
         )
+
+        # Backlash: on velocity sign reversal, the transmission gap absorbs the
+        # command and dissipates kinetic energy (loose gear / worn servo). This
+        # is a history-dependent, non-linear effect that simple topology
+        # conditioning cannot capture.
+        if np.any(self._backlash > 0):
+            qvel = self.data.qvel[self._qvel_adr]
+            for i in range(self._dof):
+                b = self._backlash[i]
+                if b <= 0:
+                    continue
+                cur_sign = 1 if qvel[i] > 1e-4 else (-1 if qvel[i] < -1e-4 else 0)
+                prev_sign = int(self._prev_qvel_sign[i])
+                if cur_sign != 0 and prev_sign != 0 and cur_sign != prev_sign:
+                    self.data.ctrl[self._actuator_ids[i]] = 0.0
+                    self.data.qvel[self._qvel_adr[i]] *= 0.5
+                if cur_sign != 0:
+                    self._prev_qvel_sign[i] = cur_sign
 
         mujoco.mj_step(self.model, self.data)
         # Re-pin locked joints after integration so damage is preserved exactly.
@@ -200,8 +235,8 @@ class MujocoArmEnv:
 
     @property
     def observation_dim(self) -> int:
-        # state = joint positions (nq) + joint velocities (nv).
-        return 2 * self._dof
+        # state = joint positions (nq) + joint velocities (nv) + optional block.
+        return 2 * self._dof + 2 * len(self._block_qpos_adr)
 
     # ------------------------------------------------------------------
     # Damage handling
@@ -228,6 +263,8 @@ class MujocoArmEnv:
         qpos = self.data.qpos[self._qpos_adr].copy()
         qvel = self.data.qvel[self._qvel_adr].copy()
         state = np.concatenate([qpos, qvel])
+        if len(self._block_qpos_adr) > 0:
+            state = np.concatenate([state, self.block_state()])
         if self._residual_physics.observation_noise_std > 0:
             state += self._rng.normal(
                 0.0, self._residual_physics.observation_noise_std, state.shape
@@ -240,6 +277,20 @@ class MujocoArmEnv:
     def ee_pos(self) -> npt.NDArray[np.float64]:
         """Current end-effector position in world frame."""
         return self.data.site_xpos[self._ee_site].copy()
+
+    def block_state(self) -> npt.NDArray[np.float64]:
+        """Pushable-block world position and linear velocity, or empty if none."""
+        if len(self._block_qpos_adr) == 0:
+            return np.zeros(0, dtype=np.float64)
+        pos = self.data.body("block").xpos[:2].copy()
+        vel = self.data.body("block").cvel[:2].copy()
+        return np.concatenate([pos, vel])
+
+    def block_pos(self) -> npt.NDArray[np.float64]:
+        """Pushable-block world position (2-D in the table plane), or empty."""
+        if len(self._block_qpos_adr) == 0:
+            return np.zeros(0, dtype=np.float64)
+        return self.data.body("block").xpos[:2].copy()
 
     def _ee_target_error(self, obs: Observation | None = None) -> float:
         return float(np.linalg.norm(self.ee_pos() - self._target))
