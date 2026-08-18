@@ -292,6 +292,16 @@ class MujocoArmEnv:
             return np.zeros(0, dtype=np.float64)
         return self.data.body("block").xpos[:2].copy()
 
+    def has_contact(self, geom_a: str, geom_b: str) -> bool:
+        """Return whether the named geom pair is in contact this step."""
+        first = self.model.geom(geom_a).id
+        second = self.model.geom(geom_b).id
+        pair = {first, second}
+        return any(
+            {int(contact.geom1), int(contact.geom2)} == pair
+            for contact in self.data.contact
+        )
+
     def _ee_target_error(self, obs: Observation | None = None) -> float:
         return float(np.linalg.norm(self.ee_pos() - self._target))
 

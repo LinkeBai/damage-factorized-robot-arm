@@ -31,8 +31,26 @@ from robotarm.training.target_split import load_target_split
 PUSH_XML = "sim/assets/arm_push.xml"
 
 
+def active_probe_action(step: int, sequence_index: int) -> np.ndarray:
+    """Deterministic, complementary excitation for residual identification."""
+    active_joint = (sequence_index + step // 20) % 5
+    sign = 1.0 if ((step // 10) + sequence_index) % 2 == 0 else -1.0
+    action = np.zeros(5, dtype=np.float64)
+    action[active_joint] = 0.7 * sign
+    action[(active_joint + 2) % 5] = 0.25 * np.sin(
+        2.0 * np.pi * step / (25.0 + 5.0 * sequence_index)
+    )
+    return action
+
+
 def collect_push_trajectory(
-    domain: DomainSpec, *, steps: int, seed: int, target: np.ndarray
+    domain: DomainSpec,
+    *,
+    steps: int,
+    seed: int,
+    target: np.ndarray,
+    excitation: str = "random",
+    sequence_index: int = 0,
 ) -> SimTrajectory:
     env = MujocoArmEnv(xml_path=PUSH_XML, residual_physics=domain.residual)
     obs = env.reset(target=target, damage_config=domain.damage)
@@ -41,9 +59,17 @@ def collect_push_trajectory(
     states = [obs["state"].copy()]
     commanded: list[np.ndarray] = []
     applied: list[np.ndarray] = []
-    for _ in range(steps):
-        excitation = rng.uniform(-0.45, 0.45, size=5)
-        action = 0.75 * action + 0.25 * excitation
+    for step in range(steps):
+        if excitation == "active":
+            # Complementary square-wave probes expose motor scale, damping,
+            # delay, deadband and reversal effects. K is nested over distinct
+            # phase/joint combinations instead of repeated random walks.
+            action = active_probe_action(step, sequence_index)
+        elif excitation == "random":
+            random_probe = rng.uniform(-0.45, 0.45, size=5)
+            action = 0.75 * action + 0.25 * random_probe
+        else:
+            raise ValueError(f"unknown excitation mode: {excitation}")
         action[domain.damage.locked] = 0.0
         result = env.step(action)
         commanded.append(action.copy())
@@ -64,6 +90,7 @@ def collect_push_domains(
     steps: int,
     seed: int,
     targets: tuple[np.ndarray, ...],
+    excitation: str = "random",
 ) -> list[SimTrajectory]:
     trajs = []
     for di, domain in enumerate(domains):
@@ -74,6 +101,8 @@ def collect_push_domains(
                     steps=steps,
                     seed=seed + di * 1000 + ti,
                     target=targets[(di + ti) % len(targets)],
+                    excitation=excitation,
+                    sequence_index=ti,
                 )
             )
     return trajs
@@ -86,6 +115,14 @@ def main():
                     help="Comma-separated seeds, e.g. 7,17,27,42,51")
     ap.add_argument("--epochs", type=int, default=60)
     ap.add_argument("--output-dir", type=Path, default=None)
+    ap.add_argument("--calibration-excitation", choices=("random", "active"), default="active")
+    ap.add_argument("--latent-steps", type=int, default=50)
+    ap.add_argument("--gate-only", action="store_true", help="Evaluate only topology-only and DFWM")
+    ap.add_argument("--latent-lr", type=float, default=0.01)
+    ap.add_argument("--latent-l2", type=float, default=0.1)
+    ap.add_argument("--latent-max-abs", type=float, default=1.0)
+    ap.add_argument("--latent-patience", type=int, default=5)
+    ap.add_argument("--train-active-probes", type=int, default=0)
     args = ap.parse_args()
     seeds = tuple(int(s) for s in args.seeds.split(",")) if args.seeds else (args.seed,)
 
@@ -102,6 +139,14 @@ def main():
         "push_xml": PUSH_XML,
         "methods": ["dfwm", "topology_only", "history_encoder", "parameter_matched", "monolithic_matched", "residual_only"],
         "calibration_shots": [0, 1, 2, 5],
+        "calibration_excitation": args.calibration_excitation,
+        "latent_steps": args.latent_steps,
+        "gate_only": args.gate_only,
+        "latent_lr": args.latent_lr,
+        "latent_l2": args.latent_l2,
+        "latent_max_abs": args.latent_max_abs,
+        "latent_patience": args.latent_patience,
+        "train_active_probes": args.train_active_probes,
     }
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Output: {output_dir}", flush=True)
@@ -123,6 +168,15 @@ def main():
             protocol.train, trajectories_per_domain=2, steps=100,
             seed=seed * 10_000, targets=cal,
         )
+        if args.train_active_probes:
+            train += collect_push_domains(
+                protocol.train,
+                trajectories_per_domain=args.train_active_probes,
+                steps=100,
+                seed=seed * 10_000 + 5_000,
+                targets=cal,
+                excitation="active",
+            )
         models = train_mechanism_models(
             protocol.train, train, ranges, epochs=args.epochs, device=device
         )
@@ -130,8 +184,9 @@ def main():
 
         for di, domain in enumerate(protocol.test):
             calib = collect_push_domains(
-                (domain,), trajectories_per_domain=5, steps=100,
+                (domain,), trajectories_per_domain=6, steps=100,
                 seed=seed * 100_000 + di * 1000, targets=cal,
+                excitation=args.calibration_excitation,
             )
             evald = collect_push_domains(
                 (domain,), trajectories_per_domain=3, steps=100,
@@ -139,7 +194,15 @@ def main():
             )
             rows = evaluate_test_domain(
                 models, domain, calib, evald, ranges,
-                shots=protocol.calibration_shots, latent_steps=50, device=device,
+                shots=protocol.calibration_shots,
+                latent_steps=args.latent_steps,
+                device=device,
+                include_baselines=not args.gate_only,
+                calibration_validation=[calib[-1]],
+                latent_lr=args.latent_lr,
+                latent_l2=args.latent_l2,
+                latent_max_abs=args.latent_max_abs,
+                latent_patience=args.latent_patience,
             )
             for r in rows:
                 r["seed"] = seed
