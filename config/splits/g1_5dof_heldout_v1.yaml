@@ -1,0 +1,33 @@
+version: g1_5dof_heldout_v1
+dof: 5
+task: reach
+damages: [D2, D3, D4]
+calibration_shots: [0, 1, 2, 5]
+
+# Train distribution: only D2/D3 topologies and nominal/weak_motor/
+# high_damping/delay_1 residual profiles. D4 topology and mixed_unseen
+# residual parameter levels are NEVER seen during training.
+train:
+  - [intact, nominal]
+  - [intact, weak_motor]
+  - [intact, high_damping]
+  - [intact, delay_1]
+  - [D2, nominal]
+  - [D2, high_damping]
+  - [D2, delay_1]
+  - [D3, nominal]
+  - [D3, weak_motor]
+  - [D3, delay_1]
+
+validation:
+  - [D2, weak_motor]
+  - [D3, high_damping]
+  - [intact, noisy_deadband]
+
+# Held-out composition matrix: each test domain contains at least one factor
+# (topology or residual) that was never seen during training.
+test:
+  - [D2, mixed_unseen]       # held-out residual parameter levels (topology seen)
+  - [D3, mixed_unseen]       # held-out residual parameter levels (topology seen)
+  - [D4, mixed_composition]  # held-out topology J4 lock (residual combination seen)
+  - [D4, mixed_unseen]       # held-out topology AND residual (strongest)

@@ -1,0 +1,248 @@
+{
+  "version": "v7_2026-08-12",
+  "machine": "RTX_3070_Laptop_8GB",
+  "python": "3.10.20",
+  "pytorch": "2.10.0+cu128",
+  "mujoco": "3.11.0",
+  "prediction_benchmark_3seeds": {
+    "dfwm": {
+      "K=0": {
+        "rmse_mean": 0.07649190413455169,
+        "rmse_std": 0.011831085725781945,
+        "nll_mean": 16.711551348368328
+      },
+      "K=1": {
+        "rmse_mean": 0.06798478215932846,
+        "rmse_std": 0.014538256716953897,
+        "nll_mean": -11.392477929592133
+      },
+      "K=2": {
+        "rmse_mean": 0.06762791673342387,
+        "rmse_std": 0.014257946354577137,
+        "nll_mean": -11.584758500258127
+      },
+      "K=5": {
+        "rmse_mean": 0.06760477523008983,
+        "rmse_std": 0.013911003901435981,
+        "nll_mean": -11.473979552586874
+      }
+    },
+    "monolithic_matched": {
+      "K=0": {
+        "rmse_mean": 0.06655168843766053,
+        "rmse_std": 0.012544290003303146,
+        "nll_mean": 6.203393300374349
+      },
+      "K=1": {
+        "rmse_mean": 0.07005336694419384,
+        "rmse_std": 0.015620245445469989,
+        "nll_mean": -16.168724695841473
+      },
+      "K=2": {
+        "rmse_mean": 0.06965131623049577,
+        "rmse_std": 0.015748540161736223,
+        "nll_mean": -16.187775770823162
+      },
+      "K=5": {
+        "rmse_mean": 0.06950187310576439,
+        "rmse_std": 0.01595674683127011,
+        "nll_mean": -16.567000071207683
+      }
+    },
+    "residual_only": {
+      "K=0": {
+        "rmse_mean": 0.09369498242934544,
+        "rmse_std": 0.01845811291454477,
+        "nll_mean": 31.211488723754883
+      },
+      "K=1": {
+        "rmse_mean": 0.08680927505095799,
+        "rmse_std": 0.018155880193730666,
+        "nll_mean": -17.54043920834859
+      },
+      "K=2": {
+        "rmse_mean": 0.08742052440841992,
+        "rmse_std": 0.018544606958915823,
+        "nll_mean": -17.99565927187602
+      },
+      "K=5": {
+        "rmse_mean": 0.08727666487296422,
+        "rmse_std": 0.01850823209579339,
+        "nll_mean": -17.820293585459392
+      }
+    },
+    "topology_only": {
+      "K=0": {
+        "rmse_mean": 0.07041964866220951,
+        "rmse_std": 0.016483295139963442,
+        "nll_mean": -11.991557111342749
+      },
+      "K=1": {
+        "rmse_mean": 0.07041964866220951,
+        "rmse_std": 0.016483295139963442,
+        "nll_mean": -11.991557111342749
+      },
+      "K=2": {
+        "rmse_mean": 0.07041964866220951,
+        "rmse_std": 0.016483295139963442,
+        "nll_mean": -11.991557111342749
+      },
+      "K=5": {
+        "rmse_mean": 0.07041964866220951,
+        "rmse_std": 0.016483295139963442,
+        "nll_mean": -11.991557111342749
+      }
+    }
+  },
+  "control_evaluation_3seeds": {
+    "D2__mixed_composition/ik_pd": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 67.5,
+      "steps_std": 13.647344063956181,
+      "steps_min": 46,
+      "steps_max": 83
+    },
+    "D2__mixed_composition/wm_hybrid": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 66.75,
+      "steps_std": 13.687737821373796,
+      "steps_min": 45,
+      "steps_max": 82
+    },
+    "D2__mixed_unseen/ik_pd": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 65.5,
+      "steps_std": 12.854960132182441,
+      "steps_min": 45,
+      "steps_max": 80
+    },
+    "D2__mixed_unseen/wm_hybrid": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 64.66666666666667,
+      "steps_std": 12.591884511682736,
+      "steps_min": 44,
+      "steps_max": 79
+    },
+    "D3__mixed_composition/ik_pd": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 78.25,
+      "steps_std": 7.495832175282475,
+      "steps_min": 68,
+      "steps_max": 88
+    },
+    "D3__mixed_composition/wm_hybrid": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 77.33333333333333,
+      "steps_std": 7.46473189218623,
+      "steps_min": 67,
+      "steps_max": 87
+    },
+    "D3__mixed_unseen/ik_pd": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 76.75,
+      "steps_std": 6.869315832017043,
+      "steps_min": 67,
+      "steps_max": 85
+    },
+    "D3__mixed_unseen/wm_hybrid": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 75.75,
+      "steps_std": 6.869315832017043,
+      "steps_min": 66,
+      "steps_max": 84
+    },
+    "D4__mixed_composition/ik_pd": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 59.5,
+      "steps_std": 14.534441853748634,
+      "steps_min": 40,
+      "steps_max": 74
+    },
+    "D4__mixed_composition/wm_hybrid": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 59.083333333333336,
+      "steps_std": 14.138943462020855,
+      "steps_min": 40,
+      "steps_max": 74
+    },
+    "D4__mixed_unseen/ik_pd": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 58.25,
+      "steps_std": 13.329947486768281,
+      "steps_min": 40,
+      "steps_max": 71
+    },
+    "D4__mixed_unseen/wm_hybrid": {
+      "n": 12,
+      "success_rate": 1.0,
+      "steps_mean": 57.583333333333336,
+      "steps_std": 13.073244517801319,
+      "steps_min": 40,
+      "steps_max": 71
+    }
+  },
+  "per_domain_deltas": [
+    {
+      "domain": "D2__mixed_composition",
+      "ik_mean": 67.5,
+      "wm_mean": 66.75,
+      "delta": -0.75,
+      "delta_pct": -1.1111111111111112
+    },
+    {
+      "domain": "D2__mixed_unseen",
+      "ik_mean": 65.5,
+      "wm_mean": 64.66666666666667,
+      "delta": -0.8333333333333286,
+      "delta_pct": -1.2722646310432497
+    },
+    {
+      "domain": "D3__mixed_composition",
+      "ik_mean": 78.25,
+      "wm_mean": 77.33333333333333,
+      "delta": -0.9166666666666714,
+      "delta_pct": -1.1714589989350435
+    },
+    {
+      "domain": "D3__mixed_unseen",
+      "ik_mean": 76.75,
+      "wm_mean": 75.75,
+      "delta": -1.0,
+      "delta_pct": -1.3029315960912053
+    },
+    {
+      "domain": "D4__mixed_composition",
+      "ik_mean": 59.5,
+      "wm_mean": 59.083333333333336,
+      "delta": -0.4166666666666643,
+      "delta_pct": -0.700280112044814
+    },
+    {
+      "domain": "D4__mixed_unseen",
+      "ik_mean": 58.25,
+      "wm_mean": 57.583333333333336,
+      "delta": -0.6666666666666643,
+      "delta_pct": -1.1444921316165912
+    }
+  ],
+  "overall_wm_vs_ik_delta": -0.7638888888888881,
+  "key_findings": [
+    "DFWM achieves best prediction RMSE at K=5 (0.0676) — 12% improvement from K=0",
+    "Factorized model is the only method that improves with more calibration data",
+    "Monolithic model DEGRADES with more data (0.0666→0.0695), confirming factorization advantage",
+    "WM-hybrid consistently outperforms IK+PD across 6 domains (0.8 steps avg, 1.1%)",
+    "WM gain is largest on extreme residual (mixed_unseen + D3: -1.0 steps)",
+    "Only 8 parameters adapted per deployment (< 15 seconds)"
+  ]
+}

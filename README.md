@@ -5,7 +5,9 @@ GenkiArm、MuJoCo 和 Damage-Factorized World Model（DFWM）为核心。
 
 ## 当前入口
 
-- [项目计划](PROJECT-PLAN-V4.md)
+- [项目计划](PROJECT-PLAN-V5.md)
+- [实验进展与结论边界](EXPERIMENT-LOG.md)
+- [学长备份审计](reports/senior-backup-audit-20260814.md)
 - [文档索引](docs/README.md)
 - [机械臂当前状态](docs/hardware/robot-status.md)
 - [G0 可行性记录](reports/g0-feasibility.md)
@@ -34,6 +36,14 @@ external/     外部完整工程的本地参考归档，不纳入 Git
 python -m pytest
 python scripts/run_offline_pipeline.py --help
 python scripts/run_g1_benchmark.py --help
+python scripts/analyze_seed_significance.py results/final/heldout_5seeds_merged.csv
+python scripts/run_push_benchmark.py --seeds 7,17,27,42,51 --epochs 60
 ```
 
+Reach 的五随机种子结果已复算，DFWM 相对 topology-only 的差异不显著。Push
+任务的多步预测误差改善 15.8% 是当前初步结果；在完成六方法、五随机种子和
+bootstrap/置信区间检验前，不作为论文定论。
+
 正式 G1 结果必须在 G0 真机几何、零位、安全范围和 D2/D3 可达性确认后生成。
+完整过程输出保存在本地 `runs/` 或单独实验备份中，Git 只跟踪可复现代码、配置和
+`results/final/` 聚合结果。
