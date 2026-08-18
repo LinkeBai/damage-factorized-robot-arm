@@ -26,12 +26,13 @@ def load_rows(path: Path) -> list[dict]:
         return list(csv.DictReader(f))
 
 
-def rmse_at_k(rows: list[dict], model: str, shot: int, seed: int) -> dict[str, float]:
+def rmse_at_k(rows: list[dict], model: str, shot: int, seed: int, metric: str) -> dict[str, float]:
     """Return {domain: rmse} for a given model/shot/seed."""
     out = {}
     for r in rows:
         if r["model"] == model and int(r["shots"]) == shot and int(r["seed"]) == seed:
-            out[r["domain"]] = float(r["eval_rmse"])
+            if r.get(metric, "") != "":
+                out[r["domain"]] = float(r[metric])
     return out
 
 
@@ -62,13 +63,14 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("csv_path", type=Path, help="Path to few_shot_results.csv")
     ap.add_argument("--shot", type=int, default=5)
+    ap.add_argument("--metric", choices=("eval_rmse", "multi_step_rmse"), default="eval_rmse")
     args = ap.parse_args()
 
     rows = load_rows(args.csv_path)
     seeds = sorted({int(r["seed"]) for r in rows})
     models = sorted({r["model"] for r in rows})
     domains = sorted({r["domain"] for r in rows})
-    print(f"seeds={seeds}, models={len(models)}, domains={len(domains)}, K={args.shot}\n")
+    print(f"seeds={seeds}, models={len(models)}, domains={len(domains)}, K={args.shot}, metric={args.metric}\n")
 
     # --- 1. Per-seed breakdown ---
     print("=== Per-seed RMSE (K={}) ===".format(args.shot))
@@ -76,7 +78,7 @@ def main() -> None:
         line = f"seed {seed}: "
         parts = []
         for m in ["dfwm"] + BASELINES:
-            vals = list(rmse_at_k(rows, m, args.shot, seed).values())
+            vals = list(rmse_at_k(rows, m, args.shot, seed, args.metric).values())
             if vals:
                 parts.append(f"{m.split('_')[0]}={np.mean(vals):.4f}")
         line += "  ".join(parts)
@@ -89,8 +91,8 @@ def main() -> None:
         diffs = np.zeros((len(seeds), n_domain))
         wins_by_seed = []
         for si, seed in enumerate(seeds):
-            df = rmse_at_k(rows, "dfwm", args.shot, seed)
-            bf = rmse_at_k(rows, base, args.shot, seed)
+            df = rmse_at_k(rows, "dfwm", args.shot, seed, args.metric)
+            bf = rmse_at_k(rows, base, args.shot, seed, args.metric)
             seed_wins = 0
             for di, dom in enumerate(domains):
                 if dom in df and dom in bf:

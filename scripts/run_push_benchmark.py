@@ -11,6 +11,9 @@ shows a real prediction advantage over topology-only.
 from __future__ import annotations
 
 import argparse
+import csv
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -82,10 +85,26 @@ def main():
     ap.add_argument("--seeds", type=str, default=None,
                     help="Comma-separated seeds, e.g. 7,17,27,42,51")
     ap.add_argument("--epochs", type=int, default=60)
+    ap.add_argument("--output-dir", type=Path, default=None)
     args = ap.parse_args()
     seeds = tuple(int(s) for s in args.seeds.split(",")) if args.seeds else (args.seed,)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    output_dir = args.output_dir or Path("runs") / "g1_push_6methods_5seeds" / datetime.now().strftime("%Y%m%d-%H%M%S")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    results_path = output_dir / "push_results.csv"
+    manifest = {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "seeds": list(seeds),
+        "epochs": args.epochs,
+        "device": str(device),
+        "torch_version": torch.__version__,
+        "push_xml": PUSH_XML,
+        "methods": ["dfwm", "topology_only", "history_encoder", "parameter_matched", "monolithic_matched", "residual_only"],
+        "calibration_shots": [0, 1, 2, 5],
+    }
+    (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(f"Output: {output_dir}", flush=True)
     probe = MujocoArmEnv(xml_path=PUSH_XML)
     probe_obs = probe.reset(target=np.array([0.25, 0.15, 0.02]))
     print(f"Push state dim: {probe_obs['state'].shape[0]}", flush=True)
@@ -126,6 +145,12 @@ def main():
                 r["seed"] = seed
             all_rows += rows
         print(f"seed {seed}: done", flush=True)
+        fieldnames = sorted({key for row in all_rows for key in row})
+        with results_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(all_rows)
+        print(f"progress {len({int(r['seed']) for r in all_rows})}/{len(seeds)} seeds saved", flush=True)
 
     # Summarize K=5 one-step and multi-step RMSE
     print("\n=== K=5 results (Push, {} seeds) ===".format(len(seeds)))
