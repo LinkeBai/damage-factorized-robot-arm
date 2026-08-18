@@ -512,9 +512,20 @@ def evaluate_test_domain(
     shots: tuple[int, ...],
     latent_steps: int,
     device: torch.device,
+    include_baselines: bool = True,
+    calibration_validation: list[SimTrajectory] | None = None,
+    latent_lr: float = 0.1,
+    latent_l2: float = 1e-3,
+    latent_max_abs: float = 5.0,
+    latent_patience: int | None = None,
 ) -> list[dict[str, float | int | str]]:
     """Evaluate on trajectories disjoint from latent calibration data."""
     eval_states, eval_actions = _stack_trajectories(evaluation, device)
+    validation_states = validation_actions = None
+    if calibration_validation:
+        validation_states, validation_actions = _stack_trajectories(
+            calibration_validation, device
+        )
     damage = domain.damage
     with torch.no_grad():
         topology_context = encode_damage_batch(
@@ -596,8 +607,14 @@ def evaluate_test_domain(
                 LatentOptConfig(
                     d=RESIDUAL_DIM,
                     steps=latent_steps,
-                    lr=0.1,
+                    lr=latent_lr,
+                    l2=latent_l2,
+                    max_abs=latent_max_abs,
+                    grad_clip=1.0,
+                    patience=latent_patience,
                 ),
+                validation_states=validation_states,
+                validation_actions=validation_actions,
             )
             z = inferred.z.detach()
             dfwm_adaptation_seconds = time.perf_counter() - started
@@ -632,8 +649,15 @@ def evaluate_test_domain(
                 "multi_step_rmse": float(dfwm_multi_rmse),
                 "residual_norm": float(z.norm()),
                 "adaptation_seconds": dfwm_adaptation_seconds,
+                "optimization_steps": inferred.optimization_steps if shot > 0 else 0,
+                "initial_validation_loss": inferred.initial_validation_loss if shot > 0 else "",
+                "best_validation_loss": inferred.best_validation_loss if shot > 0 else "",
+                "rolled_back": inferred.rolled_back if shot > 0 else False,
             }
         )
+
+        if not include_baselines:
+            continue
 
         if shot == 0:
             residual_only_z = torch.zeros(RESIDUAL_DIM, device=device)

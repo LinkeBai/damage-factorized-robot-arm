@@ -9,6 +9,7 @@ GenkiArm、MuJoCo 和 Damage-Factorized World Model（DFWM）为核心。
 - [实验进展与结论边界](EXPERIMENT-LOG.md)
 - [学长备份审计](reports/senior-backup-audit-20260814.md)
 - [G1 Push 正式闸门](reports/g1-push-formal-gate-20260818.md)
+- [G1 主动校准诊断](reports/g1-active-calibration-diagnostic-20260818.md)
 - [文档索引](docs/README.md)
 - [机械臂当前状态](docs/hardware/robot-status.md)
 - [G0 可行性记录](reports/g0-feasibility.md)

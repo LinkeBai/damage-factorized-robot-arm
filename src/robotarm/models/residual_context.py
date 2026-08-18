@@ -41,6 +41,9 @@ class LatentOptConfig:
     lr: float = 1e-1
     steps: int = 50
     l2: float = 1e-3  # small prior toward zero
+    max_abs: float = 5.0
+    grad_clip: float | None = None
+    patience: int | None = None
 
 
 class ResidualContext(nn.Module):
@@ -53,6 +56,10 @@ class ResidualContext(nn.Module):
     def __init__(self, d: int = 8) -> None:
         super().__init__()
         self.z = nn.Parameter(torch.zeros(d))
+        self.initial_validation_loss: float | None = None
+        self.best_validation_loss: float | None = None
+        self.optimization_steps: int = 0
+        self.rolled_back: bool = False
 
     def forward(self) -> torch.Tensor:
         return self.z
@@ -98,6 +105,8 @@ def latent_optimize(
     states: torch.Tensor,  # (K, T, state_dim) calibration trajectories
     actions: torch.Tensor,  # (K, T, action_dim)
     cfg: LatentOptConfig | None = None,
+    validation_states: torch.Tensor | None = None,
+    validation_actions: torch.Tensor | None = None,
 ) -> ResidualContext:
     """Optimize a shared residual latent over K calibration trajectories.
 
@@ -117,6 +126,8 @@ def latent_optimize(
             context_dim=wm.cfg.context_dim,
         ),
         cfg,
+        validation_states=validation_states,
+        validation_actions=validation_actions,
     )
 
 
@@ -126,6 +137,9 @@ def latent_optimize_with_builder(
     actions: torch.Tensor,
     context_builder: Callable[[torch.Tensor], torch.Tensor],
     cfg: LatentOptConfig | None = None,
+    *,
+    validation_states: torch.Tensor | None = None,
+    validation_actions: torch.Tensor | None = None,
 ) -> ResidualContext:
     """Optimize a latent through an arbitrary frozen context parameterization."""
     cfg = cfg or LatentOptConfig()
@@ -140,7 +154,29 @@ def latent_optimize_with_builder(
         p.requires_grad_(False)
 
     opt = torch.optim.Adam([z], lr=cfg.lr)
-    for _ in range(cfg.steps):
+
+    def validation_loss() -> float | None:
+        if validation_states is None or validation_actions is None:
+            return None
+        with torch.no_grad():
+            combined = context_builder(z)
+            total = 0.0
+            count = 0
+            for k in range(validation_states.shape[0]):
+                out = wm.predict_multi_step(
+                    validation_states[k], validation_actions[k], combined,
+                    return_hidden=False,
+                )
+                total += float(out["nll"].sum())
+                count += out["nll"].numel()
+        return total / max(count, 1)
+
+    initial_validation = validation_loss()
+    rc.initial_validation_loss = initial_validation
+    rc.best_validation_loss = initial_validation
+    best_z = z.detach().clone()
+    stale_steps = 0
+    for step in range(cfg.steps):
         opt.zero_grad()
         total = torch.zeros((), device=z.device, dtype=torch.float32)
         n_obs = 0
@@ -161,9 +197,27 @@ def latent_optimize_with_builder(
         prior = cfg.l2 * z.norm(p=2).pow(2)
         loss = total / max(n_obs, 1) + prior
         loss.backward()
+        if cfg.grad_clip is not None:
+            torch.nn.utils.clip_grad_norm_([z], cfg.grad_clip)
         opt.step()
         with torch.no_grad():
-            torch.clamp_(z, -5.0, 5.0)
+            torch.clamp_(z, -cfg.max_abs, cfg.max_abs)
+        rc.optimization_steps = step + 1
+        current_validation = validation_loss()
+        if current_validation is not None:
+            if rc.best_validation_loss is None or current_validation < rc.best_validation_loss:
+                rc.best_validation_loss = current_validation
+                best_z = z.detach().clone()
+                stale_steps = 0
+            else:
+                stale_steps += 1
+                if cfg.patience is not None and stale_steps >= cfg.patience:
+                    break
+
+    if initial_validation is not None:
+        with torch.no_grad():
+            z.copy_(best_z)
+        rc.rolled_back = bool(torch.allclose(best_z, torch.zeros_like(best_z)))
 
     # Restore the exact state owned by the caller.
     for p, flag in zip(wm.parameters(), requires_grad):
