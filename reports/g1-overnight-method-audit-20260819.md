@@ -67,3 +67,12 @@ on when topology and residual conditioning fail. Do not enter G2 or spend a
 - `results/final/push_residual_supervision_seed7_sweep_20260819.csv`
 - `results/final/push_history_supervision_seed7_sweep_20260819.csv`
 - `results/final/push_residual_only_pivot_3seeds_20260819.csv`
+
+## Oracle follow-up
+
+The subsequent seed-7 oracle test supplied the true simulator residual
+descriptor directly to DFWM. Multi-step RMSE improved from 0.4891 to 0.4748
+(2.9%), versus topology-only at 0.5135. The direction is positive but below the
+10% upper-bound threshold, confirming that the concatenated world model itself
+uses residual information only weakly. See
+`reports/g1-oracle-residual-upper-bound-20260819.md`.

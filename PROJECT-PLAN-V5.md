@@ -57,6 +57,8 @@ G0 已完成并通过，交付物、真机校准、MuJoCo 模型、可达域、�
 
 **2026-08-19 更新**：在 Push 专用 split、D2/D3 共同接触工作区和目标导向轨迹下，完成 five-shot DFWM、受约束主动校准、zero-shot、residual descriptor 监督、history encoder 监督及 residual-only 3-seed Pivot。所有分支均未获得稳定的 2/3-seed 机制信号；当前 G1 判 No-Go，暂停 G2。随机激励场景中的 15.8% 平均差异保留为诊断结果，不作为 few-shot recovery 或目标导向 Push 结论。完整审计见 `reports/g1-overnight-method-audit-20260819.md`。
 
+Oracle residual 上界进一步显示：真实 residual 仅使 DFWM 多步误差改善 2.9%，低于 10% 上界阈值。因此下一方法 owner 应实现显式 base dynamics + residual correction，而不是继续调 latent/history inference。
+
 原始 G1 learned-MPC Go 未通过：3 seeds 的 D2/D3 控制成功极不稳定，只有 1 次成功。诊断确认 IK+PD 在相同 D2/D3 与 evaluation targets 上可成功，因此失败原因是 learned world model 长时滚动预测与直接 torque-CEM 控制不稳定，不是目标不可达、MuJoCo 或 GPU 问题。
 
 按本 V5 框架完成了 G1-Pivot：

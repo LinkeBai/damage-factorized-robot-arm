@@ -27,6 +27,22 @@ TOPOLOGY_DIM = 64
 RESIDUAL_DIM = 8
 
 
+def residual_descriptor(name: str, *, device: torch.device, dtype: torch.dtype) -> torch.Tensor:
+    """Normalized simulator residual parameters used only for oracle/supervision."""
+    cfg = residual_profile(name)
+    values = [
+        1.0 - float(np.mean(cfg.actuator_scale)),
+        float(np.log(cfg.damping_scale)),
+        float(np.log(cfg.friction_scale)),
+        cfg.control_delay_steps / 2.0,
+        cfg.action_deadband / 0.1,
+        float(np.mean(cfg.backlash)) / 0.05,
+        cfg.payload_mass_delta_kg / 0.05,
+        cfg.observation_noise_std / 0.005,
+    ]
+    return torch.tensor(values, dtype=dtype, device=device)
+
+
 @dataclass
 class TrainedMechanismModels:
     topology_encoder: TopologyEncoder
@@ -230,27 +246,18 @@ def train_mechanism_models(
     )
     states, actions = _stack_trajectories(trajectories, device)
 
-    def residual_descriptor(name: str) -> torch.Tensor:
-        cfg = residual_profile(name)
-        values = [
-            1.0 - float(np.mean(cfg.actuator_scale)),
-            float(np.log(cfg.damping_scale)),
-            float(np.log(cfg.friction_scale)),
-            cfg.control_delay_steps / 2.0,
-            cfg.action_deadband / 0.1,
-            float(np.mean(cfg.backlash)) / 0.05,
-            cfg.payload_mass_delta_kg / 0.05,
-            cfg.observation_noise_std / 0.005,
-        ]
-        return torch.tensor(values, dtype=states.dtype, device=device)
-
     residual_targets = torch.stack([
-        residual_descriptor(trajectory.domain_id.split("__", 1)[1])
+        residual_descriptor(
+            trajectory.domain_id.split("__", 1)[1],
+            device=device,
+            dtype=states.dtype,
+        )
         for trajectory in trajectories
     ])
     domain_residual_names = [domain.residual_name for domain in train_domains]
     domain_residual_targets = torch.stack([
-        residual_descriptor(name) for name in domain_residual_names
+        residual_descriptor(name, device=device, dtype=states.dtype)
+        for name in domain_residual_names
     ])
 
     topology_encoder = TopologyEncoder().to(device)
@@ -584,6 +591,7 @@ def evaluate_test_domain(
     latent_l2: float = 1e-3,
     latent_max_abs: float = 5.0,
     latent_patience: int | None = None,
+    include_oracle: bool = False,
 ) -> list[dict[str, float | int | str]]:
     """Evaluate on trajectories disjoint from latent calibration data."""
     eval_states, eval_actions = _stack_trajectories(evaluation, device)
@@ -721,6 +729,38 @@ def evaluate_test_domain(
                 "rolled_back": inferred.rolled_back if shot > 0 else False,
             }
         )
+
+        if include_oracle:
+            oracle_z = residual_descriptor(
+                domain.residual_name,
+                device=device,
+                dtype=eval_states.dtype,
+            )
+            oracle_context = compose_context(
+                dfwm_topology,
+                oracle_z,
+                context_dim=models.dfwm_world_model.cfg.context_dim,
+            )
+            oracle_batch = oracle_context.unsqueeze(0).expand(eval_states.shape[0], -1)
+            with torch.no_grad():
+                oracle_nll, oracle_rmse = teacher_forced_metrics(
+                    models.dfwm_world_model, eval_states, eval_actions, oracle_batch
+                )
+                oracle_multi_rmse = multi_step_rollout_rmse(
+                    models.dfwm_world_model, eval_states, eval_actions, oracle_batch
+                )
+            rows.append({
+                "domain": domain.domain_id,
+                "topology": domain.topology,
+                "residual": domain.residual_name,
+                "model": "dfwm_oracle",
+                "shots": shot,
+                "eval_nll": float(oracle_nll),
+                "eval_rmse": float(oracle_rmse),
+                "multi_step_rmse": float(oracle_multi_rmse),
+                "residual_norm": float(oracle_z.norm()),
+                "adaptation_seconds": 0.0,
+            })
 
         if not include_baselines:
             continue
