@@ -1,0 +1,42 @@
+{
+  "created_at": "2026-08-18T23:18:53.170524+00:00",
+  "seeds": [
+    7
+  ],
+  "epochs": 40,
+  "device": "cuda",
+  "torch_version": "2.11.0+cu128",
+  "push_xml": "sim/assets/arm_push.xml",
+  "methods": [
+    "dfwm",
+    "topology_only",
+    "history_encoder",
+    "parameter_matched",
+    "monolithic_matched",
+    "residual_only"
+  ],
+  "calibration_shots": [
+    0,
+    1,
+    2,
+    5
+  ],
+  "calibration_excitation": "active",
+  "latent_steps": 50,
+  "gate_only": true,
+  "latent_lr": 0.01,
+  "latent_l2": 0.1,
+  "latent_max_abs": 1.0,
+  "latent_patience": 5,
+  "train_active_probes": 2,
+  "split": "config\\splits\\g1_push_fewshot_v2.yaml",
+  "shots": "0",
+  "train_excitation": "goal",
+  "evaluation_excitation": "goal",
+  "steps": 200,
+  "target_split": "config\\splits\\push_targets_5dof_v1.yaml",
+  "residual_supervision_weight": 100.0,
+  "residual_consistency_weight": 1.0,
+  "history_supervision_weight": 0.0,
+  "include_oracle": true
+}

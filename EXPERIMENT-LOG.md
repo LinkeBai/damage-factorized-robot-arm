@@ -12,6 +12,8 @@
 
 **2026-08-19 连续方法审计**：完成 residual descriptor 监督权重扫描、history encoder pooled/逐轨迹监督及 residual-only 3-seed Pivot。监督 DFWM 的 K 曲线仍无改善；history K=5 明显差于 topology-only；residual-only 仅 seed 7 改善，seed 17/27 均恶化，只有 1/3 seeds 通过。当前实现所有 G1 分支 No-Go，停止扩展 5 seeds/G2。详见 `reports/g1-overnight-method-audit-20260819.md`。
 
+**2026-08-19 Oracle 上界**：将真实 residual descriptor 直接输入 DFWM 后，多步 RMSE 从 0.4891 降至 0.4748，相对 DFWM K=0 改善 2.9%，相对 topology-only 改善 7.5%。方向在 D2/D3 一致但低于 10% 上界阈值，说明识别器不是唯一瓶颈，当前拼接式 world model 对 residual 的利用能力本身较弱。下一步转显式 residual dynamics correction。详见 `reports/g1-oracle-residual-upper-bound-20260819.md`。
+
 **历史一句话（已被正式复核修正）**：最初认为"因子化世界模型（DFWM）在机械臂关节锁定后能靠少量校准数据改善预测"，但经过反复验证发现——在简单的 Reach（末端到点）任务上，这个优势根本不存在（是训练过拟合的假象）；换到 Push 后曾观察到多步预测误差比纯拓扑基线好 15.8%。
 
 **一句话后续**：在 Push 上做完整 6 方法对比 + 显著性检验，确认优势稳定后作为论文主结果；真机暂不可用，论文以仿真为主。

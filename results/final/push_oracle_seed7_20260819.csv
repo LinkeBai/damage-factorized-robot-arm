@@ -1,0 +1,7 @@
+adaptation_seconds,best_validation_loss,domain,eval_nll,eval_rmse,evaluation_block_displacement_m,evaluation_contact_steps,initial_validation_loss,model,multi_step_rmse,optimization_steps,residual,residual_norm,rolled_back,seed,shots,topology
+0.0,,D2__mixed_composition,-39.39702224731445,0.04657193273305893,0.06072398458379948,101,,topology_only,0.5157204270362854,,mixed_composition,0.0,,7,0,D2
+0.0,,D2__mixed_composition,-39.84019470214844,0.04858671873807907,0.06072398458379948,101,,dfwm,0.48662808537483215,0,mixed_composition,0.0,False,7,0,D2
+0.0,,D2__mixed_composition,-39.59769058227539,0.04901738092303276,0.06072398458379948,101,,dfwm_oracle,0.4743174612522125,,mixed_composition,1.1202031373977661,,7,0,D2
+0.0,,D3__mixed_composition,-38.25302505493164,0.04897923395037651,0.013306613433560757,7,,topology_only,0.5112949013710022,,mixed_composition,0.0,,7,0,D3
+0.0,,D3__mixed_composition,-39.22535705566406,0.04446570202708244,0.013306613433560757,7,,dfwm,0.4915231168270111,0,mixed_composition,0.0,False,7,0,D3
+0.0,,D3__mixed_composition,-39.10966491699219,0.04472743347287178,0.013306613433560757,7,,dfwm_oracle,0.47536662220954895,,mixed_composition,1.1202031373977661,,7,0,D3

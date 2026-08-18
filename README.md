@@ -12,6 +12,7 @@ GenkiArm、MuJoCo 和 Damage-Factorized World Model（DFWM）为核心。
 - [G1 主动校准诊断](reports/g1-active-calibration-diagnostic-20260818.md)
 - [G1 目标导向 Push zero-shot smoke](reports/g1-push-zero-shot-smoke-20260818.md)
 - [G1 连续方法审计与最终闸门](reports/g1-overnight-method-audit-20260819.md)
+- [G1 Oracle residual 上界](reports/g1-oracle-residual-upper-bound-20260819.md)
 - [文档索引](docs/README.md)
 - [机械臂当前状态](docs/hardware/robot-status.md)
 - [G0 可行性记录](reports/g0-feasibility.md)

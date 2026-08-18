@@ -166,6 +166,7 @@ def main():
     ap.add_argument("--residual-supervision-weight", type=float, default=0.0)
     ap.add_argument("--residual-consistency-weight", type=float, default=0.0)
     ap.add_argument("--history-supervision-weight", type=float, default=0.0)
+    ap.add_argument("--include-oracle", action="store_true")
     args = ap.parse_args()
     seeds = tuple(int(s) for s in args.seeds.split(",")) if args.seeds else (args.seed,)
 
@@ -199,6 +200,7 @@ def main():
         "residual_supervision_weight": args.residual_supervision_weight,
         "residual_consistency_weight": args.residual_consistency_weight,
         "history_supervision_weight": args.history_supervision_weight,
+        "include_oracle": args.include_oracle,
     }
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Output: {output_dir}", flush=True)
@@ -276,6 +278,7 @@ def main():
                 latent_l2=args.latent_l2,
                 latent_max_abs=args.latent_max_abs,
                 latent_patience=args.latent_patience,
+                include_oracle=args.include_oracle,
             )
             coverage = {
                 "evaluation_contact_steps": sum(int(t.metadata.get("tool_block_contact_steps", 0)) for t in evald),
