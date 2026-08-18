@@ -1,0 +1,9 @@
+adaptation_seconds,best_validation_loss,domain,eval_nll,eval_rmse,evaluation_block_displacement_m,evaluation_contact_steps,initial_validation_loss,model,multi_step_rmse,optimization_steps,residual,residual_norm,rolled_back,seed,shots,topology
+0.0,,D2__mixed_composition,-36.935325622558594,0.05989660322666168,0.06072398458379948,101,,topology_only,0.48746174573898315,,mixed_composition,0.0,,7,0,D2
+0.0,,D2__mixed_composition,-34.02604675292969,0.06466595083475113,0.06072398458379948,101,,dfwm,0.5519408583641052,0,mixed_composition,0.0,False,7,0,D2
+0.0,,D3__mixed_composition,-37.40351867675781,0.05194580927491188,0.013306613433560757,7,,topology_only,0.5057908892631531,,mixed_composition,0.0,,7,0,D3
+0.0,,D3__mixed_composition,-32.760013580322266,0.06626230478286743,0.013306613433560757,7,,dfwm,0.5972743630409241,0,mixed_composition,0.0,False,7,0,D3
+0.0,,D2__mixed_composition,-35.274940490722656,0.05916455015540123,0.06072398458379948,101,,topology_only,0.4259582459926605,,mixed_composition,0.0,,17,0,D2
+0.0,,D2__mixed_composition,-35.658721923828125,0.06250692903995514,0.06072398458379948,101,,dfwm,0.46950167417526245,0,mixed_composition,0.0,False,17,0,D2
+0.0,,D3__mixed_composition,-34.787837982177734,0.06015760079026222,0.013306613433560757,7,,topology_only,0.42864295840263367,,mixed_composition,0.0,,17,0,D3
+0.0,,D3__mixed_composition,-35.53537368774414,0.060258977115154266,0.013306613433560757,7,,dfwm,0.5419467687606812,0,mixed_composition,0.0,False,17,0,D3

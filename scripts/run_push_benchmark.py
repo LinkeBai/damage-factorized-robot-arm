@@ -26,7 +26,9 @@ from robotarm.training.g1_mechanism import (
 )
 from robotarm.training.sim_data import SimTrajectory
 from robotarm.training.sim_protocol import build_g1_protocol, DomainSpec
+from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
+from robotarm.training.controllers import solve_reach_reference, joint_reference_action
 
 PUSH_XML = "sim/assets/arm_push.xml"
 
@@ -51,14 +53,31 @@ def collect_push_trajectory(
     target: np.ndarray,
     excitation: str = "random",
     sequence_index: int = 0,
+    block_initial_xy: np.ndarray | None = None,
 ) -> SimTrajectory:
-    env = MujocoArmEnv(xml_path=PUSH_XML, residual_physics=domain.residual)
+    env = MujocoArmEnv(
+        xml_path=PUSH_XML,
+        residual_physics=domain.residual,
+        block_initial_xy=block_initial_xy,
+    )
     obs = env.reset(target=target, damage_config=domain.damage)
     rng = np.random.default_rng(seed)
     action = np.zeros(5, dtype=np.float64)
     states = [obs["state"].copy()]
     commanded: list[np.ndarray] = []
     applied: list[np.ndarray] = []
+    contact_steps = 0
+    initial_block = env.block_pos().copy()
+    locked = {i: domain.damage.lock_angle_of(i) for i in domain.damage.locked}
+    approach_reference = push_reference = None
+    if excitation == "goal":
+        approach = np.array([initial_block[0] - 0.03, initial_block[1], 0.025])
+        approach_reference, _ = solve_reach_reference(
+            approach, env.joint_ranges, locked_joints=locked
+        )
+        push_reference, _ = solve_reach_reference(
+            target, env.joint_ranges, locked_joints=locked
+        )
     for step in range(steps):
         if excitation == "active":
             # Complementary square-wave probes expose motor scale, damping,
@@ -68,6 +87,13 @@ def collect_push_trajectory(
         elif excitation == "random":
             random_probe = rng.uniform(-0.45, 0.45, size=5)
             action = 0.75 * action + 0.25 * random_probe
+        elif excitation == "goal":
+            reference = approach_reference if step < steps * 0.4 else push_reference
+            action = joint_reference_action(
+                states[-1][:10],
+                reference,
+                locked_joints=tuple(domain.damage.locked),
+            )
         else:
             raise ValueError(f"unknown excitation mode: {excitation}")
         action[domain.damage.locked] = 0.0
@@ -75,11 +101,16 @@ def collect_push_trajectory(
         commanded.append(action.copy())
         applied.append(env.last_applied_action)
         states.append(result["observation"]["state"].copy())
+        contact_steps += int(env.has_contact("tool_geom", "block_geom"))
     return SimTrajectory(
         domain_id=domain.domain_id,
         states=torch.as_tensor(np.stack(states), dtype=torch.float32),
         actions=torch.as_tensor(np.stack(commanded), dtype=torch.float32),
         applied_actions=torch.as_tensor(np.stack(applied), dtype=torch.float32),
+        metadata={
+            "tool_block_contact_steps": contact_steps,
+            "block_displacement_m": float(np.linalg.norm(env.block_pos() - initial_block)),
+        },
     )
 
 
@@ -91,6 +122,7 @@ def collect_push_domains(
     seed: int,
     targets: tuple[np.ndarray, ...],
     excitation: str = "random",
+    block_initial_xy: np.ndarray | None = None,
 ) -> list[SimTrajectory]:
     trajs = []
     for di, domain in enumerate(domains):
@@ -103,6 +135,7 @@ def collect_push_domains(
                     target=targets[(di + ti) % len(targets)],
                     excitation=excitation,
                     sequence_index=ti,
+                    block_initial_xy=block_initial_xy,
                 )
             )
     return trajs
@@ -123,6 +156,13 @@ def main():
     ap.add_argument("--latent-max-abs", type=float, default=1.0)
     ap.add_argument("--latent-patience", type=int, default=5)
     ap.add_argument("--train-active-probes", type=int, default=0)
+    ap.add_argument("--split", type=Path, default=Path("config/splits/g1_5dof_v1.yaml"))
+    ap.add_argument("--shots", type=str, default=None)
+    ap.add_argument("--train-excitation", choices=("random", "goal"), default="random")
+    ap.add_argument("--evaluation-excitation", choices=("random", "goal"), default="random")
+    ap.add_argument("--steps", type=int, default=100)
+    ap.add_argument("--block-initial-xy", type=str, default="0.24,0.10")
+    ap.add_argument("--target-split", type=Path, default=Path("config/splits/push_targets_5dof_v1.yaml"))
     args = ap.parse_args()
     seeds = tuple(int(s) for s in args.seeds.split(",")) if args.seeds else (args.seed,)
 
@@ -147,6 +187,12 @@ def main():
         "latent_max_abs": args.latent_max_abs,
         "latent_patience": args.latent_patience,
         "train_active_probes": args.train_active_probes,
+        "split": str(args.split),
+        "shots": args.shots,
+        "train_excitation": args.train_excitation,
+        "evaluation_excitation": args.evaluation_excitation,
+        "steps": args.steps,
+        "target_split": str(args.target_split),
     }
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Output: {output_dir}", flush=True)
@@ -158,24 +204,35 @@ def main():
     for seed in seeds:
         torch.manual_seed(seed)
         np.random.seed(seed)
-        protocol = build_g1_protocol()
-        split = load_target_split()
+        protocol = load_g1_protocol(args.split)
+        requested_shots = (
+            tuple(int(value) for value in args.shots.split(","))
+            if args.shots else protocol.calibration_shots
+        )
+        block_initial_xy = np.asarray(
+            [float(value) for value in args.block_initial_xy.split(",")],
+            dtype=np.float64,
+        )
+        split = load_target_split(args.target_split)
         cal = tuple(t.as_array() for t in split.calibration)
         targets = tuple(t.as_array() for t in split.evaluation)
         ranges = MujocoArmEnv(xml_path=PUSH_XML).joint_ranges
 
         train = collect_push_domains(
-            protocol.train, trajectories_per_domain=2, steps=100,
+            protocol.train, trajectories_per_domain=2, steps=args.steps,
             seed=seed * 10_000, targets=cal,
+            excitation=args.train_excitation,
+            block_initial_xy=block_initial_xy,
         )
         if args.train_active_probes:
             train += collect_push_domains(
                 protocol.train,
                 trajectories_per_domain=args.train_active_probes,
-                steps=100,
+                steps=args.steps,
                 seed=seed * 10_000 + 5_000,
                 targets=cal,
                 excitation="active",
+                block_initial_xy=block_initial_xy,
             )
         models = train_mechanism_models(
             protocol.train, train, ranges, epochs=args.epochs, device=device
@@ -184,17 +241,20 @@ def main():
 
         for di, domain in enumerate(protocol.test):
             calib = collect_push_domains(
-                (domain,), trajectories_per_domain=6, steps=100,
+                (domain,), trajectories_per_domain=6, steps=args.steps,
                 seed=seed * 100_000 + di * 1000, targets=cal,
                 excitation=args.calibration_excitation,
+                block_initial_xy=block_initial_xy,
             )
             evald = collect_push_domains(
-                (domain,), trajectories_per_domain=3, steps=100,
+                (domain,), trajectories_per_domain=3, steps=args.steps,
                 seed=seed * 100_000 + di * 1000 + 500, targets=targets,
+                excitation=args.evaluation_excitation,
+                block_initial_xy=block_initial_xy,
             )
             rows = evaluate_test_domain(
                 models, domain, calib, evald, ranges,
-                shots=protocol.calibration_shots,
+                shots=requested_shots,
                 latent_steps=args.latent_steps,
                 device=device,
                 include_baselines=not args.gate_only,
@@ -204,6 +264,12 @@ def main():
                 latent_max_abs=args.latent_max_abs,
                 latent_patience=args.latent_patience,
             )
+            coverage = {
+                "evaluation_contact_steps": sum(int(t.metadata.get("tool_block_contact_steps", 0)) for t in evald),
+                "evaluation_block_displacement_m": float(np.mean([float(t.metadata.get("block_displacement_m", 0.0)) for t in evald])),
+            }
+            for row in rows:
+                row.update(coverage)
             for r in rows:
                 r["seed"] = seed
             all_rows += rows
