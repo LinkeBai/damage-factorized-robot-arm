@@ -62,6 +62,9 @@ This file keeps the identical arm chain as arm.xml and only adds:
                   <body name="tool" pos="0 -0.0132 0.110">
                     <geom name="tool_geom" type="capsule" fromto="0 0 0 0.02 0 0" size="0.012"
                           contype="1" conaffinity="1" friction="0.1 0.02 0.02"/>
+                    <geom name="pusher_geom" type="capsule"
+                          fromto="0.0200 0 0 0.0537 -0.0210 0.0210" size="0.008"
+                          contype="1" conaffinity="1" friction="0.1 0.02 0.02"/>
                     <site name="ee" pos="0.02 0 0" size="0.008" rgba="1 0.2 0.2 1"/>
                   </body>
                 </body>

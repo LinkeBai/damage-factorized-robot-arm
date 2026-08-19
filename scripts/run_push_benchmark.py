@@ -21,9 +21,15 @@ import torch
 
 from robotarm.envs.mujoco_env import MujocoArmEnv
 from robotarm.training.g1_mechanism import (
+    encode_damage_batch,
     evaluate_test_domain,
+    residual_descriptor,
     train_mechanism_models,
 )
+from robotarm.models.residual_correction import ResidualCorrection
+from robotarm.models.residual_film import ResidualFiLMWorldModel
+from robotarm.training.residual_correction import correction_metrics, train_residual_correction
+from robotarm.training.residual_film import residual_film_metrics, train_residual_film
 from robotarm.training.sim_data import SimTrajectory
 from robotarm.training.sim_protocol import build_g1_protocol, DomainSpec
 from robotarm.training.sim_protocol import load_g1_protocol
@@ -31,6 +37,7 @@ from robotarm.training.target_split import load_target_split
 from robotarm.training.controllers import solve_reach_reference, joint_reference_action
 
 PUSH_XML = "sim/assets/arm_push.xml"
+PUSH_WAYPOINT_OFFSET = np.array([0.03, 0.0, 0.0])
 
 
 def active_probe_action(step: int, sequence_index: int) -> np.ndarray:
@@ -76,7 +83,9 @@ def collect_push_trajectory(
             approach, env.joint_ranges, locked_joints=locked
         )
         push_reference, _ = solve_reach_reference(
-            target, env.joint_ranges, locked_joints=locked
+            target + PUSH_WAYPOINT_OFFSET,
+            env.joint_ranges,
+            locked_joints=locked,
         )
     for step in range(steps):
         if excitation == "active":
@@ -101,7 +110,10 @@ def collect_push_trajectory(
         commanded.append(action.copy())
         applied.append(env.last_applied_action)
         states.append(result["observation"]["state"].copy())
-        contact_steps += int(env.has_contact("tool_geom", "block_geom"))
+        contact_steps += int(
+            env.has_contact("tool_geom", "block_geom")
+            or env.has_contact("pusher_geom", "block_geom")
+        )
     return SimTrajectory(
         domain_id=domain.domain_id,
         states=torch.as_tensor(np.stack(states), dtype=torch.float32),
@@ -167,6 +179,18 @@ def main():
     ap.add_argument("--residual-consistency-weight", type=float, default=0.0)
     ap.add_argument("--history-supervision-weight", type=float, default=0.0)
     ap.add_argument("--include-oracle", action="store_true")
+    ap.add_argument("--correction-oracle", action="store_true")
+    ap.add_argument("--correction-epochs", type=int, default=40)
+    ap.add_argument(
+        "--correction-sweep",
+        type=str,
+        default=None,
+        help="Comma-separated rollout_weight:delta_limit candidates",
+    )
+    ap.add_argument("--film-oracle", action="store_true")
+    ap.add_argument("--film-ranks", type=str, default="4,8,16")
+    ap.add_argument("--film-scales", type=str, default="0.1")
+    ap.add_argument("--film-epochs", type=int, default=12)
     args = ap.parse_args()
     seeds = tuple(int(s) for s in args.seeds.split(",")) if args.seeds else (args.seed,)
 
@@ -201,6 +225,13 @@ def main():
         "residual_consistency_weight": args.residual_consistency_weight,
         "history_supervision_weight": args.history_supervision_weight,
         "include_oracle": args.include_oracle,
+        "correction_oracle": args.correction_oracle,
+        "correction_epochs": args.correction_epochs,
+        "correction_sweep": args.correction_sweep,
+        "film_oracle": args.film_oracle,
+        "film_ranks": args.film_ranks,
+        "film_scales": args.film_scales,
+        "film_epochs": args.film_epochs,
     }
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(f"Output: {output_dir}", flush=True)
@@ -254,6 +285,80 @@ def main():
         )
         print(f"seed {seed}: models trained", flush=True)
 
+        corrections = []
+        films = []
+        if args.correction_oracle or args.film_oracle:
+            train_states = torch.stack([t.states for t in train]).to(device)
+            train_actions = torch.stack([t.actions for t in train]).to(device)
+            domain_by_id = {domain.domain_id: domain for domain in protocol.train}
+            train_domains = [domain_by_id[t.domain_id] for t in train]
+            with torch.no_grad():
+                train_topology = encode_damage_batch(
+                    models.topology_encoder,
+                    [domain.damage for domain in train_domains],
+                    ranges,
+                    device,
+                )
+            train_residual = torch.stack([
+                residual_descriptor(
+                    domain.residual_name,
+                    device=device,
+                    dtype=train_states.dtype,
+                )
+                for domain in train_domains
+            ])
+            if args.correction_oracle:
+                candidates = [(0.1, 0.1)]
+                if args.correction_sweep:
+                    candidates = [
+                        tuple(float(value) for value in item.split(":"))
+                        for item in args.correction_sweep.split(",")
+                    ]
+                for rollout_weight, delta_limit in candidates:
+                    correction = ResidualCorrection(
+                        state_dim=train_states.shape[-1],
+                        action_dim=train_actions.shape[-1],
+                        delta_limit=delta_limit,
+                    ).to(device)
+                    correction_history = train_residual_correction(
+                        correction,
+                        models.topology_world_model,
+                        train_states,
+                        train_actions,
+                        train_topology,
+                        train_residual,
+                        epochs=args.correction_epochs,
+                        rollout_weight=rollout_weight,
+                    )
+                    label = f"rw{rollout_weight:g}_dl{delta_limit:g}"
+                    corrections.append((label, correction))
+                    (output_dir / f"seed_{seed}_correction_{label}_history.json").write_text(
+                        json.dumps(correction_history, indent=2), encoding="utf-8"
+                    )
+                    print(f"seed {seed}: residual correction {label} trained", flush=True)
+            if args.film_oracle:
+                for rank in (int(value) for value in args.film_ranks.split(",")):
+                    for scale in (float(value) for value in args.film_scales.split(",")):
+                        film = ResidualFiLMWorldModel(
+                            models.topology_world_model,
+                            rank=rank,
+                            modulation_scale=scale,
+                        ).to(device)
+                        film_history = train_residual_film(
+                            film,
+                            train_states,
+                            train_actions,
+                            train_topology,
+                            train_residual,
+                            epochs=args.film_epochs,
+                        )
+                        label = f"rank{rank}_scale{scale:g}"
+                        films.append((label, film))
+                        (output_dir / f"seed_{seed}_film_{label}_history.json").write_text(
+                            json.dumps(film_history, indent=2), encoding="utf-8"
+                        )
+                        print(f"seed {seed}: residual FiLM {label} trained", flush=True)
+
         for di, domain in enumerate(protocol.test):
             calib = collect_push_domains(
                 (domain,), trajectories_per_domain=6, steps=args.steps,
@@ -286,6 +391,76 @@ def main():
             }
             for row in rows:
                 row.update(coverage)
+            if corrections:
+                eval_states = torch.stack([t.states for t in evald]).to(device)
+                eval_actions = torch.stack([t.actions for t in evald]).to(device)
+                with torch.no_grad():
+                    eval_topology = encode_damage_batch(
+                        models.topology_encoder,
+                        [domain.damage] * len(evald),
+                        ranges,
+                        device,
+                    )
+                eval_residual = residual_descriptor(
+                    domain.residual_name,
+                    device=device,
+                    dtype=eval_states.dtype,
+                ).unsqueeze(0).expand(len(evald), -1)
+                for label, correction in corrections:
+                    correction_one, correction_multi = correction_metrics(
+                        correction,
+                        models.topology_world_model,
+                        eval_states,
+                        eval_actions,
+                        eval_topology,
+                        eval_residual,
+                    )
+                    rows.append({
+                        "domain": domain.domain_id,
+                        "topology": domain.topology,
+                        "residual": domain.residual_name,
+                        "model": f"residual_correction_oracle_{label}",
+                        "shots": 0,
+                        "eval_nll": float("nan"),
+                        "eval_rmse": correction_one,
+                        "multi_step_rmse": correction_multi,
+                        **coverage,
+                    })
+            if films:
+                if not corrections:
+                    eval_states = torch.stack([t.states for t in evald]).to(device)
+                    eval_actions = torch.stack([t.actions for t in evald]).to(device)
+                    with torch.no_grad():
+                        eval_topology = encode_damage_batch(
+                            models.topology_encoder,
+                            [domain.damage] * len(evald),
+                            ranges,
+                            device,
+                        )
+                    eval_residual = residual_descriptor(
+                        domain.residual_name,
+                        device=device,
+                        dtype=eval_states.dtype,
+                    ).unsqueeze(0).expand(len(evald), -1)
+                for label, film in films:
+                    film_one, film_multi = residual_film_metrics(
+                        film,
+                        eval_states,
+                        eval_actions,
+                        eval_topology,
+                        eval_residual,
+                    )
+                    rows.append({
+                        "domain": domain.domain_id,
+                        "topology": domain.topology,
+                        "residual": domain.residual_name,
+                        "model": f"residual_film_oracle_{label}",
+                        "shots": 0,
+                        "eval_nll": float("nan"),
+                        "eval_rmse": film_one,
+                        "multi_step_rmse": film_multi,
+                        **coverage,
+                    })
             for r in rows:
                 r["seed"] = seed
             all_rows += rows
