@@ -94,6 +94,7 @@ class CEMPlanner:
         joint_ranges: torch.Tensor,
         *,
         locked_joints: tuple[int, ...] = (),
+        nominal_action: torch.Tensor | None = None,
     ) -> torch.Tensor:
         device = next(self.world_model.parameters()).device
         state = state.to(device=device, dtype=torch.float32).reshape(1, -1)
@@ -103,7 +104,11 @@ class CEMPlanner:
         generator = torch.Generator(device=device).manual_seed(self.cfg.seed)
 
         action_dim = self.world_model.cfg.action_dim
-        mean = torch.zeros(self.cfg.horizon, action_dim, device=device)
+        if nominal_action is None:
+            mean = torch.zeros(self.cfg.horizon, action_dim, device=device)
+        else:
+            nominal = nominal_action.to(device=device, dtype=torch.float32).reshape(1, -1)
+            mean = nominal.expand(self.cfg.horizon, -1).clone()
         std = torch.full_like(mean, self.cfg.initial_std)
         for _ in range(self.cfg.iterations):
             noise = torch.randn(
@@ -151,6 +156,92 @@ class CEMPlanner:
             mean = elites.mean(dim=0)
             std = elites.std(dim=0, unbiased=False).clamp_min(0.05)
 
+        action = mean[0].clamp(-1.0, 1.0)
+        if locked_joints:
+            action[list(locked_joints)] = 0.0
+        return action.cpu()
+
+
+class RobustPushCEMPlanner:
+    """CEM Push planner using mean or worst-case ensemble dynamics cost."""
+
+    def __init__(
+        self,
+        world_models: list[WorldModel],
+        contexts: list[torch.Tensor],
+        cfg: PlannerConfig | None = None,
+        *,
+        risk_alpha: float = 1.0,
+    ) -> None:
+        if not world_models or len(world_models) != len(contexts):
+            raise ValueError("world_models and contexts must be non-empty and aligned")
+        self.world_models = world_models
+        self.contexts = contexts
+        self.cfg = cfg or PlannerConfig()
+        self.risk_alpha = risk_alpha
+
+    @torch.no_grad()
+    def plan(
+        self,
+        state: torch.Tensor,
+        target_xy: torch.Tensor,
+        joint_ranges: torch.Tensor,
+        *,
+        locked_joints: tuple[int, ...] = (),
+        nominal_action: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        device = next(self.world_models[0].parameters()).device
+        state = state.to(device=device, dtype=torch.float32).reshape(1, -1)
+        target_xy = target_xy.to(device=device, dtype=torch.float32).reshape(1, 2)
+        ranges = joint_ranges.to(device=device, dtype=torch.float32)
+        generator = torch.Generator(device=device).manual_seed(self.cfg.seed)
+        action_dim = self.world_models[0].cfg.action_dim
+        if nominal_action is None:
+            mean = torch.zeros(self.cfg.horizon, action_dim, device=device)
+        else:
+            nominal = nominal_action.to(device=device, dtype=torch.float32).reshape(1, -1)
+            mean = nominal.expand(self.cfg.horizon, -1).clone()
+        std = torch.full_like(mean, self.cfg.initial_std)
+        for _ in range(self.cfg.iterations):
+            actions = torch.clamp(
+                mean.unsqueeze(0) + std.unsqueeze(0) * torch.randn(
+                    self.cfg.candidates, self.cfg.horizon, action_dim,
+                    generator=generator, device=device,
+                ), -1.0, 1.0,
+            )
+            if locked_joints:
+                actions[:, :, list(locked_joints)] = 0.0
+            member_costs = []
+            for model, context in zip(self.world_models, self.contexts):
+                simulated = state.expand(self.cfg.candidates, -1)
+                context_batch = context.to(device).reshape(1, -1).expand(
+                    self.cfg.candidates, -1
+                )
+                hidden = None
+                for step in range(self.cfg.horizon):
+                    prediction, hidden = model.step(
+                        simulated, actions[:, step], context_batch, hidden
+                    )
+                    simulated = prediction["mean"]
+                block_cost = torch.linalg.vector_norm(
+                    simulated[:, 10:12] - target_xy, dim=-1
+                )
+                qpos = simulated[:, :action_dim]
+                violation = torch.relu(ranges[:, 0] - qpos).pow(2)
+                violation += torch.relu(qpos - ranges[:, 1]).pow(2)
+                member_costs.append(
+                    block_cost + self.cfg.limit_penalty * violation.mean(dim=-1)
+                )
+            stacked_cost = torch.stack(member_costs)
+            average_cost = stacked_cost.mean(dim=0)
+            cost = average_cost + self.risk_alpha * (
+                stacked_cost.max(dim=0).values - average_cost
+            )
+            cost += self.cfg.action_penalty * actions.pow(2).mean(dim=(1, 2))
+            elite_indices = torch.topk(cost, self.cfg.elites, largest=False).indices
+            elites = actions[elite_indices]
+            mean = elites.mean(dim=0)
+            std = elites.std(dim=0, unbiased=False).clamp_min(0.05)
         action = mean[0].clamp(-1.0, 1.0)
         if locked_joints:
             action[list(locked_joints)] = 0.0
