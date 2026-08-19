@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import time
 from pathlib import Path
 
 import numpy as np
@@ -63,11 +64,15 @@ def main() -> None:
             ensemble.append(TopologyMember(encoder, world_model))
         print("ensemble loaded", flush=True)
     else:
+        ensemble_started = time.perf_counter()
         ensemble = train_topology_ensemble(
             train, ranges, members=args.members, epochs=args.epochs,
             device=device, seed=args.seed,
         )
+        ensemble_train_seconds = time.perf_counter() - ensemble_started
         print("ensemble trained", flush=True)
+    if args.checkpoint:
+        ensemble_train_seconds = None
     parameter_matched = None
     ensemble_parameters = sum(member_parameter_count(member) for member in ensemble)
     matched_parameters = None
@@ -79,16 +84,20 @@ def main() -> None:
             damage_from_name(item.domain_id.split("__", 1)[0]) for item in train
         ]
         matched_dim = matched_latent_dim(states.shape[-1], ensemble_parameters)
+        matched_started = time.perf_counter()
         parameter_matched = train_topology_member(
             states, actions, damages, ranges, epochs=args.epochs,
             device=device, seed=args.seed + 50_000, latent_dim=matched_dim,
         )
+        matched_train_seconds = time.perf_counter() - matched_started
         matched_parameters = member_parameter_count(parameter_matched)
         print(
             f"parameter-matched trained latent={matched_dim} "
             f"params={matched_parameters} ensemble_params={ensemble_parameters}",
             flush=True,
         )
+    else:
+        matched_train_seconds = None
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if not args.checkpoint:
         torch.save(
@@ -103,6 +112,17 @@ def main() -> None:
             for member in ensemble
         ],
             args.output_dir / "ensemble.pt",
+        )
+    if parameter_matched is not None:
+        torch.save(
+            {
+                "encoder": parameter_matched.encoder.state_dict(),
+                "world_model": parameter_matched.world_model.state_dict(),
+                "state_dim": parameter_matched.world_model.cfg.state_dim,
+                "context_dim": parameter_matched.world_model.cfg.context_dim,
+                "latent_dim": parameter_matched.world_model.cfg.latent_dim,
+            },
+            args.output_dir / "parameter_matched.pt",
         )
     rows = []
     for index, domain in enumerate(protocol.test):
@@ -132,6 +152,8 @@ def main() -> None:
         "ensemble_parameters": ensemble_parameters,
         "parameter_matched_parameters": matched_parameters,
         "parameter_matched_latent_dim": matched_dim,
+        "ensemble_train_seconds": ensemble_train_seconds,
+        "parameter_matched_train_seconds": matched_train_seconds,
     }
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 

@@ -94,8 +94,7 @@ evidence):
 
 The two prediction intervals exclude zero under the current seed set. The
 initial control interval is superseded by the broader five-target audit below.
-Final paper claims still require at least five seeds and wall-clock/FLOP
-reporting.
+This three-seed result is superseded by the five-seed audit below.
 
 ## Five-Target Control Audit
 
@@ -114,3 +113,37 @@ The guarded controller improves 11/15 seed-target comparisons and succeeds in
 crosses zero. This passes the G1 minimum gate (2/3 seeds improve and frozen
 deployment remains safe), but it is not a paper-level claim of stable control
 improvement. The prediction mechanism remains the stronger result.
+
+## Five-Seed Parameter-Matched Prediction Audit
+
+Seeds 37 and 47 were added without changing the corrected Push protocol,
+training budget, model width selection, or evaluation targets. The ensemble has
+450,906 parameters; the width-248 single-model baseline has 460,382 parameters
+(2.1% more). Both use the same data, epochs, optimizer family, and test rollouts.
+
+| Seed | Ensemble vs mean member | Ensemble vs parameter-matched single |
+|---:|---:|---:|
+| 7 | 31.0% | 44.3% |
+| 17 | 23.4% | 40.5% |
+| 27 | 18.0% | 24.8% |
+| 37 | 19.5% | 42.0% |
+| 47 | 11.4% | 2.1% |
+
+Seed-level paired bootstrap (50,000 resamples):
+
+| Metric | Mean | 95% bootstrap interval | Positive seeds |
+|---|---:|---:|---:|
+| Prediction vs mean member | 20.7% | [15.3%, 26.4%] | 5/5 |
+| Prediction vs parameter-matched single | 30.7% | [15.1%, 42.6%] | 5/5 |
+
+Against the parameter-matched baseline, the mean improvements are 30.0% in D2
+and 31.4% in D3, with a positive direction for every seed in both domains.
+Seed 47 is weak (0.4% in D2 and 3.7% in D3), so the result supports a stable
+direction but also shows substantial initialization variance. This is the
+current strongest G1 result; it does not by itself establish a novel ICRA-level
+world-model contribution.
+
+Wall-clock recording was enabled for the two added seeds. Ensemble training took
+176.7 s and 177.5 s; the parameter-matched model took 54.2 s and 64.3 s on the
+same local CUDA device. Earlier checkpoints predate timing instrumentation and
+are intentionally reported as missing rather than estimated.
