@@ -1,0 +1,26 @@
+version: g1_push_zero_shot_v1
+dof: 5
+task: push
+damages: [D2, D3]
+calibration_shots: [0]
+
+train:
+  - [intact, nominal]
+  - [intact, weak_motor]
+  - [intact, high_damping]
+  - [intact, delay_1]
+  - [D2, nominal]
+  - [D2, high_damping]
+  - [D2, delay_1]
+  - [D3, nominal]
+  - [D3, weak_motor]
+  - [D3, delay_1]
+
+validation:
+  - [D2, weak_motor]
+  - [D3, high_damping]
+  - [intact, noisy_deadband]
+
+test:
+  - [D2, mixed_composition]
+  - [D3, mixed_composition]

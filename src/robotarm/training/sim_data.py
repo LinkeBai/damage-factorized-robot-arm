@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from dataclasses import field
 
 import numpy as np
 import torch
@@ -20,6 +21,7 @@ class SimTrajectory:
     states: torch.Tensor  # (T + 1, 10)
     actions: torch.Tensor  # commanded actions, (T, 5)
     applied_actions: torch.Tensor  # delayed/deadband-filtered actions, (T, 5)
+    metadata: dict[str, float | int | str] = field(default_factory=dict)
 
 
 def collect_trajectory(

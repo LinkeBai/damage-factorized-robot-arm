@@ -1,0 +1,102 @@
+<!--
+arm_push.xml: 5-DoF arm + a pushable block on a table.
+
+Push task (PROJECT-PLAN §5.2): the arm must push a block into a target region.
+The block slides on a table plane; contact dynamics make the residual physics
+(friction, actuator loss, backlash) matter far more than for free-space Reach.
+
+This file keeps the identical arm chain as arm.xml and only adds:
+  - a table plane,
+  - a free-sliding block (2 DoF: x, y),
+  - contact flags on the tool so it can push the block,
+  - a block-position sensor.
+-->
+<mujoco model="arm5dof_push">
+  <compiler angle="radian" autolimits="true" coordinate="local" eulerseq="xyz"/>
+
+  <option gravity="0 0 -9.81" integrator="implicitfast" timestep="0.005"/>
+
+  <default>
+    <joint type="hinge" damping="0.1" armature="0.01" limited="true"/>
+    <geom type="capsule" rgba="0.55 0.6 0.65 1" contype="0" conaffinity="0"/>
+    <motor ctrllimited="true" ctrlrange="-1.5 1.5" forcerange="-1 1"/>
+  </default>
+
+  <worldbody>
+    <!-- Table plane: block slides on this. -->
+    <body name="table" pos="0 0 0">
+      <geom name="table_geom" type="box" size="0.5 0.5 0.001" pos="0 0 -0.001"
+            rgba="0.5 0.5 0.55 1" contype="1" conaffinity="1"
+            friction="0.4 0.05 0.05"/>
+    </body>
+
+    <!-- Pushable block: slides in the table plane (x, y). -->
+    <body name="block" pos="0.20 0.10 0.02">
+      <joint name="block_x" type="slide" axis="1 0 0" range="-0.5 0.5" limited="true" damping="0.5"/>
+      <joint name="block_y" type="slide" axis="0 1 0" range="-0.5 0.5" limited="true" damping="0.5"/>
+      <geom name="block_geom" type="box" size="0.02 0.02 0.02" mass="0.06"
+            rgba="0.9 0.7 0.2 1" contype="1" conaffinity="1"
+            friction="0.4 0.05 0.05"/>
+    </body>
+
+    <!-- Fixed base -->
+    <body name="base" pos="0 0 0">
+      <geom name="base_geom" type="box" size="0.045 0.045 0.03" pos="0 0 0.03"
+            rgba="0.35 0.38 0.42 1"/>
+      <body name="shoulder" pos="0 0 0.120">
+        <joint name="j1" axis="0 0 1" range="-1.4835 1.4835"/>
+        <geom name="shoulder_geom" type="sphere" size="0.025" pos="0 0 0"/>
+        <body name="shoulder_link" pos="0 0 0">
+          <body name="upper_arm" pos="0 0 0">
+            <joint name="j2" axis="0 1 0" range="-1.4835 1.4835"/>
+            <geom name="upper_geom" type="capsule" fromto="0 0 0 0 0 0.110" size="0.018"/>
+            <body name="elbow" pos="0 0 0.110">
+              <joint name="j3" axis="0 1 0" range="-1.6057 1.6057"/>
+              <geom name="forearm_geom" type="capsule" fromto="0 0 0 0 0 0.120" size="0.016"/>
+              <body name="wrist_pitch" pos="0 0 0.120">
+                <joint name="j4" axis="0 1 0" range="-1.6406 1.6057"/>
+                <geom name="wrist_pitch_geom" type="capsule" fromto="0 0 0 0 0 0.060" size="0.014"/>
+                <body name="wrist_roll" pos="0 0 0.060">
+                  <joint name="j5" axis="0 0 1" range="-1.5708 1.5708"/>
+                  <geom name="wrist_roll_geom" type="sphere" size="0.015"/>
+                  <body name="tool" pos="0 -0.0132 0.110">
+                    <geom name="tool_geom" type="capsule" fromto="0 0 0 0.02 0 0" size="0.012"
+                          contype="1" conaffinity="1" friction="0.1 0.02 0.02"/>
+                    <geom name="pusher_geom" type="capsule"
+                          fromto="0.0200 0 0 0.0537 -0.0210 0.0210" size="0.008"
+                          contype="1" conaffinity="1" friction="0.1 0.02 0.02"/>
+                    <site name="ee" pos="0.02 0 0" size="0.008" rgba="1 0.2 0.2 1"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <!-- Task frame: the push target in world space -->
+    <body name="goal" pos="0.25 0.15 0.02">
+      <geom name="goal_geom" type="sphere" size="0.008" rgba="0.2 0.9 0.3 1" contype="0" conaffinity="0"/>
+    </body>
+
+    <camera name="overview" pos="0.6 -0.8 0.7" xyaxes="1 0 0 0 1 0"/>
+  </worldbody>
+
+  <actuator>
+    <motor name="m1" joint="j1"/>
+    <motor name="m2" joint="j2"/>
+    <motor name="m3" joint="j3"/>
+    <motor name="m4" joint="j4"/>
+    <motor name="m5" joint="j5"/>
+  </actuator>
+
+  <sensor>
+    <jointpos name="qpos" joint="j1"/>
+    <jointpos name="qpos2" joint="j2"/>
+    <jointpos name="qpos3" joint="j3"/>
+    <jointpos name="qpos4" joint="j4"/>
+    <jointpos name="qpos5" joint="j5"/>
+    <framepos name="block_pos" objtype="body" objname="block"/>
+  </sensor>
+</mujoco>

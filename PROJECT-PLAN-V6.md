@@ -1,11 +1,11 @@
-# Project Plan V5 — Damage-Factorized World Model
+# Project Plan V6 — Robust Zero-Shot Structured Dynamics
 
-**项目**：六自由度低成本机械臂关节锁定后的少样本安全恢复
-**版本日期**：2026-08-06
+**项目**：低成本机械臂关节锁定后的稳健零样本结构化动力学
+**版本日期**：2026-08-19
 **规划模式**：standard  
-**规划基线**：本文件是后续执行的最新基线；`PROJECT-PLAN-V3.md` 与 `EXECUTION-PLAN.md` 保留为历史记录  
-**当前状态**：idea 已重新评审与重构；论文草稿存在；实验代码、仿真环境和真实结果尚不存在  
-**证据约束**：本文中的时间、GPU-h、工程工时和阈值是项目管理估计，不是实验结果
+**规划基线**：本文件是后续执行的最新基线；旧版计划和失败实验保留为审计记录  
+**当前状态**：G0 已通过；G1 原始 DFWM 假设 No-Go，robust zero-shot pivot 已完成五 seed 最小机制验证；进入 G2 论文级强化  
+**证据约束**：实测结果均指向可追溯 artifact；未来时间、GPU-h、工时和阈值仍属于项目管理估计
 
 ---
 
@@ -19,9 +19,15 @@
 2. “连续 embedding 不能表示离散变化”不成立；
 3. token 与 actor 同时更新，无法判断恢复来自哪个组件。
 
-V4 将主线改为：
+V6 根据 G1 的反证结果再次收缩主张。原始 residual latent、history/FiLM
+adapter 和 Reach 优势均未形成稳定证据，旧 Push 15.8% 结果因零接触协议失效。
+当前主线改为：
 
-> **Damage-Factorized World Model（DFWM）**：将诊断可得的离散损坏拓扑，与必须从少量真实交互中估计的连续残余物理分开表示。部署时冻结 world model 和 policy，仅从 1–5 条安全校准轨迹推断低维 residual context，再进行闭环控制。
+> **Robust Zero-Shot Structured Dynamics**：利用诊断可得的离散损坏拓扑训练多个独立条件动力学模型，在未知故障强度和 held-out 组合上通过集成均值提高多步预测，并以模型分歧提供经验不确定性。部署时冻结模型，不依赖 residual latent 在线适配。
+
+DFWM 保留为被否定的原始假设和对照方法，不再把“少量试运行识别故障严重度”
+作为当前已成立贡献。Guarded MPC 仅为次要控制验证，除非 G2 统计区间不跨零，
+不得升级为稳定控制收益主张。
 
 ### 0.2 ICRA 2027 投稿约束与会议策略
 
@@ -37,7 +43,7 @@ ICRA 提交还必须满足：至少选择 3 个官方关键词；PaperPlaza 元�
 | 阶段 | 目标 | 主要成本 | 关键决策 |
 |---|---|---:|---|
 | G0 | 5-DoF+夹爪运动学、可达性、硬件与物理测量 | 16–24 工时；4–8 真机小时 | URDF 与真机是否一致、任务是否物理可做 |
-| G1 | 最小机制验证 | 40–60 工时；30–60 GPU-h | factorization 是否值得继续 |
+| G1 | 最小机制验证 | 40–60 工时；30–60 GPU-h | 原始假设 No-Go；robust zero-shot Pivot-Go |
 | G2 | ICRA 核心仿真证据 | 60–90 工时；60–100 GPU-h | 是否形成稳定方法贡献 |
 | G3 | 真机重复验证 | 30–45 工时；8–16 真机小时；8–16 GPU-h | 是否支持真实恢复主张 |
 | G4 | 论文、视频与投稿 | 30–45 工时 | 是否达到投稿完整性 |
@@ -47,7 +53,7 @@ ICRA 提交还必须满足：至少选择 3 个官方关键词；PaperPlaza 元�
 
 ---
 
-## 当前执行状态（2026-08-10 更新）
+## 当前执行状态（2026-08-19 更新）
 
 ### G0
 
@@ -55,28 +61,41 @@ G0 已完成并通过，交付物、真机校准、MuJoCo 模型、可达域、�
 
 ### G1
 
-**2026-08-19 更新**：在 Push 专用 split、D2/D3 共同接触工作区和目标导向轨迹下，完成 five-shot DFWM、受约束主动校准、zero-shot、residual descriptor 监督、history encoder 监督及 residual-only 3-seed Pivot。所有分支均未获得稳定的 2/3-seed 机制信号；当前 G1 判 No-Go，暂停 G2。随机激励场景中的 15.8% 平均差异保留为诊断结果，不作为 few-shot recovery 或目标导向 Push 结论。完整审计见 `reports/g1-overnight-method-audit-20260819.md`。
+原始 DFWM residual 路线判定 **No-Go**。Reach 的早期优势未通过多 seed
+复核；旧 Push 15.8% 结果使用了零接触、零方块位移的错误协议，禁止作为论文
+证据。residual latent、history encoder、静态/动态 FiLM 和 residual correction
+均未通过 fidelity-stable D2/D3 gate。
 
-Oracle residual 上界进一步显示：真实 residual 仅使 DFWM 多步误差改善 2.9%，低于 10% 上界阈值。因此下一方法 owner 应实现显式 base dynamics + residual correction，而不是继续调 latent/history inference。
+Push 协议已修正：补齐夹爪下指碰撞几何、分离 IK waypoint 与任务目标、冻结
+不重叠 target split，并要求 D2/D3 评估轨迹存在真实接触和方块位移。在该协议上，
+三成员 topology-conditioned ensemble 相对参数匹配单模型的五 seed 平均多步
+RMSE 改善为 **30.7%**，seed bootstrap 95% CI 为 **[15.1%, 42.6%]**；
+D2/D3 和 5/5 seeds 方向均为正。参数量分别为 450,906 与 460,382。
 
-原始 G1 learned-MPC Go 未通过：3 seeds 的 D2/D3 控制成功极不稳定，只有 1 次成功。诊断确认 IK+PD 在相同 D2/D3 与 evaluation targets 上可成功，因此失败原因是 learned world model 长时滚动预测与直接 torque-CEM 控制不稳定，不是目标不可达、MuJoCo 或 GPU 问题。
+Guarded MPC 在五目标审计中改善 11/15 个 seed-target 组合，15/15 保持任务
+成功，但三 seed 区间跨零。因此当前状态为：**G1 原始方法 No-Go；G1 robust
+zero-shot Pivot 通过最小预测机制门并可阶段交付；G2 可启动，但控制收益仍是
+次要、未证实结论。**权威结果见
+`reports/g1-robust-zero-shot-corrected-results-20260819.md` 和
+`results/final/g1_robust_zero_shot_5seed_summary.json`。
 
-按本 V5 框架完成了 G1-Pivot：
+### G2
 
-- IK+PD hybrid：D2/D3、8 targets，8/8 成功；
-- Jacobian residual feedback：8/8 成功；
-- gated world-model hybrid：3 seeds、D2/D3、K=0/5，共 48/48 成功；
-- residual-aware option selector：3 seeds、D2/D3、24 episodes，24/24 成功。
-
-因此当前项目状态为：**G1 原始方法 No-Go；G1-Pivot 功能验证完成；不阻塞后续 V6/G2 优化。**
-
-需要保留的科学限制：option selector 平均约 83.4 步，IK+PD 基线约 72.9 步，当前没有证明显著性能增益。world model 已参与候选动作选择，但尚未证明它比简单 IK+PD 更有效。
+**2026-08-19 首轮强基线更新**：已冻结 `g2_push_ensemble_v1` 协议，并完成
+structured ensemble 与 ordinary deep ensemble 的同架构、同参数量、同数据、
+同评估轨迹五 seed 对照。structured 方法平均仅改善 **2.47%**，seed bootstrap
+95% CI 为 **[-1.83%, 6.38%]**，4/5 seeds 为正但 seed 47 为负。该结果未通过
+G2 Go，触发“与普通 deep ensemble 等价”的预设 Pivot。此前相对参数匹配宽
+单模型的 30.7% 优势主要证明 ensemble 相对单模型有效，不能证明 topology
+structure 有独立贡献。详见 `reports/g2-ordinary-ensemble-gate-20260819.md`。
 
 ## 1. 项目目标与成功定义
 
 ### 1.1 科学目标
 
-研究低成本串联机械臂发生单关节锁定后，如何利用诊断信息与极少量安全交互，恢复对新目标的控制能力。
+研究低成本串联机械臂发生单关节锁定后，已知故障拓扑的结构化条件动力学
+集成能否在未知故障强度下提供更稳健的多步预测、可用的不确定性排序，并最终
+支持安全控制。少样本 residual identification 降为已受反证的备选问题。
 
 ### 1.2 工程目标
 
@@ -86,8 +105,8 @@ Oracle residual 上界进一步显示：真实 residual 仅使 DFWM 多步误差
 - URDF—舵机—真机坐标映射和经过实测校准的运动链；
 - 可配置的关节锁定、摩擦、顺应性、背隙和延迟模型；
 - 仿真与真机统一轨迹接口；
-- factorized conditional world model；
-- residual context 推断；
+- topology-conditioned dynamics ensemble；
+- parameter/compute-matched baselines 与 ensemble disagreement；
 - 至少 Reach 和 Push 两个任务；
 - 可重跑的实验配置、日志、checkpoint 和统计脚本；
 - 真机校准协议、视频与安全记录。
@@ -96,9 +115,9 @@ Oracle residual 上界进一步显示：真实 residual 仅使 DFWM 多步误差
 
 项目达到“机器人顶会可投稿”必须同时满足：
 
-1. **机制成立**：冻结 actor 和 WM 时，factorized context 相对 topology-only 仍有稳定收益；
-2. **非记忆**：在训练未出现的 topology–residual 组合上仍有效；
-3. **基线可信**：至少覆盖 topology-only、history encoder、matched continuous descriptor、parameter-matched adaptation；
+1. **机制成立**：冻结模型时，structured ensemble 相对普通 deep ensemble 和参数/算力匹配单模型仍有稳定收益；
+2. **非记忆**：在训练未出现的 topology–physics 组合上仍有效；
+3. **基线可信**：至少覆盖 topology-only single、ordinary deep ensemble、domain-randomized ensemble 和 parameter/compute-matched single；
 4. **真实重复**：真机不是单段展示；最低 ICRA 证据包覆盖两个故障条件且每条件不少于 20 个 evaluation episodes，强证据包每条件不少于 30 个；
 5. **成本透明**：报告交互步数、真实秒数、适配时间、GPU-h、失败次数；
 6. **可复现**：从环境创建到表格生成存在单命令或明确脚本链；
@@ -115,24 +134,24 @@ Oracle residual 上界进一步显示：真实 residual 仅使 DFWM 多步误差
 - 故障诊断模块或人工检查能够提供锁定关节身份；
 - 锁定角可以直接读取或粗略测量；
 - 摩擦、顺应性、回差、负载和延迟等 residual dynamics 未知；
-- 只允许 1–5 条低风险校准轨迹；
-- 评估目标与校准目标分离。
+- 主设置为 zero-shot，不使用评估实例的在线校准轨迹更新模型；
+- 训练、验证和评估目标及 physics composition 严格分离。
 
 ### 2.2 主要研究问题
 
-- **RQ1**：离散 topology 与连续 residual 的因子化，是否比单一 morphology descriptor 更利于组合泛化？
-- **RQ2**：在冻结 world model 和 actor 时，少量校准轨迹是否足以改善控制？
-- **RQ3**：收益是否来自 residual identification，而非 actor-head 行为克隆？
-- **RQ4**：仿真中得到的 residual inference 能否吸收低成本真机的背隙、锁定顺应性与延迟？
-- **RQ5**：达到给定恢复水平需要多少轨迹、多少 transition 和多少 wall-clock time？
+- **RQ1**：已知故障 topology 的结构化条件是否能提高 held-out physics composition 的多步预测？
+- **RQ2**：收益是否超过普通 deep ensemble，并在参数量和训练 compute 对齐后保留？
+- **RQ3**：ensemble disagreement 能否在 rollout depth 分层后稳定排序预测误差？
+- **RQ4**：预测改善是否能转化为冻结控制器的稳定控制收益？
+- **RQ5**：该方法在哪些故障强度、接触条件和目标区域失效？
 
 ### 2.3 可证伪假设
 
-- **H1 Factorization**：在 held-out topology–physics 组合上，DFWM 的 normalized recovery 高于 topology-only 和 monolithic descriptor。
-- **H2 Low-shot calibration**：1–5 条轨迹内，DFWM 的性能随数据量稳定改善，并早于 full fine-tune 达到平台期。
-- **H3 Attribution**：冻结 actor 后仍保留主要收益；若收益消失，则 token/context 机制主张失败。
-- **H4 Sim-to-real residual**：真实校准后，world-model prediction error 下降，并与控制成功率改善相关。
-- **H5 Safety/cost**：DFWM 不需要比 history baseline 更多的真实交互或更多不安全动作。
+- **H1 Structured prediction**：在 held-out topology–physics 组合上，structured ensemble 的多步误差低于普通 deep ensemble。
+- **H2 Fairness**：在总参数量和训练 compute 分别对齐后，H1 的方向与区间仍成立。
+- **H3 Uncertainty**：depth-stratified ensemble disagreement 与多步误差正相关；若不成立，不主张校准不确定性。
+- **H4 Control transfer**：冻结 guarded planner 的控制改善在五 seed、多目标下区间不跨零；若不成立，控制只作负结果。
+- **H5 Boundary**：优势在接触丰富、残余物理可影响状态转移的 Push 中强于简单 Reach，并存在可解释 failure regime。
 
 ### 2.4 明确不再主张
 
@@ -143,6 +162,10 @@ Oracle residual 上界进一步显示：真实 residual 仅使 DFWM 多步误差
 - 不把 intact robot 表现当作 damaged morphology 的唯一 oracle；
 - 不在真实数据产生前承诺 60%、80% 或固定胜幅；
 - 不把“低成本平台”本身当作算法新颖性。
+- 不再使用旧 Push 15.8% 数字；
+- 不声称 residual latent 已识别故障严重度；
+- 不把集成平均本身包装成结构化方法创新；
+- 不在控制置信区间跨零时声称稳定恢复提升。
 
 ---
 
@@ -159,8 +182,8 @@ Oracle residual 上界进一步显示：真实 residual 仅使 DFWM 多步误差
 | 动作 | 5 维关节位置/增量命令；锁定关节动作由 adapter 屏蔽；夹爪开合作为独立执行器，不计入 5-DoF 定位链 |
 | 仿真 | MuJoCo |
 | 真机 | Feetech SDK + Python + websockets；不要求 ROS |
-| 模型 | 小型 conditional RSSM / DreamerV3-compatible WM |
-| 部署更新 | residual context；WM 与 actor 默认冻结 |
+| 模型 | topology-conditioned dynamics ensemble；conditional RSSM 作为成员实现 |
+| 部署更新 | zero-shot；world model 与 planner 冻结 |
 
 ### 3.1.1 真实机械链与命名冻结
 
@@ -207,7 +230,16 @@ Base --J1--> Yao --J2--> Jian1 --J3--> Jian2
 
 ## 4. 技术方案
 
-### 4.1 损坏上下文
+### 4.0 V6 主方法冻结
+
+V6 主方法由三个共享训练协议但独立初始化的 topology-conditioned dynamics
+members 组成。推理采用 ensemble mean；不确定性采用成员预测分歧。所有成员在
+部署时冻结，不使用 test-instance residual optimization。参数匹配宽单模型、普通
+deep ensemble 和 domain-randomized ensemble 必须共享数据、训练轮数、优化器和
+评估轨迹。以下 residual-context 小节保留为原始 DFWM 设计与失败 baseline 说明，
+不再代表 V6 主方法。
+
+### 4.1 原始 DFWM 损坏上下文（历史 baseline）
 
 定义：
 
@@ -236,7 +268,7 @@ c_damage = [e_topology(m, q_lock, joint_attributes), z_residual(D_K)]
 
 G1 可先实现按顺序拼接的共享 MLP；GNN/Transformer 不是前置条件。
 
-### 4.3 Residual context 推断
+### 4.3 Residual context 推断（历史 baseline，G1 No-Go）
 
 按工程风险从低到高实施：
 
@@ -523,16 +555,33 @@ NR = (S_adapted - S_no_adapt) / max(S_damaged_oracle - S_no_adapt, ε)
 - passive calibration；
 - K = 0/1/2/5。
 
+### V6 实际执行与裁决
+
+- 原固定范围已完成用于路线裁决，但没有按原假设得到 factorized/few-shot Go；
+- Reach 仅保留为环境与过拟合反例，不进入主结果；
+- Push 成为机制任务，D2/D3、5 seeds、state observation、冻结部署已完成；
+- K 曲线、residual latent 和 history/FiLM 分支均作为失败诊断归档，不补造正结论；
+- 按预注册 Pivot 条款转为 robust zero-shot structured dynamics；
+- parameter-matched 单模型公平对照、bootstrap 区间和训练耗时记录已完成。
+
 ### 交付物
 
-- 可运行 MuJoCo 环境；
-- 100-step smoke test；
-- dataset generator；
-- 最小 conditional RSSM；
-- residual latent optimization；
-- 冻结 actor 或 MPC；
-- G1 结果表、恢复曲线、prediction error；
-- 每 run 的 manifest 与日志。
+以下为 V6 认可的实际 Pivot 交付包；原始路线失败项以审计报告交付，不要求
+为了形式完整而重跑或制造正结果：
+
+- 可运行的 MuJoCo Reach/Push 环境、修正后的夹爪接触模型与 100-step smoke test；
+- corrected Push target split、dataset generator 和 D2/D3 接触/位移覆盖检查；
+- conditional world model、topology encoder 和三成员 robust zero-shot ensemble；
+- residual latent、history encoder、FiLM/residual correction 的实现与 No-Go 审计；
+- 冻结 guarded MPC 及五目标控制审计；
+- D2/D3、5 seeds、parameter-matched prediction table 与 seed bootstrap 区间；
+- prediction error、ensemble disagreement、参数量和已测 wall-clock；
+- checkpoint、run summary、日志、最终 JSON/CSV、复现指南和 Gate 报告；
+- 自动测试通过记录及 data leakage/protocol correction 说明。
+
+不再列为 G1 欠交付：原 K=0/1/2/5 的正向恢复曲线、原四方法在错误 Push
+协议上的补跑、以及未通过统计门槛的 NR 控制主表。它们的科学结论均为
+No-Go/不成立，后续只保留审计，不阻塞 G2。
 
 ### Go
 
@@ -551,21 +600,63 @@ NR = (S_adapted - S_no_adapt) / max(S_damaged_oracle - S_no_adapt, ε)
 - history encoder 明显更好：将 DFWM 降为 baseline，转向在线 diagnosis；
 - WM 不稳定但 MPC dynamics 有效：改为 conditional dynamics + MPC，放弃 Dreamer 品牌。
 
+### 实际 Gate（2026-08-19）
+
+**Pivot-Go，可阶段交付。**判断依据：
+
+- 修正协议后 D2/D3 均有真实接触和方块位移；
+- 集成相对参数匹配单模型平均改善 30.7%，95% CI [15.1%, 42.6%]；
+- D2、D3 和 5/5 seeds 改善方向一致；
+- 模型与控制器在部署评估时冻结，无在线更新和不可解释的数据泄漏；
+- 122 项自动测试通过，checkpoint、结果、日志和复现指南已归档。
+
+限制：该 Gate 只批准进入 G2，不等同于论文创新成立。Guarded MPC 的扩展
+审计区间跨零；结构化条件相对普通 deep ensemble 的独立贡献仍需在 G2 验证。
+
 ## G2 — 主会级仿真
 
 **建议日期**：2026-08-24 至 2026-09-04
-**依赖**：G1 Go  
+**依赖**：G1 Pivot-Go  
 **预算**：60–100 GPU-h；60–90 工时
 
-### 固定范围
+### V6 固定范围
 
-- Reach + Push；
-- D2/D3/D4；
-- 最低 ICRA 包 3 seeds；强证据包在算力允许时扩展至 5 seeds；
-- 4 必需 baseline；
-- held-out composition；
-- K = 0/1/5（主文）；K = 2/10 仅在不影响关键路径时补充；
-- factorization、actor-freeze 为必需消融；latent dimension 与 inference-method 大扫描降为非关键扩展。
+- Push 为主任务；Reach 仅作边界和失败分析；
+- D2/D3 为主故障，D4 仅在协议覆盖检查通过后加入；
+- 5 training seeds，固定 corrected Push split；
+- 核心方法：topology-conditioned ensemble；
+- 强制基线：单 topology-only、参数匹配宽单模型、普通 deep ensemble、
+  domain-randomized dynamics ensemble；
+- 强制消融：去 topology condition、成员数 1/3/5、参数量与总训练 compute 对齐；
+- held-out lock angle、摩擦、motor strength、backlash 及其组合；
+- prediction 主指标使用多步 RMSE/NLL；不确定性只使用经校准验证的 ensemble
+  disagreement，不使用当前反校准的 aleatoric log-std；
+- 控制为次要验证：固定 guard，不允许按 test target 调阈值；
+- 原 K=0/1/2/5 residual-calibration 曲线退出主线，仅作为失败结果保留。
+
+### G2 Go
+
+- 相对普通 deep ensemble 和 compute/parameter-matched 强基线仍有稳定收益；
+- 五 seed 效应方向一致，seed-level 95% CI 不跨零；
+- 在 held-out physics composition 上收益仍存在，不只来自平均多个随机初始化；
+- 不确定性排序在 rollout-depth 分层后仍与误差正相关；
+- 所有主表均由冻结配置自动生成，包含参数量、wall-clock、GPU 型号和失败 run；
+- 若控制进入主张，其五 seed/多目标区间必须不跨零。
+
+### G2 Pivot / Stop
+
+- 与普通 deep ensemble 等价：降级为工程 benchmark，不主张结构化方法创新；
+- 仅预测改善、控制无改善：论文定位为 dynamics prediction/uncertainty，删除恢复主张；
+- held-out composition 优势消失：停止 ICRA 方法主线，转失败分析或更换问题设定；
+- 结果依赖单一 seed、目标或协议调整：停止扩表并进行泄漏与选择偏差审计。
+
+### G2 当前 Gate（2026-08-19）
+
+**Pivot：结构化方法主张暂不成立。**普通 deep ensemble 强基线已完成，平均差异
+2.47%，95% CI 跨零。停止围绕当前 topology encoder 调参；下一决策只能在以下
+两项中选择：将工作降级为故障动力学 benchmark/负结果，或提出并预注册一个
+不等价于普通 ensemble averaging 的新机制后重新开启方法 Gate。domain-randomized
+ensemble 可用于 benchmark 完整性，但不得被描述为挽救当前结构化主张。
 
 ### 交付物
 
@@ -596,16 +687,16 @@ NR = (S_adapted - S_no_adapt) / max(S_damaged_oracle - S_no_adapt, ε)
 ## G3 — 真机重复验证
 
 **建议日期**：2026-08-24 至 2026-09-06，与 G2 并行
-**依赖**：G1 Go；D3 真机 pilot 不等待完整 G2，正式统计依赖核心仿真趋势稳定
+**依赖**：仅允许安全 adapter smoke 与 G2 并行；正式统计必须等待 G2 Go
 **预算**：8–16 真机小时；8–16 GPU-h；30–45 工时
 
 ### 顺序
 
-1. intact Reach；
-2. D3 topology-only；
-3. D3 factorized calibration；
+1. intact 与 D3 Push 安全/接口 smoke；
+2. D3 单模型 topology-only；
+3. D3 robust topology ensemble；
 4. 第二 lock angle 或 D2；
-5. Push；
+5. 固定协议重复统计；
 6. 只有前述稳定后才做扩展视频。
 
 ### 交付物
@@ -974,9 +1065,9 @@ seed
   -> 可达域与任务冻结
   -> MuJoCo 环境
   -> 健康/损坏 baseline
-  -> factorized G1
-  -> G1 Go
-  -> held-out G2
+  -> G1 原始假设 No-Go
+  -> robust zero-shot Pivot-Go
+  -> G2 强基线与 held-out composition
   -> G2 Go
   -> 真机正式统计
   -> 论文结果冻结
@@ -1188,34 +1279,36 @@ Next week:
 
 ### G0
 
-- [ ] arm spec
-- [ ] safety limits
-- [ ] calibration raw data
-- [ ] reachability split
-- [ ] MuJoCo XML
-- [ ] feasibility report
+- [x] arm spec
+- [x] safety limits
+- [x] calibration raw data
+- [x] reachability split
+- [x] MuJoCo XML
+- [x] feasibility report
 
 ### G1
 
-- [ ] reproducible environment
-- [ ] data generator
-- [ ] topology encoder
-- [ ] residual context
-- [ ] conditional WM
-- [ ] frozen control
-- [ ] four-method pilot
-- [ ] gate report
+- [x] reproducible environment
+- [x] corrected Push protocol and data generator
+- [x] topology encoder and conditional world model
+- [x] residual context/history/FiLM diagnostics（No-Go，已归档）
+- [x] robust zero-shot topology ensemble
+- [x] parameter-matched five-seed prediction audit
+- [x] frozen guarded MPC audit（次要结果，区间跨零）
+- [x] checkpoint、manifest、日志、结果表和复现指南
+- [x] gate report
 
 ### G2
 
-- [ ] immutable configs
-- [ ] minimum 3-seed main table；资源允许时扩展到 5 seeds
-- [ ] held-out composition
-- [ ] recovery curve
-- [ ] ablations
-- [ ] robustness
+- [ ] immutable G2 configs and preregistered exclusions
+- [ ] ordinary deep-ensemble baseline
+- [ ] domain-randomized ensemble baseline
+- [ ] five-seed held-out composition main table
+- [ ] topology/member-count/compute-matched ablations
+- [ ] calibrated uncertainty and robustness analysis
+- [ ] prediction-to-control correlation or explicit negative result
 - [ ] failure analysis
-- [ ] compute report
+- [ ] complete compute report
 
 ### G3
 
@@ -1282,33 +1375,32 @@ artifacts:
 
 ## 20. 当前 Gate 决策与下一 owner
 
-**当前阶段**：G0 完整复审已补齐校准 URDF、缺口报告、位置/姿态可达域图、动态汇总和任务裁决；在 position-only Reach 范围内带偏差说明通过。G1/Pivot 控制复核仍为 No-Go。
-**当前 gate**：暂停 G2；G0 不再阻塞，当前阻塞项是 G1 学习式控制仅 1/3 seeds 成功。
-**下一执行 owner**：
+**当前阶段**：G0 已通过；G1 原始 DFWM No-Go；G1 robust zero-shot Pivot
+已完成五 seed 最小预测机制验证并通过阶段交付。
 
-1. 项目初始化与工程实现；
-2. G0 测量；
-3. `ccf-experiment-designer` 在测量结果之后冻结完整实验协议。
+**当前 gate**：批准进入 G2，但只批准“论文级强化与反证”，不预先批准 ICRA
+主张。Guarded MPC 仍是次要结果，真机 G3 暂不启动正式统计。
 
-**G0 已获得输入**：
+**下一执行 owner 与顺序**：
 
-- `genkiarm.urdf`：确认 7 links、6 revolute joints 及名义轴/偏移；
-- 真机确认：J1 底座、J2 大臂、J3 小臂、J4 腕俯仰、J5 腕旋转、ID6 夹爪开合。
+1. 实验 owner：冻结 G2 config、split hash、排除规则和 compute 预算；
+2. 方法 owner：实现普通 deep ensemble、domain-randomized ensemble 与
+   compute-matched baseline；
+3. 分析 owner：完成五 seed held-out composition、bootstrap、校准和失败分析；
+4. 论文 owner：删除 residual-identification 已成立、旧 Push 15.8% 和稳定控制
+   恢复等不受支持表述；
+5. 项目负责人：G2 Gate 后再决定是否投入 G3 真机正式统计。
 
-**G0 仍缺输入**：
+**下一批必须回答的问题**：
 
-- URDF 引用的 `AAA.stl`–`FFF.stl` 网格，或可替代的 CAD/碰撞几何；
-- 舵机 ID、零位与方向；
-- 控制接口地址/调用方式；
-- 锁定结构照片或说明；
-- 相机型号与安装方式；
-- 可接受的真机实验时间。
-
-在这些输入未齐前，可以完成仓库初始化、MuJoCo 骨架、FK、schema、测试与安全模板，但不能诚实冻结真实物理参数和正式任务分布。
+- 收益是否超过普通 deep ensemble，而不仅是 ensemble averaging？
+- topology condition 在 held-out physics composition 中是否有独立贡献？
+- 在参数量和总训练 compute 同时对齐后，优势是否保留？
+- prediction improvement 能否带来统计稳定的控制收益？若不能，应如何收缩论文定位？
 
 ---
 
-## 21. V5 完成标准
+## 21. V6 完成标准
 
 本计划本身完成不等于项目完成。项目完成的最终定义是：
 
