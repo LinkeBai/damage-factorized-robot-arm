@@ -15,8 +15,12 @@ from robotarm.training.target_split import load_target_split
 from robotarm.training.topology_ensemble import (
     TopologyMember,
     evaluate_topology_ensemble,
+    matched_latent_dim,
+    member_parameter_count,
+    train_topology_member,
     train_topology_ensemble,
 )
+from robotarm.training.sim_protocol import damage_from_name
 from robotarm.models.topology_encoder import TopologyEncoder
 from robotarm.models.world_model import WorldModel, WorldModelConfig
 from scripts.run_push_benchmark import PUSH_XML, collect_push_domains
@@ -30,6 +34,7 @@ def main() -> None:
     parser.add_argument("--steps", type=int, default=100)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--checkpoint", type=Path, default=None)
+    parser.add_argument("--parameter-matched", action="store_true")
     args = parser.parse_args()
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
@@ -50,7 +55,8 @@ def main() -> None:
         for item in payload:
             encoder = TopologyEncoder().to(device)
             world_model = WorldModel(WorldModelConfig(
-                state_dim=item["state_dim"], context_dim=item["context_dim"]
+                state_dim=item["state_dim"], context_dim=item["context_dim"],
+                latent_dim=item.get("latent_dim", 128),
             )).to(device)
             encoder.load_state_dict(item["encoder"])
             world_model.load_state_dict(item["world_model"])
@@ -62,6 +68,27 @@ def main() -> None:
             device=device, seed=args.seed,
         )
         print("ensemble trained", flush=True)
+    parameter_matched = None
+    ensemble_parameters = sum(member_parameter_count(member) for member in ensemble)
+    matched_parameters = None
+    matched_dim = None
+    if args.parameter_matched:
+        states = torch.stack([item.states for item in train]).to(device)
+        actions = torch.stack([item.actions for item in train]).to(device)
+        damages = [
+            damage_from_name(item.domain_id.split("__", 1)[0]) for item in train
+        ]
+        matched_dim = matched_latent_dim(states.shape[-1], ensemble_parameters)
+        parameter_matched = train_topology_member(
+            states, actions, damages, ranges, epochs=args.epochs,
+            device=device, seed=args.seed + 50_000, latent_dim=matched_dim,
+        )
+        matched_parameters = member_parameter_count(parameter_matched)
+        print(
+            f"parameter-matched trained latent={matched_dim} "
+            f"params={matched_parameters} ensemble_params={ensemble_parameters}",
+            flush=True,
+        )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if not args.checkpoint:
         torch.save(
@@ -71,6 +98,7 @@ def main() -> None:
                 "world_model": member.world_model.state_dict(),
                 "state_dim": member.world_model.cfg.state_dim,
                 "context_dim": member.world_model.cfg.context_dim,
+                "latent_dim": member.world_model.cfg.latent_dim,
             }
             for member in ensemble
         ],
@@ -87,6 +115,11 @@ def main() -> None:
         metrics = evaluate_topology_ensemble(
             ensemble, domain, trajectories, ranges, device=device,
         )
+        if parameter_matched is not None:
+            matched_metrics = evaluate_topology_ensemble(
+                [parameter_matched], domain, trajectories, ranges, device=device,
+            )
+            metrics["parameter_matched_rmse"] = matched_metrics["ensemble_rmse"]
         rows.append({"domain": domain.domain_id, **metrics})
         print(f"{domain.domain_id}: {metrics}", flush=True)
     with (args.output_dir / "results.csv").open("w", newline="", encoding="utf-8") as handle:
@@ -96,6 +129,9 @@ def main() -> None:
     summary = {
         "seed": args.seed, "members": args.members, "epochs": args.epochs,
         "steps": args.steps, "device": str(device), "rows": rows,
+        "ensemble_parameters": ensemble_parameters,
+        "parameter_matched_parameters": matched_parameters,
+        "parameter_matched_latent_dim": matched_dim,
     }
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
