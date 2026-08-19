@@ -45,23 +45,62 @@ def train_topology_ensemble(
     damages = [damage_from_name(item.domain_id.split("__", 1)[0]) for item in trajectories]
     ensemble = []
     for index in range(members):
-        torch.manual_seed(seed + 1009 * index)
-        encoder = TopologyEncoder().to(device)
-        world_model = WorldModel(
-            WorldModelConfig(state_dim=states.shape[-1], context_dim=TOPOLOGY_DIM)
-        ).to(device)
-        optimizer = torch.optim.Adam(
-            list(encoder.parameters()) + list(world_model.parameters()), lr=3e-3
-        )
-        for _ in range(epochs):
-            context = encode_damage_batch(encoder, damages, joint_ranges, device)
-            loss = rssm_training_loss(world_model, states, actions, context)
-            optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(world_model.parameters(), 5.0)
-            optimizer.step()
-        ensemble.append(TopologyMember(encoder=encoder, world_model=world_model))
+        ensemble.append(train_topology_member(
+            states, actions, damages, joint_ranges, epochs=epochs,
+            device=device, seed=seed + 1009 * index, latent_dim=128,
+        ))
     return ensemble
+
+
+def train_topology_member(
+    states: torch.Tensor,
+    actions: torch.Tensor,
+    damages: list,
+    joint_ranges: np.ndarray,
+    *,
+    epochs: int,
+    device: torch.device,
+    seed: int,
+    latent_dim: int,
+) -> TopologyMember:
+    torch.manual_seed(seed)
+    encoder = TopologyEncoder().to(device)
+    world_model = WorldModel(WorldModelConfig(
+        state_dim=states.shape[-1], context_dim=TOPOLOGY_DIM,
+        latent_dim=latent_dim,
+    )).to(device)
+    optimizer = torch.optim.Adam(
+        list(encoder.parameters()) + list(world_model.parameters()), lr=3e-3
+    )
+    for _ in range(epochs):
+        context = encode_damage_batch(encoder, damages, joint_ranges, device)
+        loss = rssm_training_loss(world_model, states, actions, context)
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(world_model.parameters(), 5.0)
+        optimizer.step()
+    return TopologyMember(encoder=encoder, world_model=world_model)
+
+
+def member_parameter_count(member: TopologyMember) -> int:
+    return sum(p.numel() for p in member.encoder.parameters()) + sum(
+        p.numel() for p in member.world_model.parameters()
+    )
+
+
+def matched_latent_dim(state_dim: int, target_parameters: int) -> int:
+    candidates = range(128, 385, 8)
+    counts = {}
+    for latent_dim in candidates:
+        probe = TopologyMember(
+            TopologyEncoder(),
+            WorldModel(WorldModelConfig(
+                state_dim=state_dim, context_dim=TOPOLOGY_DIM,
+                latent_dim=latent_dim,
+            )),
+        )
+        counts[latent_dim] = member_parameter_count(probe)
+    return min(candidates, key=lambda value: abs(counts[value] - target_parameters))
 
 
 @torch.no_grad()

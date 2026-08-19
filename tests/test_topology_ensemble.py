@@ -5,7 +5,12 @@ from robotarm.models.topology_encoder import TopologyEncoder
 from robotarm.models.world_model import WorldModel, WorldModelConfig
 from robotarm.training.sim_data import SimTrajectory
 from robotarm.training.sim_protocol import build_g1_protocol
-from robotarm.training.topology_ensemble import TopologyMember, evaluate_topology_ensemble
+from robotarm.training.topology_ensemble import (
+    TopologyMember,
+    evaluate_topology_ensemble,
+    matched_latent_dim,
+    member_parameter_count,
+)
 
 
 def test_identical_ensemble_has_zero_disagreement():
@@ -27,3 +32,16 @@ def test_identical_ensemble_has_zero_disagreement():
     )
     assert metrics["mean_uncertainty"] == 0.0
     assert metrics["uncertainty_error_spearman"] == 0.0
+
+
+def test_matched_latent_dim_approximates_three_member_budget():
+    member = TopologyMember(
+        TopologyEncoder(), WorldModel(WorldModelConfig(state_dim=14, context_dim=64))
+    )
+    target = 3 * member_parameter_count(member)
+    latent_dim = matched_latent_dim(14, target)
+    matched = TopologyMember(
+        TopologyEncoder(),
+        WorldModel(WorldModelConfig(state_dim=14, context_dim=64, latent_dim=latent_dim)),
+    )
+    assert abs(member_parameter_count(matched) - target) / target < 0.08

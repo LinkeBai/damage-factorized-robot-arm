@@ -27,7 +27,8 @@ def load_ensemble(path: Path, device: torch.device) -> list[TopologyMember]:
     for item in payload:
         encoder = TopologyEncoder().to(device)
         world_model = WorldModel(WorldModelConfig(
-            state_dim=item["state_dim"], context_dim=item["context_dim"]
+            state_dim=item["state_dim"], context_dim=item["context_dim"],
+            latent_dim=item.get("latent_dim", 128),
         )).to(device)
         encoder.load_state_dict(item["encoder"])
         world_model.load_state_dict(item["world_model"])
@@ -46,12 +47,17 @@ def main() -> None:
     parser.add_argument("--horizon", type=int, default=3)
     parser.add_argument("--approach-steps", type=int, default=30)
     parser.add_argument("--target-index", type=int, default=0)
+    parser.add_argument(
+        "--target-section", choices=("evaluation", "validation"),
+        default="evaluation",
+    )
     args = parser.parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ensemble = load_ensemble(args.checkpoint, device)
     protocol = load_g1_protocol(Path("config/splits/g1_push_fewshot_v2.yaml"))
     split = load_target_split(Path("config/splits/push_targets_5dof_v1.yaml"))
-    target_item = split.evaluation[args.target_index]
+    target_items = getattr(split, args.target_section)
+    target_item = target_items[args.target_index]
     target = target_item.as_array()
     rows = []
     for domain in protocol.test:

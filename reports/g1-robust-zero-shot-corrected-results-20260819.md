@@ -67,3 +67,50 @@ The corrected robust zero-shot pivot passes its minimum mechanism gate:
 This is a G1 mechanism result, not yet a paper-level statistical conclusion.
 The next phase should add confidence intervals, parameter-matched ensemble
 baselines, compute/parameter accounting, and broader target/domain evaluation.
+
+## Parameter-Matched Fairness And G1 Intervals
+
+The three-member ensemble has 450,906 trainable parameters. The automatically
+selected width-248 single model has 460,382 parameters, 2.1% more than the
+ensemble. It uses the same training trajectories, epochs, optimizer family, and
+evaluation trajectories.
+
+Seed-level paired improvements, averaged over D2 and D3:
+
+| Seed | Ensemble vs mean member | Ensemble vs parameter-matched single |
+|---:|---:|---:|
+| 7 | 31.0% | 44.3% |
+| 17 | 23.4% | 40.5% |
+| 27 | 18.0% | 24.8% |
+
+Paired seed bootstrap (20,000 resamples; only three seeds, therefore G1-level
+evidence):
+
+| Metric | Mean | 95% bootstrap interval |
+|---|---:|---:|
+| Prediction vs mean member | 24.1% | [18.0%, 31.0%] |
+| Prediction vs parameter-matched single | 36.6% | [24.8%, 44.3%] |
+| Guarded MPC worst-domain distance (initial 3 targets) | 16.7% | [2.9%, 33.9%] |
+
+The two prediction intervals exclude zero under the current seed set. The
+initial control interval is superseded by the broader five-target audit below.
+Final paper claims still require at least five seeds and wall-clock/FLOP
+reporting.
+
+## Five-Target Control Audit
+
+Two validation targets were added without retraining or changing the fixed 0.85
+guard threshold. Across five held-out targets:
+
+| Seed | Mean worst-domain improvement |
+|---:|---:|
+| 7 | 7.3% |
+| 17 | 30.6% |
+| 27 | -0.06% |
+
+The guarded controller improves 11/15 seed-target comparisons and succeeds in
+15/15 episodes under the 50 mm tolerance. The seed-level mean improvement is
+12.6%, but its three-seed bootstrap interval is [-0.06%, 30.6%] and therefore
+crosses zero. This passes the G1 minimum gate (2/3 seeds improve and frozen
+deployment remains safe), but it is not a paper-level claim of stable control
+improvement. The prediction mechanism remains the stronger result.
