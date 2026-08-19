@@ -1,0 +1,29 @@
+{
+  "protocol": "corrected_push_v1",
+  "seeds": [7, 17, 27, 37, 47],
+  "members": 3,
+  "epochs": 20,
+  "steps": 150,
+  "ensemble_parameters": 450906,
+  "parameter_matched_parameters": 460382,
+  "parameter_matched_latent_dim": 248,
+  "per_seed_prediction": [
+    {"seed": 7, "vs_mean_member_pct": 31.0205, "vs_parameter_matched_pct": 44.3001},
+    {"seed": 17, "vs_mean_member_pct": 23.4013, "vs_parameter_matched_pct": 40.5359},
+    {"seed": 27, "vs_mean_member_pct": 18.0254, "vs_parameter_matched_pct": 24.8327},
+    {"seed": 37, "vs_mean_member_pct": 19.4546, "vs_parameter_matched_pct": 41.9722},
+    {"seed": 47, "vs_mean_member_pct": 11.3947, "vs_parameter_matched_pct": 2.0543}
+  ],
+  "aggregate": {
+    "vs_mean_member_pct": {"mean": 20.6593, "bootstrap_95_ci": [15.3199, 26.4489], "positive_seeds": 5},
+    "vs_parameter_matched_pct": {"mean": 30.7391, "bootstrap_95_ci": [15.0592, 42.6161], "positive_seeds": 5},
+    "d2_vs_parameter_matched_pct": {"mean": 30.0313, "minimum": 0.4069, "positive_seeds": 5},
+    "d3_vs_parameter_matched_pct": {"mean": 31.4469, "minimum": 3.7018, "positive_seeds": 5}
+  },
+  "bootstrap": {"unit": "seed", "samples": 50000, "rng_seed": 20260819},
+  "timing_note": "Wall-clock instrumentation was added before seeds 37 and 47; earlier checkpoints do not contain timings.",
+  "measured_train_seconds": {
+    "seed37": {"ensemble": 176.7303, "parameter_matched": 54.1696},
+    "seed47": {"ensemble": 177.5280, "parameter_matched": 64.2519}
+  }
+}
