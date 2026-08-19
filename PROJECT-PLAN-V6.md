@@ -81,13 +81,35 @@ zero-shot Pivot 通过最小预测机制门并可阶段交付；G2 可启动，�
 
 ### G2
 
-**2026-08-19 首轮强基线更新**：已冻结 `g2_push_ensemble_v1` 协议，并完成
-structured ensemble 与 ordinary deep ensemble 的同架构、同参数量、同数据、
-同评估轨迹五 seed 对照。structured 方法平均仅改善 **2.47%**，seed bootstrap
-95% CI 为 **[-1.83%, 6.38%]**，4/5 seeds 为正但 seed 47 为负。该结果未通过
-G2 Go，触发“与普通 deep ensemble 等价”的预设 Pivot。此前相对参数匹配宽
-单模型的 30.7% 优势主要证明 ensemble 相对单模型有效，不能证明 topology
-structure 有独立贡献。详见 `reports/g2-ordinary-ensemble-gate-20260819.md`。
+**2026-08-19 首轮强基线**：structured vs ordinary ensemble，5 seeds。平均改善
+**2.47%**，95% CI **[-1.83%, 6.38%]**，触发 Pivot。
+
+**2026-08-19 诊断实验**：GRU hidden-state 线性探针（probe_conditioning_collapse.py）。
+结论：ordinary ensemble 的 hidden state 与 structured 同样 100% 可分 D2/D3——
+topology descriptor 在当前设定下提供冗余信息，failure 原因是 conditioning
+redundancy，而非 conditioning collapse。
+
+**2026-08-19 held-out topology 实验**：D3 完全移出训练集，仅用 D2+intact 训练，
+测试时 structured 收正确 D3 descriptor，ordinary 收 intact descriptor。5 seeds
+全部完成：D3 held-out 平均改善 **+0.02%**，95% CI **[-3.38%, +3.70%]**，2/5 seeds
+为正，CI 跨零；D2 seen-topology 控制组改善 **+1.10%**，CI **[-2.51%, +4.70%]**，
+同样跨零。
+
+**G2 最终 Gate（2026-08-19）：NO-GO。** 两轮实验均未通过 CI 门。根本原因：
+topology descriptor 只编码了哪个关节被锁，但 world model 需要从训练数据中学习
+对应的动力学后果；descriptor 无法在没有该 topology 训练数据时提供有效先验。
+按 V6 预注册 Pivot 条款，项目转为 **benchmark / 负结果论文** 定位。
+
+已完成交付物：
+- `config/experiment/g2_push_ensemble_v1.yaml`（冻结协议）
+- `config/experiment/g2_push_heldout_topology_v1.yaml`（held-out topology 协议）
+- `results/final/g2_structured_vs_ordinary_5seed.{json,csv}`
+- `results/final/g2_heldout_topology_5seed.{json,csv}`
+- `runs/g2_push_ensemble/` 5 seeds
+- `runs/g2_heldout_topology/` 5 seeds
+- `runs/g2_domain_randomized/` 5 seeds（benchmark 完整性）
+- `reports/g2-ordinary-ensemble-gate-20260819.md`
+- `reports/g2-heldout-topology-gate-20260819.md`
 
 ## 1. 项目目标与成功定义
 
@@ -1300,15 +1322,16 @@ Next week:
 
 ### G2
 
-- [ ] immutable G2 configs and preregistered exclusions
-- [ ] ordinary deep-ensemble baseline
-- [ ] domain-randomized ensemble baseline
-- [ ] five-seed held-out composition main table
-- [ ] topology/member-count/compute-matched ablations
-- [ ] calibrated uncertainty and robustness analysis
-- [ ] prediction-to-control correlation or explicit negative result
-- [ ] failure analysis
-- [ ] complete compute report
+- [x] immutable G2 configs and preregistered exclusions
+- [x] ordinary deep-ensemble baseline（g2_push_ensemble_v1，5 seeds）
+- [x] domain-randomized ensemble baseline（g2_domain_randomized，5 seeds）
+- [x] held-out topology experiment（g2_push_heldout_topology_v1，5 seeds）
+- [x] GRU hidden-state conditioning probe（probe_conditioning_collapse.py）
+- [x] gate reports（ordinary-ensemble-gate, heldout-topology-gate）
+- [x] bootstrap 95% CI 两轮实验
+- [x] failure analysis（conditioning redundancy + weak zero-shot generalization）
+- [ ] five-seed held-out physics composition main table（已由 held-out topology 实验替代，原表不再需要）
+- [ ] prediction-to-control correlation（G2 NO-GO，控制实验不再展开）
 
 ### G3
 

@@ -1,0 +1,66 @@
+# G2 held-out topology experiment config.
+#
+# Hypothesis H-ZST (Zero-Shot Topology):
+#   When D3 is entirely absent from training, a structured ensemble receiving
+#   the correct D3 topology descriptor at test time outperforms an ordinary
+#   ensemble that receives only the intact descriptor.
+#
+# Three methods:
+#   structured_ensemble      — correct descriptor at train AND test
+#   ordinary_deep_ensemble   — intact descriptor at train AND test
+#   structured_wrong_desc    — correct descriptor at train, intact at test
+#                              (ablation: isolates descriptor content vs arch)
+#
+# Frozen: 2026-08-19
+version: g2_push_heldout_topology_v1
+status: frozen_2026-08-19
+task: push
+protocol: config/splits/g2_push_heldout_topology_v1.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+
+methods:
+  - structured_ensemble
+  - ordinary_deep_ensemble
+  - structured_wrong_desc
+
+# condition_modes controls the descriptor passed during TRAINING
+condition_modes:
+  structured_ensemble: structured
+  ordinary_deep_ensemble: constant
+  structured_wrong_desc: structured        # trains with correct descriptor
+
+# eval_condition_modes overrides descriptor passed during TEST ONLY
+# (absent = same as condition_modes)
+eval_condition_modes:
+  structured_ensemble: structured          # correct descriptor at test
+  ordinary_deep_ensemble: constant         # intact at test (baseline)
+  structured_wrong_desc: constant          # intentionally wrong at test → ablation
+
+seeds: [7, 17, 27, 37, 47]
+members: 3
+epochs: 20
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_test_domain: 3
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+
+primary_metric: multistep_rmse
+
+# Pre-registered expected ordering on D3 mixed_composition:
+#   structured_ensemble < ordinary_deep_ensemble <= structured_wrong_desc
+# If structured_ensemble >= ordinary_deep_ensemble → H-ZST fails.
+# If structured_wrong_desc < ordinary_deep_ensemble → architecture matters too.
+
+fairness:
+  same_training_trajectories: true
+  same_evaluation_trajectories: true
+  same_member_architecture: true
+  same_member_count: true
+  same_optimizer_and_epochs: true
+  d3_absent_from_training: true
+
+exclusions:
+  - nonzero_exit_status
+  - nonfinite_metric
+  - corrected_protocol_contact_or_displacement_gate_failure

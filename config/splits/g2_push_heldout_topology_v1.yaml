@@ -1,0 +1,40 @@
+# Held-out topology protocol for G2 zero-shot topology experiment.
+#
+# Scientific question: when D3 topology is completely absent from training,
+# does supplying the correct D3 descriptor at test time improve prediction
+# over an ordinary ensemble that receives only the intact descriptor?
+#
+# Key differences from g1_push_fewshot_v2:
+#   - D3 removed entirely from train and validation
+#   - D3 appears only in test (held-out topology)
+#   - D2 kept in both train and test as "seen topology" control
+#
+# Frozen: 2026-08-19
+version: g2_push_heldout_topology_v1
+dof: 5
+task: push
+calibration_shots: [0]
+
+train:
+  # intact across four physics compositions
+  - [intact, nominal]
+  - [intact, weak_motor]
+  - [intact, high_damping]
+  - [intact, delay_1]
+  # D2 across four physics compositions (D3 intentionally absent)
+  - [D2, nominal]
+  - [D2, high_damping]
+  - [D2, delay_1]
+  - [D2, noisy_deadband]
+
+validation:
+  - [D2, weak_motor]       # unseen physics on seen topology
+  - [intact, noisy_deadband]
+
+test:
+  # Primary: unseen topology (D3), held-out physics composition
+  - [D3, mixed_composition]
+  # Control: seen topology (D2), same held-out physics composition
+  - [D2, mixed_composition]
+  # Secondary: unseen topology, harder held-out physics
+  - [D3, mixed_unseen]
