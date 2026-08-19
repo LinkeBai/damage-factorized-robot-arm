@@ -79,6 +79,16 @@ zero-shot Pivot 通过最小预测机制门并可阶段交付；G2 可启动，�
 `reports/g1-robust-zero-shot-corrected-results-20260819.md` 和
 `results/final/g1_robust_zero_shot_5seed_summary.json`。
 
+### G2
+
+**2026-08-19 首轮强基线更新**：已冻结 `g2_push_ensemble_v1` 协议，并完成
+structured ensemble 与 ordinary deep ensemble 的同架构、同参数量、同数据、
+同评估轨迹五 seed 对照。structured 方法平均仅改善 **2.47%**，seed bootstrap
+95% CI 为 **[-1.83%, 6.38%]**，4/5 seeds 为正但 seed 47 为负。该结果未通过
+G2 Go，触发“与普通 deep ensemble 等价”的预设 Pivot。此前相对参数匹配宽
+单模型的 30.7% 优势主要证明 ensemble 相对单模型有效，不能证明 topology
+structure 有独立贡献。详见 `reports/g2-ordinary-ensemble-gate-20260819.md`。
+
 ## 1. 项目目标与成功定义
 
 ### 1.1 科学目标
@@ -556,14 +566,22 @@ NR = (S_adapted - S_no_adapt) / max(S_damaged_oracle - S_no_adapt, ε)
 
 ### 交付物
 
-- 可运行 MuJoCo 环境；
-- 100-step smoke test；
-- dataset generator；
-- 最小 conditional RSSM；
-- residual latent optimization；
-- 冻结 actor 或 MPC；
-- G1 结果表、恢复曲线、prediction error；
-- 每 run 的 manifest 与日志。
+以下为 V6 认可的实际 Pivot 交付包；原始路线失败项以审计报告交付，不要求
+为了形式完整而重跑或制造正结果：
+
+- 可运行的 MuJoCo Reach/Push 环境、修正后的夹爪接触模型与 100-step smoke test；
+- corrected Push target split、dataset generator 和 D2/D3 接触/位移覆盖检查；
+- conditional world model、topology encoder 和三成员 robust zero-shot ensemble；
+- residual latent、history encoder、FiLM/residual correction 的实现与 No-Go 审计；
+- 冻结 guarded MPC 及五目标控制审计；
+- D2/D3、5 seeds、parameter-matched prediction table 与 seed bootstrap 区间；
+- prediction error、ensemble disagreement、参数量和已测 wall-clock；
+- checkpoint、run summary、日志、最终 JSON/CSV、复现指南和 Gate 报告；
+- 自动测试通过记录及 data leakage/protocol correction 说明。
+
+不再列为 G1 欠交付：原 K=0/1/2/5 的正向恢复曲线、原四方法在错误 Push
+协议上的补跑、以及未通过统计门槛的 NR 控制主表。它们的科学结论均为
+No-Go/不成立，后续只保留审计，不阻塞 G2。
 
 ### Go
 
@@ -631,6 +649,14 @@ NR = (S_adapted - S_no_adapt) / max(S_damaged_oracle - S_no_adapt, ε)
 - 仅预测改善、控制无改善：论文定位为 dynamics prediction/uncertainty，删除恢复主张；
 - held-out composition 优势消失：停止 ICRA 方法主线，转失败分析或更换问题设定；
 - 结果依赖单一 seed、目标或协议调整：停止扩表并进行泄漏与选择偏差审计。
+
+### G2 当前 Gate（2026-08-19）
+
+**Pivot：结构化方法主张暂不成立。**普通 deep ensemble 强基线已完成，平均差异
+2.47%，95% CI 跨零。停止围绕当前 topology encoder 调参；下一决策只能在以下
+两项中选择：将工作降级为故障动力学 benchmark/负结果，或提出并预注册一个
+不等价于普通 ensemble averaging 的新机制后重新开启方法 Gate。domain-randomized
+ensemble 可用于 benchmark 完整性，但不得被描述为挽救当前结构化主张。
 
 ### 交付物
 

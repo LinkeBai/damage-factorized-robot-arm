@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 import torch
@@ -23,6 +24,18 @@ class TopologyMember:
     world_model: WorldModel
 
 
+ConditionMode = Literal["structured", "constant"]
+
+
+def conditioning_damages(damages: list, mode: ConditionMode) -> list:
+    """Remove topology information while preserving architecture and parameters."""
+    if mode == "structured":
+        return damages
+    if mode == "constant":
+        return [damage_from_name("intact") for _ in damages]
+    raise ValueError(f"unknown condition mode: {mode}")
+
+
 def _spearman(x: np.ndarray, y: np.ndarray) -> float:
     if np.std(x) < 1e-12 or np.std(y) < 1e-12:
         return 0.0
@@ -39,10 +52,14 @@ def train_topology_ensemble(
     epochs: int,
     device: torch.device,
     seed: int,
+    condition_mode: ConditionMode = "structured",
 ) -> list[TopologyMember]:
     states = torch.stack([item.states for item in trajectories]).to(device)
     actions = torch.stack([item.actions for item in trajectories]).to(device)
-    damages = [damage_from_name(item.domain_id.split("__", 1)[0]) for item in trajectories]
+    damages = conditioning_damages(
+        [damage_from_name(item.domain_id.split("__", 1)[0]) for item in trajectories],
+        condition_mode,
+    )
     ensemble = []
     for index in range(members):
         ensemble.append(train_topology_member(
@@ -112,11 +129,15 @@ def evaluate_topology_ensemble(
     *,
     device: torch.device,
     horizon: int = 10,
+    condition_mode: ConditionMode = "structured",
 ) -> dict[str, float]:
     states = torch.stack([item.states for item in trajectories]).to(device)
     actions = torch.stack([item.actions for item in trajectories]).to(device)
+    evaluation_damages = conditioning_damages(
+        [domain.damage] * len(trajectories), condition_mode
+    )
     contexts = [
-        encode_damage_batch(member.encoder, [domain.damage] * len(trajectories), joint_ranges, device)
+        encode_damage_batch(member.encoder, evaluation_damages, joint_ranges, device)
         for member in ensemble
     ]
     member_errors = [[] for _ in ensemble]
