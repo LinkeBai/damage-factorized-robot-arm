@@ -7,6 +7,7 @@ from robotarm.training.sim_data import SimTrajectory
 from robotarm.training.sim_protocol import build_g1_protocol
 from robotarm.training.topology_ensemble import (
     TopologyMember,
+    conditioning_damages,
     evaluate_topology_ensemble,
     matched_latent_dim,
     member_parameter_count,
@@ -45,3 +46,14 @@ def test_matched_latent_dim_approximates_three_member_budget():
         WorldModel(WorldModelConfig(state_dim=14, context_dim=64, latent_dim=latent_dim)),
     )
     assert abs(member_parameter_count(matched) - target) / target < 0.08
+
+
+def test_constant_conditioning_removes_damage_identity():
+    protocol = build_g1_protocol()
+    damages = [protocol.test[0].damage, protocol.test[1].damage]
+    constant = conditioning_damages(damages, "constant")
+    assert all(
+        np.array_equal(item.joint_mask, np.zeros(5, dtype=np.int64))
+        for item in constant
+    )
+    assert conditioning_damages(damages, "structured") == damages

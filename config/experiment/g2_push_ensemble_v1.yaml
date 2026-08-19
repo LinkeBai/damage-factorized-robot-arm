@@ -1,0 +1,29 @@
+version: g2_push_ensemble_v1
+status: frozen_2026-08-19
+task: push
+protocol: config/splits/g1_push_fewshot_v2.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+methods: [structured_ensemble, ordinary_deep_ensemble]
+condition_modes:
+  structured_ensemble: structured
+  ordinary_deep_ensemble: constant
+seeds: [7, 17, 27, 37, 47]
+members: 3
+epochs: 20
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_test_domain: 3
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+primary_metric: multistep_rmse
+exclusions:
+  - nonzero_exit_status
+  - nonfinite_metric
+  - corrected_protocol_contact_or_displacement_gate_failure
+fairness:
+  same_training_trajectories: true
+  same_evaluation_trajectories: true
+  same_member_architecture: true
+  same_member_count: true
+  same_optimizer_and_epochs: true
+  topology_ablation: replace_every_damage_descriptor_with_intact
