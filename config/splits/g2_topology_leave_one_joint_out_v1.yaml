@@ -1,0 +1,27 @@
+# Leave-one-joint-out topology split: D3 is never observed in training.
+version: g2_topology_leave_one_joint_out_v1
+dof: 5
+task: push
+calibration_shots: [0]
+train:
+  - [intact, nominal]
+  - [intact, weak_motor]
+  - [intact, high_damping]
+  - [intact, delay_1]
+  - [D2, nominal]
+  - [D2, high_damping]
+  - [D2, delay_1]
+  - [D2, noisy_deadband]
+  - [D4, nominal]
+  - [D4, high_damping]
+  - [D4, delay_1]
+  - [D4, noisy_deadband]
+validation:
+  - [D2, weak_motor]
+  - [D4, weak_motor]
+  - [intact, noisy_deadband]
+test:
+  - [D3, mixed_composition]
+  - [D2, mixed_composition]
+  - [D4, mixed_composition]
+  - [D3, mixed_unseen]

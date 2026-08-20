@@ -1,0 +1,19 @@
+# J6: genuinely diverse bounded goal trajectories plus stable optimization.
+version: g2_rcgwm_diagnosis_j6_v1
+status: frozen_2026-08-20
+protocol: config/splits/g2_topology_leave_one_joint_out_v1.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+seeds: [7, 17]
+epochs: 60
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_validation_domain: 1
+trajectories_per_test_domain: 3
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+matched_hidden_dim: 128
+learning_rate: 0.001
+goal_exploration_std: 0.08
+detach_object_features: false
+bridge_edge_features: false
+packed_active_nodes: false

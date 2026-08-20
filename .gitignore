@@ -33,6 +33,7 @@ external/*
 .idea/
 .DS_Store
 Thumbs.db
+Microsoft/Windows/PowerShell/ModuleAnalysisCache
 
 # Logs and caches
 *.log

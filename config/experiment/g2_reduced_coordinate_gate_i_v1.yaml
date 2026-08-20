@@ -1,0 +1,21 @@
+# Gate I: train and roll out directly on the compacted free-joint graph.
+version: g2_reduced_coordinate_gate_i_v1
+status: frozen_2026-08-20
+task: push
+protocol: config/splits/g2_topology_leave_one_joint_out_v1.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+methods: [graph_ordinary_matched, graph_matched_projected, reduced_coordinate_graph]
+seeds: [7]
+epochs: 20
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_test_domain: 3
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+primary_domain: D3__mixed_composition
+primary_metric: reduced_coordinate_fidelity
+matched_hidden_dim: 128
+gate:
+  maximum_constraint_violation_rms: 1.0e-7
+  maximum_object_rmse_regression_pct: 5.0
+  maximum_free_arm_rmse_regression_pct: 5.0

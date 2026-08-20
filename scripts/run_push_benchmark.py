@@ -59,6 +59,7 @@ def collect_push_trajectory(
     seed: int,
     target: np.ndarray,
     excitation: str = "random",
+    goal_exploration_std: float = 0.0,
     sequence_index: int = 0,
     block_initial_xy: np.ndarray | None = None,
 ) -> SimTrajectory:
@@ -70,6 +71,7 @@ def collect_push_trajectory(
     obs = env.reset(target=target, damage_config=domain.damage)
     rng = np.random.default_rng(seed)
     action = np.zeros(5, dtype=np.float64)
+    goal_noise = np.zeros(5, dtype=np.float64)
     states = [obs["state"].copy()]
     commanded: list[np.ndarray] = []
     applied: list[np.ndarray] = []
@@ -103,6 +105,11 @@ def collect_push_trajectory(
                 reference,
                 locked_joints=tuple(domain.damage.locked),
             )
+            if goal_exploration_std > 0.0:
+                goal_noise = 0.8 * goal_noise + 0.2 * rng.normal(
+                    0.0, goal_exploration_std, size=5
+                )
+                action = np.clip(action + goal_noise, -1.0, 1.0)
         else:
             raise ValueError(f"unknown excitation mode: {excitation}")
         action[domain.damage.locked] = 0.0
@@ -134,6 +141,7 @@ def collect_push_domains(
     seed: int,
     targets: tuple[np.ndarray, ...],
     excitation: str = "random",
+    goal_exploration_std: float = 0.0,
     block_initial_xy: np.ndarray | None = None,
 ) -> list[SimTrajectory]:
     trajs = []
@@ -146,6 +154,7 @@ def collect_push_domains(
                     seed=seed + di * 1000 + ti,
                     target=targets[(di + ti) % len(targets)],
                     excitation=excitation,
+                    goal_exploration_std=goal_exploration_std,
                     sequence_index=ti,
                     block_initial_xy=block_initial_xy,
                 )

@@ -1,0 +1,62 @@
+{
+  "experiment": "route2_topo_id",
+  "seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "k_shots": [
+    0,
+    1,
+    2,
+    5
+  ],
+  "summary": {
+    "D2__mixed_composition_K0": {
+      "mean_rmse": 0.5008893132209777,
+      "mean_improvement_pct": 0.0,
+      "identification_accuracy": null
+    },
+    "D2__mixed_composition_K1": {
+      "mean_rmse": 0.5008909165859222,
+      "mean_improvement_pct": -0.007432501631246475,
+      "identification_accuracy": 1.0
+    },
+    "D2__mixed_composition_K2": {
+      "mean_rmse": 0.5008909165859222,
+      "mean_improvement_pct": -0.007432501631246475,
+      "identification_accuracy": 1.0
+    },
+    "D2__mixed_composition_K5": {
+      "mean_rmse": 0.5008909165859222,
+      "mean_improvement_pct": -0.007432501631246475,
+      "identification_accuracy": 1.0
+    },
+    "D3__mixed_composition_K0": {
+      "mean_rmse": 0.4507167160511017,
+      "mean_improvement_pct": 0.0,
+      "identification_accuracy": null
+    },
+    "D3__mixed_composition_K1": {
+      "mean_rmse": 0.45087409019470215,
+      "mean_improvement_pct": -0.029497386970017053,
+      "identification_accuracy": 1.0
+    },
+    "D3__mixed_composition_K2": {
+      "mean_rmse": 0.45087409019470215,
+      "mean_improvement_pct": -0.029497386970017053,
+      "identification_accuracy": 1.0
+    },
+    "D3__mixed_composition_K5": {
+      "mean_rmse": 0.45087409019470215,
+      "mean_improvement_pct": -0.029497386970017053,
+      "identification_accuracy": 1.0
+    }
+  },
+  "mean_k5_improvement_pct": -0.018464944300631763,
+  "mean_k5_id_accuracy": 1.0,
+  "gate": "PARTIAL",
+  "rationale": "\u8bc6\u522b\u51c6\u786e\u7387 100.0% \u4f46\u9884\u6d4b\u6539\u5584\u4e0d\u663e\u8457\uff0c\u9700\u8fdb\u4e00\u6b65\u5206\u6790"
+}

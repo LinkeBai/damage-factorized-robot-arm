@@ -1,0 +1,17 @@
+version: g2_dfwm_ood_v1
+status: frozen_2026-08-20
+task: push
+protocol: config/splits/g2_dfwm_ood_v1.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+seeds: [7, 17, 27, 37, 47]
+members: 1
+epochs: 20
+steps: 150
+trajectories_per_train_domain: 5
+trajectories_per_test_domain: 3
+calibration_shots: [0, 1, 2, 5]
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+residual_dim: 8
+topology_dim: 64
+primary_metric: multistep_rmse

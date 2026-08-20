@@ -1,0 +1,21 @@
+version: g2_ftgwm_gate_k2_v2
+status: frozen_2026-08-20
+protocol: config/splits/g2_topology_leave_one_joint_out_v1.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+seeds: [7]
+epochs: 60
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_test_domain: 3
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+goal_exploration_std: 0.08
+hidden_dim: 128
+learning_rate: 0.001
+include_object_loss: true
+object_loss_weight: 1.0
+primary_domain: D3__mixed_composition
+gate:
+  maximum_constraint_violation_rms: 1.0e-7
+  maximum_free_arm_rmse_regression_pct: 5.0
+  maximum_object_rmse_regression_pct: 5.0

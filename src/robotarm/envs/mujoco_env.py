@@ -290,7 +290,8 @@ class MujocoArmEnv:
         if len(self._block_qpos_adr) == 0:
             return np.zeros(0, dtype=np.float64)
         pos = self.data.body("block").xpos[:2].copy()
-        vel = self.data.body("block").cvel[:2].copy()
+        # MuJoCo spatial velocity is [angular(3), linear(3)].
+        vel = self.data.body("block").cvel[3:5].copy()
         return np.concatenate([pos, vel])
 
     def block_pos(self) -> npt.NDArray[np.float64]:

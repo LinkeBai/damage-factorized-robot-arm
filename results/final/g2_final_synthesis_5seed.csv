@@ -1,0 +1,9 @@
+section,metric,scope,mean,ci_lo,ci_hi,status
+prediction,g1_ensemble_vs_parameter_matched_improvement_pct,D2+D3,30.7391,15.0592,42.6161,supported
+prediction,g2_structured_vs_ordinary_improvement_pct,D2+D3,2.4701700994631404,-1.8278564635362486,6.378296602844483,ci_crosses_zero
+prediction,heldout_d3_improvement_pct,D3,0.019859411990284136,-3.37645245681304,3.700576032954565,ci_crosses_zero
+ablation,three_vs_one_member_improvement_pct,D3,33.549614689490085,,,supported
+selective_prediction,rmse_reduction_pct,70% coverage,30.95605317098594,,,monotone_5_of_5
+selective_prediction,rmse_reduction_pct,50% coverage,50.5040275252541,,,monotone_5_of_5
+calibration,global_spearman,D3,0.9346797132055604,,,depth_confound
+calibration,depth_stratified_spearman,D3,0.6743240597900027,,,moderate_high_variance

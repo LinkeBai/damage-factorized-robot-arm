@@ -1,0 +1,34 @@
+version: g2_dfwm_multiphysics_v1
+dof: 5
+task: push
+damages: [D2, D3]
+calibration_shots: [0, 1, 2, 5]
+
+# KEY CHANGE vs g1_push_fewshot_v2:
+# Each damage type now sees MULTIPLE physics profiles during training.
+# This gives z_residual a learning signal: same topology, different physics
+# -> world model must learn to use z_residual to distinguish them.
+train:
+  - [intact, nominal]
+  - [intact, weak_motor]
+  - [intact, high_damping]
+  - [intact, delay_1]
+  - [intact, noisy_deadband]
+  - [D2, nominal]
+  - [D2, weak_motor]
+  - [D2, high_damping]
+  - [D2, delay_1]
+  - [D2, noisy_deadband]
+  - [D3, nominal]
+  - [D3, weak_motor]
+  - [D3, high_damping]
+  - [D3, delay_1]
+  - [D3, noisy_deadband]
+
+validation:
+  - [D2, mixed_unseen]
+  - [D3, mixed_unseen]
+
+test:
+  - [D2, mixed_composition]
+  - [D3, mixed_composition]

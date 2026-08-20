@@ -1,11 +1,150 @@
 # Project Plan V6 — Robust Zero-Shot Structured Dynamics
 
 **项目**：低成本机械臂关节锁定后的稳健零样本结构化动力学
-**版本日期**：2026-08-19
+**版本日期**：2026-08-20
 **规划模式**：standard  
 **规划基线**：本文件是后续执行的最新基线；旧版计划和失败实验保留为审计记录  
-**当前状态**：G0 已通过；G1 原始 DFWM 假设 No-Go，robust zero-shot pivot 已完成五 seed 最小机制验证；进入 G2 论文级强化  
+**当前状态**：G0 已通过；原始 DFWM 全分支 No-Go；CR-GWM/RC-GWM 不具备稳定预测优势；FT-GWM K0 PASS、K1 two-seed provisional PASS，但完整 Push world model 的 K2 NO-GO，后续 FTC-WM Gate L 亦 NO-GO。最终 G2 synthesis 已完成：结构化优势不成立，保留 ordinary ensemble + selective prediction 与 K1 约束关节动力学；下一决策为是否以该收缩主张进入 G3。
 **证据约束**：实测结果均指向可追溯 artifact；未来时间、GPU-h、工时和阈值仍属于项目管理估计
+
+> ## 2026-08-20 执行基线修订（优先于本文旧 G2 叙事）
+>
+> 本节同步 2026-08-20 后续实验结论。下文仍保留 DFWM-Hypernetwork 的 Seed 7
+> smoke 记录，**仅作为已否定路线的审计历史，不得再被解释为待确认的正向结果**。
+>
+> ### 当前结果汇总
+>
+> | 路线 | 最终状态 | 已确认结果 | 不得主张 |
+> |---|---|---|---|
+> | 原始 DFWM latent/encoder/FiLM/dropout/hypernetwork | **NO-GO** | K-shot 独立贡献近零，跨 seed 不稳定 | latent adaptation 有效 |
+> | CR-GWM / Gate E--H | **PROVISIONAL / attribution failed** | exact zero violation；Gate H 统一口径后 free-arm 仅退化 0.29% | reaction head 带来独立预测优势 |
+> | RC-GWM / Gate I、J1--J6 | **NO-GO as stable model** | zero violation；数据多样性和优化协议已修复 | reduced-coordinate 模型跨 seed 稳定 |
+> | FT-GWM / K0 | **PASS** | 固定 SE(3) 链与完整链、MuJoCo 位姿机器精度一致 | 已证明动力学优势 |
+> | FT-GWM / K1 | **TWO-SEED PROVISIONAL PASS** | D3 seed 7/17 free-arm 相对变化 `+3.45%/-28.81%`，violation=0 | 统计稳定或 compute-matched 优势 |
+> | FT-GWM / K2 | **NO-GO** | stop-gradient 严格隔离 object loss；K1 joint fidelity 被保留 | 完整 Push object/contact 预测成功 |
+> | Ensemble uncertainty / selective prediction | **当前主线** | 五 seed 证据；50% coverage 下 RMSE 约降低 51% | 未经验证的稳定控制收益 |
+>
+> - 原始 DFWM 的 residual latent、amortized encoder、FiLM/residual adapter、topology
+>   dropout 与 hypernetwork 分支均为 **No-Go**：五 seed 审计中 K-shot 的独立贡献近零，
+>   `z` 范数约 0.07--0.09，跨 seed 不稳定。后续不再投入该路线，也不以 DFWM 命名主方法。
+> - shared chain graph dynamics 显著优于旧 dense GRU；但 matched graph 消融表明，这一增益
+>   主要来自图架构本身，不能归因于 topology conditioning。
+> - 当前唯一保留的机制候选为 **Constraint-Reaction Graph World Model (CR-GWM)**：冻结共享链图
+>   base，依据已诊断 joint lock 的预测约束残差沿运动链传播 reaction，只修正自由关节和物体，
+>   对锁定关节的位置和速度实施解析投影。
+> - Gate E（D3 完全 held-out；训练仅 intact+D2+D4；`D3__mixed_composition`；5 seeds）相对
+>   graph ordinary 的改进：object RMSE **+41.33%**, 95% CI **[+20.09%, +59.79%]**；free-arm
+>   **+5.54%**, **[+0.84%, +10.07%]**；overall **+15.87%**, **[+11.97%, +19.63%]**；所有
+>   评估域的锁定位置/速度 violation 为 **0**。结论为 **PROVISIONAL PASS**，详见
+>   `reports/g2-constraint-reaction-gate-e-20260820.md`。
+> - Gate F（seed 7 公平性审计）尚未通过方法归因：parameter-matched graph（299,782 参数）优于
+>   CR-GWM（291,373 参数）的 overall/free-arm 指标；同容量 unconstrained residual adapter 的
+>   object 指标也优于 CR-GWM。CR-GWM 目前唯一经确认的专属优势是 exact zero constraint
+>   violation。因此不得声称其预测优势超过同容量基线。
+> - Gate G 的原始否定记录为：direct lock projection 从 overall/free-arm/object
+>   `0.1712/0.2016/0.0306` 变为 `0.2281/0.2978/0.0691`。后续审计发现该 projection
+>   模型误用了 `hidden=96`，并非 matched graph；此记录仅保留为审计历史，其结论已由下方
+>   Gate H 修正版结果撤回。
+> - **下一步唯一实验：Gate H（仅 seed 7）**。实现 `hidden=128` matched graph + 低容量 gated
+>   reaction head（gate 近零初始化）+ exact projection，并与 matched graph、direct projection、
+>   unconstrained residual adapter 比较。仅当 violation 约为 0，且 object 与 free-arm 相对
+>   matched graph 的退化均不超过 5%，才扩展至五 seed；否则停止 CR-GWM 主线并重定位为
+>   constraint-satisfaction benchmark/负结果。
+>
+> ### 2026-08-20 Gate H 最终执行结论（取代上条“下一步”状态）
+>
+> - Gate H seed 7 已按冻结配置完成。`hidden=128` matched graph 的
+>   overall/free-arm/object RMSE 为 `0.1712/0.2016/0.0306`；低容量 gated reaction head
+>   （2,744 个可训练参数）+ exact projection 为 `0.1612/0.2127/0.0220`，constraint
+>   violation 为 `0`。相对 matched graph，object 改善 `27.93%`，但 free-arm 退化
+>   `5.51%`，超过预注册上限 `5%`，因此判定 **NO-GO**，不扩展至五 seed，并停止
+>   CR-GWM 主线。
+> - 旧 Gate G 的 direct-projection 否定结论存在容量配置错误：runner 对
+>   `graph_matched_projected` 使用了 `hidden=96`（169,542 参数），而参考模型为
+>   `hidden=128`（299,782 参数）。修正后 matched direct projection 为
+>   `0.1614/0.2123/0.0321` 且 violation 为 `0`；旧 Gate G 的“大幅损害预测”结论撤回，
+>   但修正版 free-arm 仍退化约 `5.29%`，也未通过 5% 保真阈值。
+> - 后续主线转为已有五 seed 强证据的 ensemble uncertainty / selective prediction；
+>   Gate E--H 仅保留为 constraint-satisfaction benchmark 与负结果链。完整审计见
+>   `reports/g2-gated-reaction-gate-h-20260820.md`。
+>
+> ### 2026-08-20 指标审计更正与 Gate I
+>
+> - Gate H 的 `+5.51%` free-arm 退化来自不一致口径：matched graph 错误地按全关节统计，
+>   gated reaction 按真实自由关节统计。统一使用真实 damage mask 后，matched graph free-arm
+>   RMSE 为 `0.2121`，gated reaction 为 `0.2127`，退化仅 `0.29%`。因此撤回 Gate H No-Go，
+>   更正为 **PROVISIONAL PASS**；不扩展该 head，因为 Gate I 提供了更简洁的内生约束方案。
+> - Gate I 的 RC-GWM 在动力学图中移除锁定坐标、跨锁定节点重连最近自由关节、屏蔽锁定节点
+>   recurrent state，并仅用自由节点预测 object。seed 7 primary D3 的 matched graph / RC-GWM
+>   overall/free-arm/object 为 `0.1712/0.2121/0.0306` 与 `0.1586/0.2095/0.0153`；RC-GWM
+>   violation 为 `0`，object 改善 `50.00%`，free-arm 改善 `1.22%`，Gate I **PASS**。
+> - 下一步冻结为 Gate I 五 seed 扩展；`D3__mixed_unseen` 必须单列为 failure boundary，不得被
+>   primary composition 的正结果掩盖。详见 `reports/g2-reduced-coordinate-gate-i-20260820.md`。
+>
+> ### 2026-08-20 Gate I 五 seed 结论
+>
+> - RC-GWM 五 seed primary `D3__mixed_composition` 仅 `2/5` 通过：seed 7/47 通过，
+>   seed 17/27/37 失败。所有 seed violation 均为 `0`，但失败 seed 的 free-arm 退化为
+>   `37.28%--84.00%`，说明坐标约简的可行性成功而自由臂预测稳定性失败。
+> - RC-GWM 具有比 topology token、direct projection 和 reaction adapter 更清晰的结构创新，
+>   但当前实现不得作为稳定主方法；不再进行未预注册调参。完整审计见
+>   `reports/g2-reduced-coordinate-gate-i-5seed-20260820.md`。
+> - 后续若要复活该方向，必须先提出新的稳定性机制（例如 free-arm/object 解耦 head 与梯度
+>   冲突控制）并重新冻结实验；当前论文主线回到已有五 seed ensemble uncertainty /
+>   selective prediction 证据。
+>
+> ### 2026-08-20 J6 数据协议修复后的最终诊断
+>
+> - `goal_exploration_std=0.08` 的低通有界探索使不同 seed 训练轨迹真正不同，且接触/方块位移
+>   与旧协议一致；`lr=1e-3, 60 epochs` 消除了 seed 17 的 catastrophic rollout 发散。
+> - 但 RC-GWM seed 7/17 primary free-arm 仍为 `0.2436/0.2448`，相对 matched graph 约退化
+>   `15%`，而 object 约为 `0.0086` 且 violation 为 `0`。因此数据与优化问题已修复，剩余问题
+>   是 reduced-coordinate 归纳偏置损害自由臂动力学；RC-GWM 不作为稳定主方法继续扩展。
+> - 不再进行 generic edge feature、packed slot 或未注册 loss 权重堆叠。若未来复活，必须使用
+>   保留锁定连杆完整物理变换的 free-joint dynamics 架构；当前论文主线保持 ensemble uncertainty /
+>   selective prediction。
+>
+> ### 2026-08-20 RC-GWM 逐原因诊断结论
+>
+> - J1/J1b 确认主要原因是 rollout 优化多稳态：seed 17 将学习率从 `3e-3` 降至 `1e-3`
+>   并以 60 epochs 匹配累计预算后，primary free/object 从 `0.3882/0.0645` 改善到
+>   `0.2428/0.0086`，但 free-arm 仍差于 matched graph 的 `0.2110`。
+> - J2 确认 object 与 joint graph 的共享梯度/递归耦合是贡献因素，但独立 stop-gradient 仍不能
+>   恢复 seed 17。J3 的普通 bridge edge 特征无效；J4 的真正 packed active-node graph 与 masked
+>   实现逐数值相同，证明两者在共享 permutation-equivariant 模型下等价。
+> - J5a 数据审计发现 `goal` 采集不使用随机 seed：seed 7/17 的训练轨迹逐元素相同；增加
+>   trajectories 只循环有限 targets，不增加独立信息。因此五 seed 主要审计初始化稳定性，而非
+>   数据抽样稳定性。
+> - J3b 说明收缩锁定节点时丢失固定关节变换是物理建模缺陷，但加入 lock angle sin/cos 仍未
+>   修复 free-arm。未来必须使用 URDF-derived SE(3) transform composition，而非继续堆通用 edge
+>   feature。完整报告见 `reports/g2-rcgwm-root-cause-diagnosis-20260820.md`。
+
+
+> ### 2026-08-20 Gate K0/K1 固定变换图结论
+>
+> - RC-GWM 的核心物理缺陷已被修正：关节锁定后连杆不会消失，而是形成固定 SE(3) 变换。K0 在 D2/D3/D4、每种 100 个随机姿态上与完整链和 MuJoCo 末端位姿达到机器精度一致，判定 **PASS**。
+> - FT-GWM 保留五个链节点，把锁定节点作为固定几何和消息中继，仅预测自由关节。冻结协议为 hidden=128、lr=1e-3、60 epochs、探索噪声 0.08，训练 intact+D2+D4，主评估为 held-out D3。
+> - K1 seed 7：matched graph / FT-GWM free-arm RMSE 为 `0.2611/0.2701`，相对退化 `+3.45%`；seed 17 为 `0.3891/0.2770`，相对改善 `28.81%`。两 seed 所有域 constraint violation 均为 `0`，均通过预注册的退化不超过 5% 门槛。
+> - FT-GWM 参数量 `267,650`，低于 matched graph 的 `299,782`，但显式逐边 SE(3) 实现训练更慢，尚未 compute-match。当前结论为 **K1 two-seed provisional PASS**：证明固定变换表示可行，不声称统计稳定的预测优势。
+> - K1 通过后按冻结规则执行 K2；其最终 No-Go 结果见下节。详见 `reports/g2-fixed-transform-graph-gate-k1-20260820.md`。
+>
+> ### 2026-08-20 Gate K2 最终结论
+>
+> - K2 增加 2,340 参数的 bottleneck-16 object residual head，输入当前 object state、detach 后的 joint hidden 与末端 SE(3)；自动梯度测试确认纯 object loss 对 joint transition 的梯度逐元素为零。
+> - K2 v1 因把 joint/object 维度统一平均而将 K1 joint 梯度缩小为 `10/14`，协议无效。v2 修正为 `L_joint + L_object`，保持 K1 的 joint loss 尺度。
+> - v2 seed 7 primary D3：matched graph overall/free/object 为 `0.1716/0.2212/0.0104`，FT-GWM K2 为 `0.2130/0.2701/0.1133`，violation 为 `0`。FT free-arm 与 K1 的 `0.2701` 完全一致，说明隔离成功；但相对 object-aware matched graph，free-arm 退化 `22.11%`、object 退化 `986.08%`。
+> - Gate K2 判定 **NO-GO**，按预注册规则停止 FT-GWM 完整 Push world-model 分支，不追加容量、接触特征、loss 权重或 epochs。K1 只保留为 constraint-preserving joint-dynamics 正结果；稳定主线仍为 ensemble uncertainty / selective prediction。
+>
+> ### 2026-08-21 FTC-WM Gate L 最终结论
+>
+> - Gate L 将 contact/free-object 分支显式隔离并保留 pusher 几何。模型稳定收敛，60 轮 loss
+>   从 `0.3990` 降至 `0.0371`，但仍为 matched baseline `0.0176` 的约 `2.11x`；20--40 轮
+>   未进入 baseline 区间。
+> - 四个评估域的 object rollout RMSE 为 `0.2209--0.2615`，平均约 `0.247`；K2 v2
+>   平均约 `0.103`，Gate L 反而恶化约 `2.4x`。汇总回归为 free-arm `18.15%`、object
+>   `885.63%`，`gate_passed=false`。
+> - Gate L 判定 **NO-GO**。该结果说明显式 contact/free-object 分支在冻结预算内仍未解决
+>   Push object dynamics；不追加 epoch、容量或 loss 权重，作为 K2 后续反证归档。
 
 ---
 
@@ -53,7 +192,7 @@ ICRA 提交还必须满足：至少选择 3 个官方关键词；PaperPlaza 元�
 
 ---
 
-## 当前执行状态（2026-08-19 更新）
+## 当前执行状态（2026-08-20 更新）
 
 ### G0
 
@@ -84,32 +223,54 @@ zero-shot Pivot 通过最小预测机制门并可阶段交付；G2 可启动，�
 **2026-08-19 首轮强基线**：structured vs ordinary ensemble，5 seeds。平均改善
 **2.47%**，95% CI **[-1.83%, 6.38%]**，触发 Pivot。
 
-**2026-08-19 诊断实验**：GRU hidden-state 线性探针（probe_conditioning_collapse.py）。
-结论：ordinary ensemble 的 hidden state 与 structured 同样 100% 可分 D2/D3——
-topology descriptor 在当前设定下提供冗余信息，failure 原因是 conditioning
-redundancy，而非 conditioning collapse。
+**2026-08-19 诊断实验**：GRU hidden-state 线性探针。结论：topology descriptor
+在当前设定下提供冗余信息（conditioning redundancy，非 collapse）。
 
-**2026-08-19 held-out topology 实验**：D3 完全移出训练集，仅用 D2+intact 训练，
-测试时 structured 收正确 D3 descriptor，ordinary 收 intact descriptor。5 seeds
-全部完成：D3 held-out 平均改善 **+0.02%**，95% CI **[-3.38%, +3.70%]**，2/5 seeds
-为正，CI 跨零；D2 seen-topology 控制组改善 **+1.10%**，CI **[-2.51%, +4.70%]**，
-同样跨零。
+**2026-08-19 held-out topology 实验**：D3 held-out 平均改善 **+0.02%**，CI 跨零。
 
-**G2 最终 Gate（2026-08-19）：NO-GO。** 两轮实验均未通过 CI 门。根本原因：
-topology descriptor 只编码了哪个关节被锁，但 world model 需要从训练数据中学习
-对应的动力学后果；descriptor 无法在没有该 topology 训练数据时提供有效先验。
-按 V6 预注册 Pivot 条款，项目转为 **benchmark / 负结果论文** 定位。
+**2026-08-19~20 DFWM 落地尝试（共 8 种方法，均失败）**：
+- Latent optimization、Amortized encoder（多版本）、两阶段训练、物理监督+对比学习、
+  Topology Dropout 在 in-distribution 场景均导致 z_norm≈0.2（posterior collapse）
+- Oracle（真实物理参数作为 z）比 ordinary 还差，确认 WM 架构级别忽略 z
+- 分歧指纹识别：K=1 → **100% 识别 D2/D3**（5/5 seeds），但识别后预测不改善
+- 根本原因：concat context 允许 WM 忽略 z；需要架构级别变更
+
+**2026-08-20 超网络架构（DFWM-Hypernetwork，Seed 7；已归档为 No-Go）**：
+- OOD split：训练只见 nominal+weak_motor，测试遇到 high_damping+delay_1
+- 架构：`z → HyperNet(LoRA) → ΔW`，修正量 = `hidden @ (W_base + ΔW) + bias(z)`
+- 两阶段训练（Stage1 WM_base，Stage2 冻结 WM 只训练 HyperNet+encoder）
+- **Seed 7 结果**：D2 high_damping +6.5%，D2 delay_1 +4.5%，平均 **+4.3%**
+- Oracle 比 base 好（oracle_imp 正值）——WM 首次学会利用 z 信息
+- **待验证**：K=0 vs K=5 差异微小（0.1%），K-shot 贡献尚未独立确认
+
+**历史状态（已被文首 2026-08-20 执行基线修订取代）：超网络曾有单 seed 信号；五 seed
+复核后确认 K-shot/latent 机制不成立。**
+
+**关键未决问题**：
+1. 5 seeds 超网络结果是否稳定（CI 是否不跨零）
+2. 去掉 W_base 静态残差通道后，K-shot 是否有 >2% 独立贡献
+3. 如两问均确认：DFWM 方法论文成立；否则转架构贡献或 benchmark 定位
 
 已完成交付物：
 - `config/experiment/g2_push_ensemble_v1.yaml`（冻结协议）
-- `config/experiment/g2_push_heldout_topology_v1.yaml`（held-out topology 协议）
+- `config/experiment/g2_push_heldout_topology_v1.yaml`
+- `config/experiment/g2_dfwm_ood_v1.yaml`（超网络 OOD 实验配置）
+- `config/splits/g2_dfwm_ood_v1.yaml`（OOD split 定义）
 - `results/final/g2_structured_vs_ordinary_5seed.{json,csv}`
 - `results/final/g2_heldout_topology_5seed.{json,csv}`
+- `results/final/route2_topo_id_5seed.{json,csv}`（分歧指纹识别结果）
+- `results/final/route2_structured_topo_id_5seed.{json,csv}`
 - `runs/g2_push_ensemble/` 5 seeds
 - `runs/g2_heldout_topology/` 5 seeds
-- `runs/g2_domain_randomized/` 5 seeds（benchmark 完整性）
+- `runs/g2_domain_randomized/` 5 seeds
+- `runs/g2_dfwm_hypernetwork/seed7_v1/`（超网络 smoke test）
+- `scripts/run_g2_dfwm_hypernetwork.py`（超网络训练+评估脚本）
+- `scripts/collect_warp.py`（MuJoCo Warp GPU 批量采集）
+- `src/robotarm/models/amortized_encoder.py`（ResidualEncoder + 物理监督）
 - `reports/g2-ordinary-ensemble-gate-20260819.md`
 - `reports/g2-heldout-topology-gate-20260819.md`
+- `reports/route2-topo-id-gate-20260820.md`
+- `HANDOFF-2026-08-20.md`（Codex 接力文档）
 
 ## 1. 项目目标与成功定义
 
@@ -672,13 +833,25 @@ No-Go/不成立，后续只保留审计，不阻塞 G2。
 - held-out composition 优势消失：停止 ICRA 方法主线，转失败分析或更换问题设定；
 - 结果依赖单一 seed、目标或协议调整：停止扩表并进行泄漏与选择偏差审计。
 
-### G2 当前 Gate（2026-08-19）
+### G2 当前 Gate（2026-08-21，最终实验状态）
 
-**Pivot：结构化方法主张暂不成立。**普通 deep ensemble 强基线已完成，平均差异
-2.47%，95% CI 跨零。停止围绕当前 topology encoder 调参；下一决策只能在以下
-两项中选择：将工作降级为故障动力学 benchmark/负结果，或提出并预注册一个
-不等价于普通 ensemble averaging 的新机制后重新开启方法 Gate。domain-randomized
-ensemble 可用于 benchmark 完整性，但不得被描述为挽救当前结构化主张。
+**结构化完整 world-model 主线已停止；保留 K1 约束关节模型与 ensemble uncertainty / selective prediction 主线。**
+
+原始 DFWM 的 latent、encoder、FiLM、dropout 和 hypernetwork 均已五 seed 否定。CR-GWM
+只确认 exact zero violation，公平性审计不能把预测收益归因于 reaction 结构。RC-GWM 在修复
+学习率和数据多样性后仍有约 15% free-arm 退化，根因是错误移除锁定连杆的固定变换。
+
+FT-GWM 用完整 SE(3) 链修复该物理错误。K0 运动学精确；K1 在 seed 7/17 均满足 violation=0
+和 D3 free-arm 退化不超过 5% 的门槛，但仅有两 seed，且显式边计算未 compute-match。
+K2 的 stop-gradient 成功保留 K1 joint fidelity，但 object RMSE 相对 matched graph 退化
+`986.08%`，free-arm 相对 object-aware baseline 退化 `22.11%`，因此按预注册规则 **NO-GO**。
+后续 FTC-WM Gate L 虽稳定收敛，但 object RMSE 平均约 `0.247`，相对 K2 v2 约恶化 `2.4x`，
+同样 **NO-GO**。不再追加容量、接触特征、loss 权重或 epochs。五 seed ensemble/selective prediction 主表、
+compute table 和最终 G2 synthesis 已生成；普通三成员 ensemble 相对 parameter-matched single
+改善 `30.74%`，95% CI `[15.06%, 42.62%]`，但 structured vs ordinary 仅改善 `2.47%`，
+CI `[-1.83%, 6.38%]`。50% coverage 的 RMSE 降幅为 `50.50%`，但存在 rollout-depth 混杂，
+只主张 evaluated mixed-depth distribution 上的 selective rejection。权威汇总见
+`reports/g2-final-synthesis-20260821.md`。下一决策是是否以这一收缩主张进入 G3。
 
 ### 交付物
 
@@ -1330,8 +1503,23 @@ Next week:
 - [x] gate reports（ordinary-ensemble-gate, heldout-topology-gate）
 - [x] bootstrap 95% CI 两轮实验
 - [x] failure analysis（conditioning redundancy + weak zero-shot generalization）
-- [ ] five-seed held-out physics composition main table（已由 held-out topology 实验替代，原表不再需要）
-- [ ] prediction-to-control correlation（G2 NO-GO，控制实验不再展开）
+- [x] 分歧指纹拓扑识别（route2_topo_id，5 seeds，100% K=1 准确率）
+- [x] 选择性预测（selective prediction -51% RMSE @ 50% coverage，5 seeds）
+- [x] DFWM-Hypernetwork OOD 审计（5 seeds No-Go；K-shot 独立贡献近零，作为失败路线归档）
+- [x] MuJoCo Warp GPU 批量采集（collect_warp.py，63x 加速）
+- [x] shared chain graph dynamics 与 topology-surgery 消融（graph 架构有效；topology surgery 单独无稳定预测收益）
+- [x] CR-GWM Gate E（D3 held-out，5 seeds，provisional pass；zero violation）
+- [x] Gate F fairness audit（seed 7；未通过 matched-capacity 预测归因）
+- [x] Gate G direct-projection audit（原 hidden 容量错误已更正；matched projection 零 violation，free-arm 约退化 5.29%）
+- [x] Gate H：matched graph + gated reaction head（统一指标后 provisional pass；不再扩展）
+- [x] Gate I 五 seed RC-GWM（仅 2/5 通过；稳定模型 No-Go）
+- [x] J1--J6 RC-GWM 逐原因诊断（优化/数据修复后仍有 reduced-coordinate 归纳偏置）
+- [x] Gate K0 固定 SE(3) 运动学（PASS）
+- [x] Gate K1 FT-GWM 自由关节动力学（seed 7/17 provisional pass；zero violation）
+- [x] Gate K2 隔离 object/contact head（有效 v2 NO-GO；停止完整 world-model 分支）
+- [x] FTC-WM Gate L contact/free-object 分支（NO-GO；object rollout 较 K2 v2 约恶化 2.4x）
+- [x] K0--K2 审计报告（g2-fixed-transform-graph-gate-k1-20260820.md）
+- [x] 最终 G2 synthesis：ensemble/selective prediction 主表、compute table 与论文主张冻结（`reports/g2-final-synthesis-20260821.md`）
 
 ### G3
 
@@ -1399,27 +1587,27 @@ artifacts:
 ## 20. 当前 Gate 决策与下一 owner
 
 **当前阶段**：G0 已通过；G1 原始 DFWM No-Go；G1 robust zero-shot Pivot
-已完成五 seed 最小预测机制验证并通过阶段交付。
+已完成五 seed 最小预测机制验证并通过阶段交付；G2 强基线、结构化反证、选择性预测、
+K0--K2 与 Gate L 已完成并冻结。
 
-**当前 gate**：批准进入 G2，但只批准“论文级强化与反证”，不预先批准 ICRA
-主张。Guarded MPC 仍是次要结果，真机 G3 暂不启动正式统计。
+**当前 gate**：G2 结构化完整 world-model 主线停止。普通 ensemble 与 selective
+prediction 证据成立，FT-GWM K1 仅保留为 provisional constraint-preserving
+joint-dynamics 结果。Guarded MPC 的统计稳定收益未成立，正式 G3 尚未批准。
 
 **下一执行 owner 与顺序**：
 
-1. 实验 owner：冻结 G2 config、split hash、排除规则和 compute 预算；
-2. 方法 owner：实现普通 deep ensemble、domain-randomized ensemble 与
-   compute-matched baseline；
-3. 分析 owner：完成五 seed held-out composition、bootstrap、校准和失败分析；
-4. 论文 owner：删除 residual-identification 已成立、旧 Push 15.8% 和稳定控制
-   恢复等不受支持表述；
-5. 项目负责人：G2 Gate 后再决定是否投入 G3 真机正式统计。
+1. artifact owner：提交并冻结 G2 config、split、实现、测试、最终结果和审计报告；
+2. 论文 owner：按最终 synthesis 重写摘要、贡献、方法边界和实验结论；
+3. 真机 owner：若项目负责人批准 G3，先执行 intact/D3 安全与接口 smoke；
+4. uncertainty owner：按部署固定 horizon 重新校准 rejection gate，不复用 mixed-depth 阈值；
+5. 项目负责人：决定收缩后的 ensemble/selective-prediction 主张是否值得投入 G3 正式统计。
 
 **下一批必须回答的问题**：
 
-- 收益是否超过普通 deep ensemble，而不仅是 ensemble averaging？
-- topology condition 在 held-out physics composition 中是否有独立贡献？
-- 在参数量和总训练 compute 同时对齐后，优势是否保留？
-- prediction improvement 能否带来统计稳定的控制收益？若不能，应如何收缩论文定位？
+- 收缩后的 ensemble/selective-prediction 结果是否足以形成可信的 ICRA 投稿故事？
+- 固定部署 horizon 下 disagreement 的排序能力与拒绝阈值是否稳定？
+- 若进入 G3，两个故障 condition 的最低证据包能否在安全和时间预算内完成？
+- 若真机控制收益仍不稳定，论文是否明确定位为 dynamics prediction/uncertainty？
 
 ---
 

@@ -5,7 +5,8 @@ GenkiArm、MuJoCo 和 Damage-Factorized World Model（DFWM）为核心。
 
 ## 当前入口
 
-- [项目计划](PROJECT-PLAN-V5.md)
+- [当前项目计划（V6）](PROJECT-PLAN-V6.md)
+- [最终 G2 证据汇总](reports/g2-final-synthesis-20260821.md)
 - [实验进展与结论边界](EXPERIMENT-LOG.md)
 - [学长备份审计](reports/senior-backup-audit-20260814.md)
 - [G1 Push 正式闸门](reports/g1-push-formal-gate-20260818.md)
@@ -45,10 +46,15 @@ python scripts/analyze_seed_significance.py results/final/heldout_5seeds_merged.
 python scripts/run_push_benchmark.py --seeds 7,17,27,42,51 --epochs 60
 ```
 
-Reach 的五随机种子结果已复算，DFWM 相对 topology-only 的差异不显著。Push
-任务的多步预测误差改善 15.8% 是当前初步结果；在完成六方法、五随机种子和
-bootstrap/置信区间检验前，不作为论文定论。
+## 当前结论（2026-08-21）
 
-正式 G1 结果必须在 G0 真机几何、零位、安全范围和 D2/D3 可达性确认后生成。
-完整过程输出保存在本地 `runs/` 或单独实验备份中，Git 只跟踪可复现代码、配置和
-`results/final/` 聚合结果。
+G0、G1 和 G2 已完成。原始 DFWM residual-identification 分支、CR-GWM/RC-GWM
+稳定预测主张以及完整 FT-GWM Push world model 均未通过冻结门禁。当前受到五
+随机种子证据支持的主线是 ordinary ensemble averaging 与 selective prediction：
+三成员 ensemble 相对参数匹配单模型的多步 RMSE 平均改善 30.74%，50% coverage
+下选择性拒绝使 RMSE 降低 50.50%。Topology conditioning 相对 ordinary ensemble
+的独立优势不显著；FT-GWM K1 仅保留为满足已知锁定约束的 provisional joint-dynamics
+结果。正式真机 G3 尚未启动，下一决策是收缩后的论文主张是否足以支持真机重复验证。
+
+完整过程输出保存在本地 `runs/` 或单独实验备份中，Git 只跟踪可复现代码、配置、
+审计报告和 `results/final/` 聚合结果。
