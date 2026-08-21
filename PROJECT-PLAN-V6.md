@@ -60,6 +60,14 @@
 >   ensemble 的架构/训练差异。按冻结顺序不进入 BT-DPWM；混合 backbone 双专家仅保留
 >   为工程 incumbent，不作为因果创新证据。详见
 >   `reports/g2-dual-expert-fair-gate-v0-20260821.md`。
+> - W0 使用 V0 冻结权重做零训练 asymmetric stitch：joint 取 shared-compute
+>   graph，object 取 independent object specialist。seed 7 depth-10 free/object/
+>   overall 为 shared `0.32/0.05/0.25`、independent `0.36/0.04/0.27`、asymmetric
+>   `0.32/0.04/0.24`。asymmetric 相对 shared 仅改善 free `1.32%`、object
+>   `3.43%`、overall `1.34%`，未达冻结 `10%/5%` 门槛，判 **NO-GO**，不扩
+>   种子或调路由权重。它相对 fully independent overall 改善 `10.05%`，可作为工程
+>   Pareto组合，但不足以构成核心方法。详见
+>   `reports/g2-asymmetric-stitch-gate-w0-20260821.md`。
 >
 > ## 2026-08-21 可转发执行摘要（Q0-A 设计与历史）
 >
