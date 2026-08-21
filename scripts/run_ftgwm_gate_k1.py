@@ -177,6 +177,21 @@ def main() -> None:
         and object_regression <= float(config["gate"].get("maximum_object_rmse_regression_pct", float("inf")))
     )
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {
+            "model_state_dict": models["ft_gwm"].state_dict(),
+            "model_type": model_type,
+            "config": {
+                "dof": models["ft_gwm"].cfg.dof,
+                "hidden_dim": models["ft_gwm"].cfg.hidden_dim,
+                "message_steps": models["ft_gwm"].cfg.message_steps,
+            },
+            "seed": args.seed,
+            "epochs": epochs,
+            "protocol_sha256": protocol.sha256,
+        },
+        args.output_dir / "ft_gwm.pt",
+    )
     with (args.output_dir / "results.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0])); writer.writeheader(); writer.writerows(rows)
     summary = {

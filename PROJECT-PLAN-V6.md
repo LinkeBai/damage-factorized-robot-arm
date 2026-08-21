@@ -7,6 +7,20 @@
 **当前状态**：G0 已通过；原始 DFWM 全分支 No-Go；CR-GWM/RC-GWM 不具备稳定预测优势；FT-GWM K0 PASS、K1 two-seed provisional PASS，但完整 Push world model 的 K2 NO-GO，后续 FTC-WM Gate L 亦 NO-GO。最终 G2 synthesis 已完成：结构化优势不成立，保留 ordinary ensemble + selective prediction 与 K1 约束关节动力学；下一决策为是否以该收缩主张进入 G3。
 **证据约束**：实测结果均指向可追溯 artifact；未来时间、GPU-h、工时和阈值仍属于项目管理估计
 
+> ## 2026-08-21 Dual-Expert Gate Q0-A 修订（当前最新状态）
+>
+> - 新候选方法为冻结的 product-space dual expert：FT-GWM K1 独占 joint
+>   state，ordinary constant-condition ensemble 独占 object state；不训练融合 gate。
+> - Q0-A 使用 leave-one-joint-out 冻结协议、相同训练/评估轨迹、seed 7/17。
+>   主域 D3 mixed composition 的 object RMSE 分别从 `0.3103/0.1467` 变为
+>   `0.3036/0.1438`（改善 `2.15%/1.98%`）；free-arm RMSE 分别改善
+>   `53.86%/41.08%`；constraint violation 均为 `0`。两 seed 均通过 object
+>   回退不超过 2%、free-arm 回退不超过 5%、violation 不超过 `1e-7` 的门槛。
+> - 当前结论仅为 **Q0-A TWO-SEED PASS**：证明冻结异构专家能够组合且保持预测
+>   保真。尚未证明 cross-expert discrepancy 提供独立风险信息，也未证明控制收益；
+>   下一唯一实验为 Q0-B 固定深度风险校准与条件增益检验。
+> - 权威报告：`reports/g2-dual-expert-gate-q0a-20260821.md`。
+
 > ## 2026-08-20 执行基线修订（优先于本文旧 G2 叙事）
 >
 > 本节同步 2026-08-20 后续实验结论。下文仍保留 DFWM-Hypernetwork 的 Seed 7
