@@ -29,6 +29,7 @@ class BlockTriangularDPWM(nn.Module):
         reaction_scale: float = 1.0,
         reaction_physical_features: bool = False,
         reaction_event_decay: float | None = None,
+        reaction_fixed_initialization: bool = False,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -43,6 +44,7 @@ class BlockTriangularDPWM(nn.Module):
         self.reaction_scale = reaction_scale
         self.reaction_physical_features = reaction_physical_features
         self.reaction_event_decay = reaction_event_decay
+        self.reaction_fixed_initialization = reaction_fixed_initialization
         if reaction_event_decay is not None and not 0.0 <= reaction_event_decay < 1.0:
             raise ValueError("reaction_event_decay must be in [0, 1)")
         # q, qvel, projected action, locked, lock angle, normalized depth.
@@ -95,6 +97,10 @@ class BlockTriangularDPWM(nn.Module):
                 nn.Linear(reaction_input_dim, reaction_rank), nn.Tanh(),
                 nn.Linear(reaction_rank, 2),
             )
+            if reaction_fixed_initialization:
+                with torch.random.fork_rng(devices=[]):
+                    torch.manual_seed(314159)
+                    self.reaction_adapter[0].reset_parameters()
             nn.init.zeros_(self.reaction_adapter[-1].weight)
             nn.init.zeros_(self.reaction_adapter[-1].bias)
         if reaction_geometry_gate:

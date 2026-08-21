@@ -1,0 +1,16 @@
+version: g2_bt_dpwm_fixed_basis_reaction_z14_v1
+status: frozen_2026-08-22
+q0a_config: config/experiment/g2_dual_expert_gate_q0a_v1.yaml
+seeds: [7, 17, 27]
+robot_hidden_dim: 136
+object_hidden_dim: 32
+reaction_rank: 80
+reaction_physical_features: true
+reaction_fixed_initialization: true
+reaction_scale: 1.0
+reaction_epochs: 40
+reaction_learning_rate: 0.0001
+selection_interval: 40
+select_best_validation: false
+rollout_horizon: 10
+source_model_template: runs/g2_bt_dpwm_reaction_z5/seed{seed}_v1/model.pt

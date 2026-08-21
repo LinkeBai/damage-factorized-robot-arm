@@ -147,6 +147,7 @@ def main():
         reaction_scale=float(cfg.get("reaction_scale", 1.0)),
         reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
         reaction_event_decay=cfg.get("reaction_event_decay"),
+        reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False)),
     ).to(device)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = baseline.state_dict(); target = candidate.state_dict()

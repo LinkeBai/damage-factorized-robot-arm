@@ -44,6 +44,23 @@ def one_step_joint_loss(model, batch):
     return torch.stack(losses).mean()
 
 
+def contact_weighted_joint_loss(model, batch, contacts, noncontact_weight):
+    """Teacher-forced reaction identification dominated by actual contact events."""
+    states, actions, mask, _ = batch
+    zeros = torch.zeros_like(mask)
+    hidden, numerator, denominator = None, [], []
+    for step in range(actions.shape[1]):
+        prediction, hidden = model.step(
+            states[:, step], actions[:, step], zeros, zeros, hidden
+        )
+        error = (prediction[:, :10] - states[:, step + 1, :10]).pow(2).mean(-1)
+        weight = torch.where(contacts[:, step], torch.ones_like(error),
+                             torch.full_like(error, noncontact_weight))
+        numerator.append((weight * error).sum())
+        denominator.append(weight.sum())
+    return torch.stack(numerator).sum() / torch.stack(denominator).sum().clamp_min(1.0)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
@@ -83,6 +100,7 @@ def main():
         reaction_scale=float(cfg.get("reaction_scale", 1.0)),
         reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
         reaction_event_decay=cfg.get("reaction_event_decay"),
+        reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False)),
     ).to(device)
     source = torch.load(str(cfg["source_model_template"]).format(seed=args.seed), map_location=device)
     fresh = model.state_dict()
@@ -96,6 +114,11 @@ def main():
     optimizer = torch.optim.Adam(model.reaction_adapter.parameters(),
                                  lr=float(cfg["reaction_learning_rate"]))
     batch = _batch(train, device); horizon = int(cfg["rollout_horizon"])
+    contacts = None
+    if bool(cfg.get("contact_supervised_reaction_training", False)):
+        if any(trajectory.contact_mask is None for trajectory in train):
+            raise ValueError("contact-supervised reaction requires contact masks")
+        contacts = torch.stack([trajectory.contact_mask for trajectory in train]).to(device)
     domain_batches = None
     if bool(cfg.get("group_robust_reaction_training", False)):
         domain_ids = sorted({trajectory.domain_id for trajectory in train})
@@ -107,7 +130,11 @@ def main():
     best_state = copy.deepcopy(model.state_dict()); records = [{"epoch": 0, "validation_free_rmse": best_score}]
     print(f"[select] epoch=000 validation_free={best_score:.6f}", flush=True)
     for epoch in range(1, int(cfg["reaction_epochs"]) + 1):
-        if domain_batches is not None:
+        if contacts is not None:
+            joint = contact_weighted_joint_loss(
+                model, batch, contacts, float(cfg.get("noncontact_loss_weight", 0.05))
+            )
+        elif domain_batches is not None:
             domain_losses = torch.stack([_losses(model, item, horizon)[0]
                                          for item in domain_batches])
             temperature = float(cfg.get("group_robust_temperature", 0.002))

@@ -1815,6 +1815,24 @@ Z7 current-gate 与 Z5 ungated；threshold=+5 mm、decay=0.95 的 seed7 四域�
 reaction confidence/stability constraint，并明确证明相对 zero-reaction 不劣；禁止
 用 test seed 分别选择 scale、epoch 或 gate。
 
+Z13--Z14 监督与随机性归因（2026-08-22）：先计算 object-only 理论上界。若 robot
+完全等于强 shared baseline 且 object RMSE 降为 0，12 cell 的 overall 改善均值也
+只有 +2.26%；因此 goal 的 +5% 必须包含约 3 个百分点的稳定 robot 改善，不能再
+把 object 优势当作充分条件。
+
+Z13 用训练轨迹 MuJoCo contact mask 加权 physical reaction 的一步残差监督，部署仍
+只用解析 geometry gate。seed7 在 scale=0.25 已为 free -0.73%、overall +0.83%，
+更大 scale 单调恶化，NO-GO。结论是 object contact 事件不等于可泛化 joint reaction
+监督；Z5 的正收益来自更广义的 rollout correction，不能收缩成纯碰撞冲量。
+
+Z14 固定 physical adapter 第一层随机 feature basis（所有 seed 同一确定初始化），
+排除随机参数坐标。seed7 在 scale 0.30/0.40/0.50 形成 +5.14/+5.29/+5.00% 的宽
+有效区间；锁定 scale=0.40 后三 seed×四域仍仅 free +0.84%、object +21.98%、
+overall +1.74%、4/12 退化，NO-GO，几乎等同 Z10。故跨 seed 方差来自各训练集与
+scaffold residual 的不一致，而不是 adapter 随机初始化。下一步禁止继续调
+scale/gate/seed；必须引入不依赖 test selection、能约束多步 robot residual 方向的
+训练信号，同时保持 BT-DPWM、参数上限和三 seed 独立性。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

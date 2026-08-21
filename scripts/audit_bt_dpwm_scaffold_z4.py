@@ -59,7 +59,8 @@ def main():
                             else float(cfg.get("reaction_scale", 1.0))),
             reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
             reaction_event_decay=(args.reaction_event_decay if args.reaction_event_decay is not None
-                                  else cfg.get("reaction_event_decay"))).to(device)
+                                  else cfg.get("reaction_event_decay")),
+            reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False))).to(device)
         candidate.load_state_dict(torch.load(str(cfg["candidate_model_template"]).format(seed=seed), map_location=device))
         baseline.eval(); candidate.eval()
         for domain_id in cfg["domains"]:
@@ -74,6 +75,12 @@ def main():
             values = {x["method"]: x for x in result}; base, cand = values["shared"], values["bt_dpwm"]
             improve = lambda key: 100.0 * (base[key] - cand[key]) / base[key]
             rows.append({"seed": seed, "domain": domain_id,
+                         "baseline_free_rmse": base["free_rmse"],
+                         "baseline_object_rmse": base["object_rmse"],
+                         "baseline_overall_rmse": base["overall_rmse"],
+                         "candidate_free_rmse": cand["free_rmse"],
+                         "candidate_object_rmse": cand["object_rmse"],
+                         "candidate_overall_rmse": cand["overall_rmse"],
                          "free_improvement_pct": improve("free_rmse"),
                          "object_improvement_pct": improve("object_rmse"),
                          "overall_improvement_pct": improve("overall_rmse"),

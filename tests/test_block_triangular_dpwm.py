@@ -140,3 +140,16 @@ def test_event_trace_is_parameter_free_and_decays_after_contact():
     assert isinstance(hidden, tuple) and len(hidden) == 3
     assert hidden[2].shape == (2,)
     assert sum(p.numel() for p in model.parameters()) == before
+
+
+def test_fixed_reaction_initialization_is_seed_invariant():
+    torch.manual_seed(1)
+    first = BlockTriangularDPWM(reaction_rank=16, reaction_physical_features=True,
+                               reaction_fixed_initialization=True)
+    torch.manual_seed(999)
+    second = BlockTriangularDPWM(reaction_rank=16, reaction_physical_features=True,
+                                reaction_fixed_initialization=True)
+    torch.testing.assert_close(first.reaction_adapter[0].weight,
+                               second.reaction_adapter[0].weight)
+    torch.testing.assert_close(first.reaction_adapter[0].bias,
+                               second.reaction_adapter[0].bias)
