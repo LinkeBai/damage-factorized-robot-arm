@@ -1,0 +1,11 @@
+version: g2_dppwm_core_ablation_u0_v1
+status: frozen_2026-08-21
+q0a_config: config/experiment/g2_dual_expert_gate_q0a_v1.yaml
+seeds: [7]
+primary_domain: D3__mixed_composition
+gate:
+  minimum_dpp_free_improvement_vs_monolithic_internal_projection_pct: 10.0
+  minimum_dpp_free_improvement_vs_product_no_projection_pct: 10.0
+  minimum_dpp_free_improvement_vs_product_output_only_projection_pct: 10.0
+  maximum_object_regression_vs_monolithic_pct: 2.0
+  maximum_constraint_violation_rms: 1.0e-7

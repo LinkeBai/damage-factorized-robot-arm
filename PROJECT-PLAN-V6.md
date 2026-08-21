@@ -43,6 +43,13 @@
 >   temporal feature 仍携带有用历史，而 exact output projection 已足以消除法向坐标
 >   误差；简单 hidden masking 不能构成新核心创新。详见
 >   `reports/g2-tangent-manifold-gate-t0-20260821.md`。
+> - U0 最终拆解 DPP-WM 主体：seed 7 depth-10 free-arm RMSE 为 monolithic
+>   internal projection `0.93`、product no projection `0.44`、product output-only
+>   projection `0.44`、DPP internal projection `0.44`。DPP 相对 monolithic 改善
+>   `52.86%`，但相对两种 product 对照均仅改善 `0.14%`，核心“internal projection
+>   对预测稳定性不可替代”判 **NO-GO**。当前确认的预测收益来自 joint/object 独立
+>   transition；projection 的确认价值是把 violation 从 `0.30` 降到 `0`，而不是提高
+>   free/object RMSE。详见 `reports/g2-dppwm-core-ablation-u0-20260821.md`。
 >
 > ## 2026-08-21 可转发执行摘要（Q0-A 设计与历史）
 >
