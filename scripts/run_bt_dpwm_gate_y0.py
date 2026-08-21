@@ -188,6 +188,11 @@ def main():
         topology_hook = first_weight.register_hook(lambda gradient: gradient * gradient_mask)
         print(f"[initialize] topology-input adapter trains {gradient_mask.sum().item():.0f} existing weights",
               flush=True)
+    if bool(cfg.get("robot_head_only_training", False)):
+        for name, parameter in candidate.named_parameters():
+            parameter.requires_grad_(name.startswith("robot_head."))
+        trainable = sum(p.numel() for p in candidate.parameters() if p.requires_grad)
+        print(f"[initialize] robot-head adaptation trains {trainable:,} existing weights", flush=True)
     batch = _batch(train_data, device)
     use_topology = bool(cfg.get("internal_topology_conditioning", False))
     refinement_epochs = int(cfg.get("joint_refinement_epochs", 0))
@@ -203,14 +208,14 @@ def main():
         elif bool(cfg.get("robot_only_forward", False)):
             robot_history = train_robot_only(
                 candidate, batch, epochs=int(cfg["robot_epochs"]),
-                learning_rate=float(cfg["learning_rate"]),
+                learning_rate=float(cfg.get("robot_learning_rate", cfg["learning_rate"])),
                 horizon=int(cfg["robot_rollout_training_horizon"]),
                 use_topology=use_topology,
             )
         else:
             robot_history = train_model(
                 candidate, batch, component="joint", epochs=int(cfg["robot_epochs"]),
-                learning_rate=float(cfg["learning_rate"]),
+                learning_rate=float(cfg.get("robot_learning_rate", cfg["learning_rate"])),
                 rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
                 use_topology=use_topology,
             )

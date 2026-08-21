@@ -1884,6 +1884,14 @@ primary相对强baseline为free -30.20%、object +42.01%、overall -24.31%，NO-
 停止seed17/27。总参数/训练loss匹配不等于分布外泛化；从头训练的双窄专家仍显著
 不如预训练宽h136 scaffold。下一步必须保留强scaffold，不再用窄ensemble替代。
 
+Z21 h136 robot-head-only适配（2026-08-22）：保留强baseline的encoder/message/
+temporal，仅用h10 joint rollout和lr=1e-4微调18,906个robot-head现有权重40轮，
+再冻结并训练object120轮。robot train loss从0.02162降至0.01005，object loss降至
+0.000872；但seed7 primary为free -60.00%、object +42.08%、overall -52.14%，
+NO-GO，停止seed17/27。即使低维、低学习率的监督式head重拟合也会破坏held-out
+泛化；后续必须完整保留h136 robot scaffold，不再用当前D2/D4训练集更新其动力学
+权重。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner
