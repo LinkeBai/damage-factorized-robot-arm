@@ -61,6 +61,43 @@ def contact_weighted_joint_loss(model, batch, contacts, noncontact_weight):
     return torch.stack(numerator).sum() / torch.stack(denominator).sum().clamp_min(1.0)
 
 
+def paired_dominance_joint_loss(model, batch, horizon, dominance_weight):
+    """Penalize any per-trajectory/depth regression against zero reaction."""
+    states, actions, mask, _ = batch
+    zeros = torch.zeros_like(mask)
+
+    def rollout_errors(scale):
+        previous_scale = model.reaction_scale
+        model.reaction_scale = scale
+        errors = []
+        try:
+            hidden = None
+            for step in range(actions.shape[1]):
+                prediction, hidden = model.step(
+                    states[:, step], actions[:, step], zeros, zeros, hidden
+                )
+                errors.append((prediction[:, :10] - states[:, step + 1, :10]).pow(2).mean(-1))
+            rollout_horizon = min(horizon, actions.shape[1])
+            for start in range(0, actions.shape[1] - rollout_horizon + 1, rollout_horizon):
+                prediction, hidden = states[:, start], None
+                for offset in range(rollout_horizon):
+                    prediction, hidden = model.step(
+                        prediction, actions[:, start + offset], zeros, zeros, hidden
+                    )
+                    errors.append((prediction[:, :10]
+                                   - states[:, start + offset + 1, :10]).pow(2).mean(-1))
+        finally:
+            model.reaction_scale = previous_scale
+        return torch.stack(errors, dim=1)
+
+    with torch.no_grad():
+        baseline = rollout_errors(0.0)
+    corrected = rollout_errors(model.reaction_scale)
+    normalized_excess = (corrected - baseline) / baseline.clamp_min(1e-5)
+    downside = torch.relu(normalized_excess)
+    return corrected.mean() + dominance_weight * baseline.mean() * downside.mean()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
@@ -130,7 +167,11 @@ def main():
     best_state = copy.deepcopy(model.state_dict()); records = [{"epoch": 0, "validation_free_rmse": best_score}]
     print(f"[select] epoch=000 validation_free={best_score:.6f}", flush=True)
     for epoch in range(1, int(cfg["reaction_epochs"]) + 1):
-        if contacts is not None:
+        if bool(cfg.get("paired_dominance_reaction_training", False)):
+            joint = paired_dominance_joint_loss(
+                model, batch, horizon, float(cfg.get("dominance_weight", 10.0))
+            )
+        elif contacts is not None:
             joint = contact_weighted_joint_loss(
                 model, batch, contacts, float(cfg.get("noncontact_loss_weight", 0.05))
             )

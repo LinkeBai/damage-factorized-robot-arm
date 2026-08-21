@@ -1833,6 +1833,27 @@ scaffold residual 的不一致，而不是 adapter 随机初始化。下一步�
 scale/gate/seed；必须引入不依赖 test selection、能约束多步 robot residual 方向的
 训练信号，同时保持 BT-DPWM、参数上限和三 seed 独立性。
 
+Z15--Z17 多步安全与拓扑机制审计（2026-08-22）：Z15 引入 paired dominance
+reaction loss，在每条训练轨迹/每个 rollout depth 与同模型 zero-reaction 对照，对
+任一误差上升施罚。weight=10 的 seed7 overall +2.62%；weight=2 的 seed7 free
++3.53%、object +25.58%、overall +4.88%、1/4 退化。锁定 weight=2 后三 seed×
+四域仅 free +0.31%、object +21.96%、overall +1.24%、7/12 退化，NO-GO。
+seed17/27 validation 均改善但 test 仍退化，证明训练轨迹 dominance 不构成分布外
+安全保证。
+
+随后发现 V0--Z15 的统一训练/evaluate 路径虽然生成真实 damage mask，却向模型内部
+传入全零 mask/angle，只在模型外做最终 projection；因此 BT-DPWM 的内部 action
+屏蔽、逐步 projection 和 topology message 从未被激活。Z16 从 h136/240 scaffold
+初始化后全量 topology-aware fine-tune 40轮，robot train loss下降约42%，但 seed7
+primary free -101.47%，显示 D2/D4 全量适配破坏 held-out D3 scaffold，NO-GO。
+
+Z17 仅训练 robot encoder 中此前无梯度的 mask/lock-angle 两个输入列，共272个现有
+权重且从零初始化，其余318k robot权重冻结；zero-mask 前向保持 scaffold。seed7
+primary overall +6.50%，四域 free +2.17%、object +25.81%、overall +3.58%、1/4
+退化；但三 seed最终为 free -2.40%、object +22.01%、overall -1.36%、7/12退化，
+NO-GO。内部 topology 是此前遗漏的核心机制，但在 leave-D3-out 数据下仍不能提供
+可重复 robot 改善。下一步不得把任何单 seed topology 结果升级为主张。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

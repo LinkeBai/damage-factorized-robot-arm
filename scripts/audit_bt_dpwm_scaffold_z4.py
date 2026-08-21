@@ -71,7 +71,8 @@ def main():
                 collect_push_domains((d,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
                                      seed=s, targets=tuple(x.as_array() for x in targets.evaluation), **common))
             result = evaluate({"shared": baseline, "bt_dpwm": candidate}, domain,
-                              trajectories, device, int(q0a["rollout_horizon"]))
+                              trajectories, device, int(q0a["rollout_horizon"]),
+                              ("bt_dpwm",) if bool(cfg.get("internal_topology_conditioning", False)) else ())
             values = {x["method"]: x for x in result}; base, cand = values["shared"], values["bt_dpwm"]
             improve = lambda key: 100.0 * (base[key] - cand[key]) / base[key]
             rows.append({"seed": seed, "domain": domain_id,

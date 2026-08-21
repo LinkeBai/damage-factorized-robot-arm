@@ -37,13 +37,14 @@ def cached_collect(cache_dir, cache_key, collector):
     return trajectories
 
 
-def robot_losses(model, batch, horizon):
-    states, actions, mask, _ = batch
+def robot_losses(model, batch, horizon, use_topology=False):
+    states, actions, mask, angle = batch
     zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
     one_step, hidden = [], None
     for step in range(actions.shape[1]):
         robot, hidden, _, _, _ = model.step_robot(
-            states[:, step], actions[:, step], zeros, zeros, hidden)
+            states[:, step], actions[:, step], model_mask, model_angle, hidden)
         one_step.append((robot - states[:, step + 1, :10]).pow(2).mean())
     rollout = []
     horizon = min(horizon, actions.shape[1])
@@ -51,18 +52,18 @@ def robot_losses(model, batch, horizon):
         prediction, hidden = states[:, start], None
         for offset in range(horizon):
             robot, hidden, obj, _, _ = model.step_robot(
-                prediction, actions[:, start + offset], zeros, zeros, hidden)
+                prediction, actions[:, start + offset], model_mask, model_angle, hidden)
             rollout.append((robot - states[:, start + offset + 1, :10]).pow(2).mean())
             prediction = torch.cat((robot, obj), -1)
     return torch.stack(one_step).mean() + 0.5 * torch.stack(rollout).mean()
 
 
-def train_robot_only(model, batch, *, epochs, learning_rate, horizon):
+def train_robot_only(model, batch, *, epochs, learning_rate, horizon, use_topology=False):
     parameters = [p for name, p in model.named_parameters() if name.startswith("robot_")]
     optimizer = torch.optim.Adam(parameters, lr=learning_rate)
     history = []
     for epoch in range(epochs):
-        loss = robot_losses(model, batch, horizon)
+        loss = robot_losses(model, batch, horizon, use_topology)
         optimizer.zero_grad(); loss.backward()
         gradient = float(torch.nn.utils.clip_grad_norm_(parameters, 5.0))
         optimizer.step(); history.append(float(loss.detach()))
@@ -167,7 +168,23 @@ def main():
                         target[destination] = value.detach().clone(); copied += value.numel()
         candidate.load_state_dict(target)
         print(f"[initialize] copied {copied:,} robot parameters from baseline", flush=True)
+    topology_hook = None
+    if bool(cfg.get("topology_input_only_training", False)):
+        if not bool(cfg.get("internal_topology_conditioning", False)):
+            raise ValueError("topology_input_only_training requires internal topology conditioning")
+        first_weight = candidate.robot_encoder[0].weight
+        with torch.no_grad():
+            first_weight[:, 3:5].zero_()
+        for parameter in candidate.parameters():
+            parameter.requires_grad_(False)
+        first_weight.requires_grad_(True)
+        gradient_mask = torch.zeros_like(first_weight)
+        gradient_mask[:, 3:5] = 1.0
+        topology_hook = first_weight.register_hook(lambda gradient: gradient * gradient_mask)
+        print(f"[initialize] topology-input adapter trains {gradient_mask.sum().item():.0f} existing weights",
+              flush=True)
     batch = _batch(train_data, device)
+    use_topology = bool(cfg.get("internal_topology_conditioning", False))
     refinement_epochs = int(cfg.get("joint_refinement_epochs", 0))
     shared_epochs = int(cfg["epochs"]) - refinement_epochs
     if bool(cfg.get("block_coordinate_training", False)):
@@ -183,13 +200,17 @@ def main():
                 candidate, batch, epochs=int(cfg["robot_epochs"]),
                 learning_rate=float(cfg["learning_rate"]),
                 horizon=int(cfg["robot_rollout_training_horizon"]),
+                use_topology=use_topology,
             )
         else:
             robot_history = train_model(
                 candidate, batch, component="joint", epochs=int(cfg["robot_epochs"]),
                 learning_rate=float(cfg["learning_rate"]),
                 rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
+                use_topology=use_topology,
             )
+        if topology_hook is not None:
+            topology_hook.remove()
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(name.startswith("object_"))
         print("[block 2/2] object on frozen robot rollouts", flush=True)
@@ -197,6 +218,7 @@ def main():
             candidate, batch, component="object", epochs=int(cfg["object_epochs"]),
             learning_rate=float(cfg["learning_rate"]),
             rollout_horizon=int(cfg["object_rollout_training_horizon"]),
+            use_topology=use_topology,
         )
         history = robot_history + object_history
         reaction_epochs = int(cfg.get("reaction_epochs", 0))
@@ -208,6 +230,7 @@ def main():
                 candidate, batch, component="joint", epochs=reaction_epochs,
                 learning_rate=float(cfg["reaction_learning_rate"]),
                 rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
+                use_topology=use_topology,
             )
             history.extend(reaction_history)
     elif "robot_rollout_training_horizon" in cfg:
@@ -240,8 +263,9 @@ def main():
     test_data = cached_collect(args.cache_dir, test_key, lambda: collect_push_domains(
         (domain,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
         seed=test_seed, targets=tuple(x.as_array() for x in targets.evaluation), **common))
+    topology_methods = ("bt_dpwm",) if use_topology else ()
     rows = evaluate({"shared_baseline": baseline, "bt_dpwm": candidate}, domain, test_data,
-                    device, int(q0a["rollout_horizon"]))
+                    device, int(q0a["rollout_horizon"]), topology_methods)
     result = {row["method"]: row for row in rows}; base, cand = result["shared_baseline"], result["bt_dpwm"]
     improvement = lambda key: 100.0 * (base[key] - cand[key]) / base[key]
     obj, free, overall = improvement("object_rmse"), improvement("free_rmse"), improvement("overall_rmse")

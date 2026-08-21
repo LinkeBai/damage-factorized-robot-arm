@@ -35,16 +35,18 @@ def _component_loss(prediction, target, component):
     raise ValueError(component)
 
 
-def train_model(model, batch, *, component, epochs, learning_rate, rollout_horizon):
+def train_model(model, batch, *, component, epochs, learning_rate, rollout_horizon,
+                use_topology=False):
     states, actions, mask, angle = batch
     zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     history = []
     for epoch in range(epochs):
         hidden, one_step = None, []
         for step in range(actions.shape[1]):
             prediction, hidden = model.step(
-                states[:, step], actions[:, step], zeros, zeros, hidden
+                states[:, step], actions[:, step], model_mask, model_angle, hidden
             )
             one_step.append(_component_loss(prediction, states[:, step + 1], component))
         rollout = []
@@ -53,7 +55,7 @@ def train_model(model, batch, *, component, epochs, learning_rate, rollout_horiz
             prediction, hidden = states[:, start], None
             for offset in range(horizon):
                 prediction, hidden = model.step(
-                    prediction, actions[:, start + offset], zeros, zeros, hidden
+                    prediction, actions[:, start + offset], model_mask, model_angle, hidden
                 )
                 rollout.append(_component_loss(
                     prediction, states[:, start + offset + 1], component
