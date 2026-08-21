@@ -105,3 +105,38 @@ def test_geometry_gated_reaction_adds_no_parameters_and_suppresses_far_object():
     gate = gated._reaction_contact_gate(q, near)
     assert gate[0] > gate[1]
     assert gate[1] < 1e-4
+
+
+def test_zero_reaction_scale_recovers_unadapted_forward():
+    torch.manual_seed(13)
+    plain = BlockTriangularDPWM(contact_conditioned_robot=True)
+    torch.manual_seed(13)
+    scaled = BlockTriangularDPWM(contact_conditioned_robot=True, reaction_rank=8,
+                                reaction_scale=0.0)
+    scaled.load_state_dict({**scaled.state_dict(), **plain.state_dict()})
+    inputs = _inputs()
+    first, _ = plain.step(*inputs, None)
+    second, _ = scaled.step(*inputs, None)
+    torch.testing.assert_close(first, second)
+
+
+def test_physical_reaction_adapter_is_hidden_basis_independent_and_budget_smaller():
+    latent = BlockTriangularDPWM(contact_conditioned_robot=True, reaction_rank=8)
+    physical = BlockTriangularDPWM(contact_conditioned_robot=True, reaction_rank=8,
+                                  reaction_physical_features=True)
+    assert physical.reaction_adapter[0].in_features == 10
+    assert sum(p.numel() for p in physical.parameters()) < sum(p.numel() for p in latent.parameters())
+
+
+def test_event_trace_is_parameter_free_and_decays_after_contact():
+    model = BlockTriangularDPWM(contact_conditioned_robot=True,
+                               independent_object_encoder=True,
+                               object_hidden_dim=32, reaction_rank=8,
+                               reaction_geometry_gate=True,
+                               reaction_event_decay=0.5)
+    before = sum(p.numel() for p in model.parameters())
+    inputs = _inputs(batch=2)
+    _, hidden = model.step(*inputs, None)
+    assert isinstance(hidden, tuple) and len(hidden) == 3
+    assert hidden[2].shape == (2,)
+    assert sum(p.numel() for p in model.parameters()) == before

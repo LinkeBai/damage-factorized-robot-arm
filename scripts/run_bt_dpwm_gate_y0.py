@@ -144,6 +144,9 @@ def main():
         reaction_geometry_gate=bool(cfg.get("reaction_geometry_gate", False)),
         reaction_gate_threshold=float(cfg.get("reaction_gate_threshold", -0.005)),
         reaction_gate_temperature=float(cfg.get("reaction_gate_temperature", 0.002)),
+        reaction_scale=float(cfg.get("reaction_scale", 1.0)),
+        reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
+        reaction_event_decay=cfg.get("reaction_event_decay"),
     ).to(device)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = baseline.state_dict(); target = candidate.state_dict()

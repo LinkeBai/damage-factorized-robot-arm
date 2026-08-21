@@ -29,6 +29,8 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reaction-gate-threshold", type=float)
     parser.add_argument("--reaction-gate-temperature", type=float)
+    parser.add_argument("--reaction-scale", type=float)
+    parser.add_argument("--reaction-event-decay", type=float)
     args = parser.parse_args(); cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     seeds = [int(x) for x in args.seeds.split(",")]
     if any(seed not in cfg["seeds"] for seed in seeds): raise ValueError("seed outside frozen list")
@@ -52,7 +54,12 @@ def main():
             reaction_gate_threshold=(args.reaction_gate_threshold if args.reaction_gate_threshold is not None
                                      else float(cfg.get("reaction_gate_threshold", -0.005))),
             reaction_gate_temperature=(args.reaction_gate_temperature if args.reaction_gate_temperature is not None
-                                       else float(cfg.get("reaction_gate_temperature", 0.002)))).to(device)
+                                       else float(cfg.get("reaction_gate_temperature", 0.002))),
+            reaction_scale=(args.reaction_scale if args.reaction_scale is not None
+                            else float(cfg.get("reaction_scale", 1.0))),
+            reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
+            reaction_event_decay=(args.reaction_event_decay if args.reaction_event_decay is not None
+                                  else cfg.get("reaction_event_decay"))).to(device)
         candidate.load_state_dict(torch.load(str(cfg["candidate_model_template"]).format(seed=seed), map_location=device))
         baseline.eval(); candidate.eval()
         for domain_id in cfg["domains"]:
@@ -82,6 +89,8 @@ def main():
     summary = {"config_version": cfg["version"], "seeds": seeds, "rows": rows,
                "reaction_gate_threshold": args.reaction_gate_threshold,
                "reaction_gate_temperature": args.reaction_gate_temperature,
+               "reaction_scale": args.reaction_scale,
+               "reaction_event_decay": args.reaction_event_decay,
                "mean_free_improvement_pct": means["free"],
                "mean_object_improvement_pct": means["object"],
                "mean_overall_improvement_pct": means["overall"],

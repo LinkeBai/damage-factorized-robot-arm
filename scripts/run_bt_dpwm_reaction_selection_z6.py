@@ -80,6 +80,9 @@ def main():
         reaction_geometry_gate=bool(cfg.get("reaction_geometry_gate", False)),
         reaction_gate_threshold=float(cfg.get("reaction_gate_threshold", -0.005)),
         reaction_gate_temperature=float(cfg.get("reaction_gate_temperature", 0.002)),
+        reaction_scale=float(cfg.get("reaction_scale", 1.0)),
+        reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
+        reaction_event_decay=cfg.get("reaction_event_decay"),
     ).to(device)
     source = torch.load(str(cfg["source_model_template"]).format(seed=args.seed), map_location=device)
     fresh = model.state_dict()
@@ -93,11 +96,23 @@ def main():
     optimizer = torch.optim.Adam(model.reaction_adapter.parameters(),
                                  lr=float(cfg["reaction_learning_rate"]))
     batch = _batch(train, device); horizon = int(cfg["rollout_horizon"])
+    domain_batches = None
+    if bool(cfg.get("group_robust_reaction_training", False)):
+        domain_ids = sorted({trajectory.domain_id for trajectory in train})
+        domain_batches = [
+            _batch([trajectory for trajectory in train if trajectory.domain_id == domain_id], device)
+            for domain_id in domain_ids
+        ]
     best_epoch = 0; best_score = validation_score(model, protocol, validation, device, horizon)
     best_state = copy.deepcopy(model.state_dict()); records = [{"epoch": 0, "validation_free_rmse": best_score}]
     print(f"[select] epoch=000 validation_free={best_score:.6f}", flush=True)
     for epoch in range(1, int(cfg["reaction_epochs"]) + 1):
-        if bool(cfg.get("one_step_reaction_training", False)):
+        if domain_batches is not None:
+            domain_losses = torch.stack([_losses(model, item, horizon)[0]
+                                         for item in domain_batches])
+            temperature = float(cfg.get("group_robust_temperature", 0.002))
+            joint = temperature * torch.logsumexp(domain_losses / temperature, dim=0)
+        elif bool(cfg.get("one_step_reaction_training", False)):
             joint = one_step_joint_loss(model, batch)
         else:
             joint, _ = _losses(model, batch, horizon)
@@ -110,6 +125,10 @@ def main():
             print(f"[select] epoch={epoch:03d} train={joint.item():.6f} validation_free={score:.6f}", flush=True)
             if score < best_score:
                 best_score, best_epoch, best_state = score, epoch, copy.deepcopy(model.state_dict())
+    if not bool(cfg.get("select_best_validation", True)):
+        best_epoch = int(cfg["reaction_epochs"])
+        best_score = records[-1]["validation_free_rmse"]
+        best_state = copy.deepcopy(model.state_dict())
     model.load_state_dict(best_state); args.output_dir.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), args.output_dir / "model.pt")
     summary = {"config_version": cfg["version"], "seed": args.seed,

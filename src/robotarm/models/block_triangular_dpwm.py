@@ -26,6 +26,9 @@ class BlockTriangularDPWM(nn.Module):
         reaction_geometry_gate: bool = False,
         reaction_gate_threshold: float = -0.005,
         reaction_gate_temperature: float = 0.002,
+        reaction_scale: float = 1.0,
+        reaction_physical_features: bool = False,
+        reaction_event_decay: float | None = None,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -37,6 +40,11 @@ class BlockTriangularDPWM(nn.Module):
         self.reaction_geometry_gate = reaction_geometry_gate
         self.reaction_gate_threshold = reaction_gate_threshold
         self.reaction_gate_temperature = reaction_gate_temperature
+        self.reaction_scale = reaction_scale
+        self.reaction_physical_features = reaction_physical_features
+        self.reaction_event_decay = reaction_event_decay
+        if reaction_event_decay is not None and not 0.0 <= reaction_event_decay < 1.0:
+            raise ValueError("reaction_event_decay must be in [0, 1)")
         # q, qvel, projected action, locked, lock angle, normalized depth.
         # Y1 may additionally condition on the current object state.  This is a
         # forward contact context; the object loss still cannot cross the
@@ -81,8 +89,10 @@ class BlockTriangularDPWM(nn.Module):
             )
         self.surgery = TopologySurgery()
         if reaction_rank > 0:
+            reaction_input_dim = (robot_input_dim if reaction_physical_features
+                                  else c.hidden_dim + c.object_dim)
             self.reaction_adapter = nn.Sequential(
-                nn.Linear(c.hidden_dim + c.object_dim, reaction_rank), nn.Tanh(),
+                nn.Linear(reaction_input_dim, reaction_rank), nn.Tanh(),
                 nn.Linear(reaction_rank, 2),
             )
             nn.init.zeros_(self.reaction_adapter[-1].weight)
@@ -168,10 +178,19 @@ class BlockTriangularDPWM(nn.Module):
         projected_robot, next_hidden, obj, action, depth = self.step_robot(
             state, action, mask, lock_angle, hidden
         )
-        return self.step_object(
+        reaction_trace = None
+        if self.reaction_event_decay is not None:
+            next_hidden, reaction_trace = next_hidden
+        prediction, returned_hidden = self.step_object(
             projected_robot, obj, action, mask, lock_angle, depth, next_hidden,
             object_hidden,
         )
+        if reaction_trace is not None:
+            if isinstance(returned_hidden, tuple):
+                returned_hidden = (*returned_hidden, reaction_trace)
+            else:
+                returned_hidden = (returned_hidden, reaction_trace)
+        return prediction, returned_hidden
 
     def step_robot(self, state, action, mask, lock_angle, hidden):
         """Advance only the robot block, skipping all object-block compute."""
@@ -192,6 +211,8 @@ class BlockTriangularDPWM(nn.Module):
         robot_hidden = hidden
         if self.independent_object_encoder and hidden is not None:
             robot_hidden = hidden[0] if isinstance(hidden, tuple) else hidden[:, :c.dof]
+        elif self.reaction_event_decay is not None and isinstance(hidden, tuple):
+            robot_hidden = hidden[0]
         if robot_hidden is None:
             robot_hidden = torch.zeros_like(nodes)
         next_hidden = self.robot_temporal(
@@ -203,15 +224,30 @@ class BlockTriangularDPWM(nn.Module):
         projected_robot = self.surgery.project_state(provisional, mask, lock_angle)[:, :2*c.dof]
         if self.reaction_rank > 0:
             context = obj.unsqueeze(1).expand(-1, c.dof, -1)
-            reaction = self.reaction_adapter(torch.cat((next_hidden, context), -1))
+            reaction_input = features if self.reaction_physical_features else torch.cat(
+                (next_hidden, context), -1
+            )
+            reaction = self.reaction_adapter(reaction_input)
+            reaction = reaction * self.reaction_scale
             if self.reaction_geometry_gate:
-                reaction = reaction * self._reaction_contact_gate(q, obj[:, :2]).view(-1, 1, 1)
+                contact_gate = self._reaction_contact_gate(q, obj[:, :2])
+                if self.reaction_event_decay is not None:
+                    previous_trace = (hidden[2] if isinstance(hidden, tuple) and len(hidden) == 3
+                                      else state.new_zeros(state.shape[0]))
+                    contact_gate = torch.maximum(contact_gate,
+                                                 self.reaction_event_decay * previous_trace)
+                    reaction_trace = contact_gate
+                reaction = reaction * contact_gate.view(-1, 1, 1)
             reaction = reaction * (1.0 - mask).unsqueeze(-1)
             corrected = projected_robot.clone()
             corrected[:, :c.dof] += reaction[..., 0]
             corrected[:, c.dof:] += reaction[..., 1]
             projected_robot = self.surgery.project_state(
                 torch.cat((corrected, obj), -1), mask, lock_angle)[:, :2*c.dof]
+        if self.reaction_event_decay is not None:
+            if not self.reaction_geometry_gate:
+                raise RuntimeError("event decay requires reaction_geometry_gate")
+            next_hidden = (next_hidden, reaction_trace)
         return projected_robot, next_hidden, obj, action, depth
 
     def step_object(

@@ -1793,6 +1793,28 @@ Z8 将同一 gated adapter 改成 teacher-forced one-step residual training，se
 rank-8 reaction 模块内实现 bounded event-memory，并以 Z4b zero-reaction、Z5
 ungated、Z7 current-gate 为严格消融；不得扩充参数预算或更换 BT-DPWM。
 
+Z9--Z12 reaction 归因更新（2026-08-22）：Z9 对冻结 Z5 做统一幅度扫描，seed7
+在 scale=0.75 时 overall +5.12%，但锁定到三 seed 后仅 free +0.06%、object
++21.99%、overall +0.99%、4/12 退化；统一幅度不是跨 seed 解。scale=0 的三 seed
+overall 仅 +0.75%，说明独立 object 的稳定收益本身不足以达到 overall +5%，必须
+同时获得可重复的 robot 改善。
+
+Z10 将 reaction 输入从 seed-specific 136-D robot hidden 改为 10-D 每关节物理特征，
+用 hidden80 后 adapter 约 1,042 参数，仍小于 Z5 的 1,146 参数。seed7 冻结部署
+scale=0.30 时 free +3.94%、object +25.60%、overall +5.25%；但三 seed 固定规则
+仅 free +0.86%、object +21.97%、overall +1.76%、4/12 退化。分项显示 seed7
+mixed-unseen 仍为 overall -6.79%，故随机 latent basis 只是部分原因，主要失败转为
+held-out physics 下的 correction 过拟合。
+
+Z11 对 12 个训练域使用平滑 worst-domain reaction objective，seed7 scale=0.30 为
+overall +5.31%，但 mixed-unseen 仅从 -6.79% 改至 -6.35%，改善过小且逐域小 batch
+带来约 12 倍吞吐损失，停止跨 seed 扩展。Z12 加入零参数解析 event trace，连接
+Z7 current-gate 与 Z5 ungated；threshold=+5 mm、decay=0.95 的 seed7 四域为 free
++3.41%、object +25.65%、overall +4.72%、0/4 退化，未达 +5%。因此 event-memory
+能降低退化但不能单独解决跨 seed/held-out physics。下一门必须提供可部署的
+reaction confidence/stability constraint，并明确证明相对 zero-reaction 不劣；禁止
+用 test seed 分别选择 scale、epoch 或 gate。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner
