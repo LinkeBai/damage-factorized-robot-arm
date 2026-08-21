@@ -39,6 +39,7 @@ class BlockTriangularDPWM(nn.Module):
         linear_physical_reaction: bool = False,
         robot_position_delta_scale: float = 1.0,
         robot_velocity_delta_scale: float = 1.0,
+        reaction_relative_clip: float | None = None,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -62,6 +63,9 @@ class BlockTriangularDPWM(nn.Module):
         self.linear_physical_reaction = linear_physical_reaction
         self.robot_position_delta_scale = robot_position_delta_scale
         self.robot_velocity_delta_scale = robot_velocity_delta_scale
+        self.reaction_relative_clip = reaction_relative_clip
+        if reaction_relative_clip is not None and reaction_relative_clip < 0:
+            raise ValueError("reaction_relative_clip must be non-negative")
         if robot_expert_count < 1:
             raise ValueError("robot_expert_count must be positive")
         if robot_expert_count > 1 and (reaction_rank > 0 or shadow_object_rank > 0):
@@ -338,6 +342,13 @@ class BlockTriangularDPWM(nn.Module):
                     reaction_trace = contact_gate
                 reaction = reaction * contact_gate.view(-1, 1, 1)
             reaction = reaction * (1.0 - mask).unsqueeze(-1)
+            if self.reaction_relative_clip is not None:
+                base_norm = torch.linalg.vector_norm(delta, dim=-1, keepdim=True)
+                reaction_norm = torch.linalg.vector_norm(reaction, dim=-1, keepdim=True)
+                limit = self.reaction_relative_clip * base_norm
+                reaction = reaction * torch.clamp(
+                    limit / reaction_norm.clamp_min(1e-12), max=1.0
+                )
             corrected = projected_robot.clone()
             corrected[:, :c.dof] += reaction[..., 0]
             corrected[:, c.dof:] += reaction[..., 1]

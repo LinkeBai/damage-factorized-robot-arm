@@ -34,6 +34,7 @@ def main():
     parser.add_argument("--kinematic-position-blend", type=float)
     parser.add_argument("--robot-position-delta-scale", type=float)
     parser.add_argument("--robot-velocity-delta-scale", type=float)
+    parser.add_argument("--reaction-relative-clip", type=float)
     args = parser.parse_args(); cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     seeds = [int(x) for x in args.seeds.split(",")]
     if any(seed not in cfg["seeds"] for seed in seeds): raise ValueError("seed outside frozen list")
@@ -77,6 +78,10 @@ def main():
             robot_velocity_delta_scale=(
                 args.robot_velocity_delta_scale if args.robot_velocity_delta_scale is not None
                 else float(cfg.get("robot_velocity_delta_scale", 1.0))
+            ),
+            reaction_relative_clip=(
+                args.reaction_relative_clip if args.reaction_relative_clip is not None
+                else cfg.get("reaction_relative_clip")
             )).to(device)
         if int(cfg.get("shadow_object_rank", 0)):
             candidate = BlockTriangularDPWM(
@@ -136,6 +141,7 @@ def main():
                "kinematic_position_blend": args.kinematic_position_blend,
                "robot_position_delta_scale": args.robot_position_delta_scale,
                "robot_velocity_delta_scale": args.robot_velocity_delta_scale,
+               "reaction_relative_clip": args.reaction_relative_clip,
                "mean_free_improvement_pct": means["free"],
                "mean_object_improvement_pct": means["object"],
                "mean_overall_improvement_pct": means["overall"],

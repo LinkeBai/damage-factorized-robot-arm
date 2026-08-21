@@ -262,3 +262,28 @@ def test_zero_linear_physical_reaction_preserves_forward_with_22_parameters():
     torch.testing.assert_close(first, second)
     assert (sum(p.numel() for p in linear.parameters())
             - sum(p.numel() for p in plain.parameters())) == 22
+
+
+def test_relative_reaction_clip_has_zero_path_and_bounds_each_joint():
+    torch.manual_seed(41)
+    plain = BlockTriangularDPWM(contact_conditioned_robot=True)
+    torch.manual_seed(41)
+    clipped = BlockTriangularDPWM(contact_conditioned_robot=True, reaction_rank=8,
+                                 reaction_relative_clip=0.1)
+    clipped.load_state_dict({**clipped.state_dict(), **plain.state_dict()})
+    with torch.no_grad():
+        clipped.reaction_adapter[-1].weight.fill_(1.0)
+        clipped.reaction_adapter[-1].bias.fill_(0.5)
+    inputs = _inputs()
+    base, _, _, _, _ = plain.step_robot(*inputs, None)
+    corrected, _, _, _, _ = clipped.step_robot(*inputs, None)
+    state = inputs[0]
+    base_delta = torch.stack((base[:, :5] - state[:, :5],
+                              base[:, 5:10] - state[:, 5:10]), dim=-1)
+    correction = torch.stack((corrected[:, :5] - base[:, :5],
+                              corrected[:, 5:10] - base[:, 5:10]), dim=-1)
+    assert torch.all(torch.linalg.vector_norm(correction, dim=-1)
+                     <= 0.10001 * torch.linalg.vector_norm(base_delta, dim=-1) + 1e-6)
+    clipped.reaction_relative_clip = 0.0
+    recovered, _, _, _, _ = clipped.step_robot(*inputs, None)
+    torch.testing.assert_close(recovered, base)

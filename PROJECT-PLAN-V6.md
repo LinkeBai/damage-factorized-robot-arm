@@ -1926,6 +1926,24 @@ oracle仅+5.21%且仍有2个退化cell。下一实验若继续，只允许预先
 状态级confidence/selection机制，并必须包含zero-correction安全路径；禁止继续
 重训scaffold、调test阈值或添加未经归因的新专家。
 
+Z31 状态级 trust-region 审计（2026-08-22）：对 Z5 reaction 增加零参数逐关节
+相对上界，修正范数不得超过 frozen scaffold 自身 `(Δq,Δv)` 范数的固定比例；
+scaffold增量为零时严格回到zero-correction。seed7预声明扫描从clip0的overall
++2.12%单调上升，在clip0.8达到free +3.76%、object +25.66%、overall +5.07%、
+1/4退化，随后锁定0.8。三seed×四域复现仅free -0.34%、object +21.99%、
+overall +0.60%、4/12退化，NO-GO。相对trust region能限制幅度，不能修正seed27
+adapter的错误方向。
+
+**BT-DPWM 固定预算目标当前阻塞**：Z4--Z31 已覆盖 object specialization、低秩/
+物理/确定性/共享/线性 reaction、geometry/event gate、paired safety、内部topology、
+解析积分、shadow context、ensemble、scaffold选择及state-level trust region。共同
+证据是object稳定改善约22%，但robot correction在未见D3与seed27上无可部署选择
+信号；object-only理论overall上限仅+2.26%。若不改变核心BT-DPWM，解除阻塞至少
+需要一种新的信息来源：训练split加入不与test重合的第三关节锁定元训练域、真机/
+仿真可测的在线接触或短时校准，或预注册更多训练seed用于group-robust识别。任何
+一项都会扩展当前固定协议，须由项目负责人明确授权后另立gate；不得把现有结果
+表述为已达到+5%。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

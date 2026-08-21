@@ -46,3 +46,17 @@ continue additive residual, scale, threshold, or validation-checkpoint sweeps.
 The next admissible mechanism must be a predeclared deployable state-level
 confidence/selection rule with zero correction as a safe path. Z4 remains the
 strongest stable base; no Z22--Z30 result satisfies the final objective.
+
+## Z31: state-level relative trust region
+
+The existing rank-8 reaction is clipped per joint so its 2-D q/qvel correction
+cannot exceed a fixed fraction of the frozen scaffold's own transition norm.
+This adds no parameters and clip zero exactly recovers Z4. Seed-7 development
+rose monotonically from +2.12% overall at clip 0 to +5.07% at clip 0.8, with
+one regressing domain. After freezing 0.8, the 12-cell replication yielded free
+-0.34%, object +21.99%, overall +0.60%, and four regressions. Z31 is NO-GO.
+
+The failure exhausts the predeclared state-level safety path: magnitude control
+cannot repair a correction whose direction is wrong on seed 27. Further progress
+requires new training information or online calibration, not another test-driven
+threshold sweep.
