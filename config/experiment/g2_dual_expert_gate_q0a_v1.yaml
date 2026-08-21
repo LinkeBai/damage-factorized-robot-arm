@@ -3,6 +3,7 @@ status: frozen_2026-08-21
 protocol: config/splits/g2_topology_leave_one_joint_out_v1.yaml
 targets: config/splits/push_targets_5dof_v1.yaml
 seeds: [7, 17]
+extension_seeds: [27, 37, 47]  # train identical frozen experts for Q0-B only
 ordinary_members: 3
 ordinary_epochs: 20
 ft_epochs: 60

@@ -150,7 +150,8 @@ def main() -> None:
     parser.add_argument("--steps", type=int)
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
-    if args.seed not in config["seeds"]:
+    allowed_seeds = config["seeds"] + config.get("extension_seeds", [])
+    if args.seed not in allowed_seeds:
         raise ValueError("seed not in frozen list")
     torch.manual_seed(args.seed); np.random.seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

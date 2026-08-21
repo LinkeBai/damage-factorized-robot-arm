@@ -4,10 +4,25 @@
 **版本日期**：2026-08-21
 **规划模式**：standard  
 **规划基线**：本文件是后续执行的最新基线；旧版计划和失败实验保留为审计记录  
-**当前状态**：原始 DFWM 与完整结构化 object/contact world model 均已 No-Go；ordinary ensemble 的预测收益、selective prediction 和 FT-GWM K1 的约束关节动力学仍成立。新的 Dual-Expert Damage World Model（DE-DWM）以冻结异构专家分别预测 joint/object，Q0-A seed 7/17 均通过融合保真门。下一唯一方法实验为 Q0-B：验证 cross-expert structural discrepancy 是否提供独立于 ensemble disagreement 的风险信息。
+**当前状态**：原始 DFWM 与完整结构化 object/contact world model 均已 No-Go；ordinary ensemble 的预测收益、selective prediction 和 FT-GWM K1 的约束关节动力学仍成立。Dual-Expert Damage World Model（DE-DWM）的 Q0-A 融合保真 two-seed PASS，但核心风险机制 Q0-B 仅 3/5 seeds 达到 AURC 改善 10% 门槛，低于预注册 4/5，最终判 NO-GO；不进入 Q0-C 或 Guarded MPC。
 **证据约束**：实测结果均指向可追溯 artifact；未来时间、GPU-h、工时和阈值仍属于项目管理估计
 
-> ## 2026-08-21 可转发执行摘要（当前最新状态）
+> ## 2026-08-21 Q0-B 最终修订（当前最新状态）
+>
+> - Q0-B 在 held-out D3 主域按 rollout depth 分层，比较 object ensemble
+>   disagreement 与其加上 cross-expert joint discrepancy 的等权秩风险分数；不学习
+>   权重，目标误差为融合模型 overall RMSE。
+> - seed 7/17/27/37/47 的 fixed-depth AURC 改善分别为
+>   `18.93%/11.23%/6.46%/15.01%/0.57%`；partial Spearman 分别为
+>   `0.583/0.573/0.522/0.551/0.104`。平均改善 `10.44%`，且五个条件相关均为正，
+>   但只有 **3/5** seeds 达到单种子 10% 门槛。
+> - 按预注册要求至少 4/5 seeds 通过，Q0-B 最终为 **NO-GO**。不得用均值超过
+>   10% 覆盖种子稳定性失败，不进行事后调权、改 coverage 或追加 MPC。
+> - Q0-A 仍保留为工程正结果；它证明异构专家可以无损组合并满足精确约束，但不足以
+>   支撑 DE-DWM 作为论文核心风险机制。权威报告：
+>   `reports/g2-dual-expert-gate-q0b-20260821.md`。
+>
+> ## 2026-08-21 可转发执行摘要（Q0-A 设计与历史）
 >
 > ### 1. 当前核心方法
 >
@@ -66,13 +81,13 @@
 >
 > ### 5. 下一步冻结决策
 >
-> 下一唯一方法实验是 **Q0-B fixed-depth conditional-risk gate**：
+> Q0-B 的冻结计划为：
 >
 > 1. 在每个固定 rollout depth 分别计算 ensemble disagreement、`u_cross` 和真实误差；
 > 2. 检验 `u_cross` 在控制 ensemble disagreement 后是否仍有独立解释力；
 > 3. 比较 ensemble-only 与 ensemble + cross-expert risk score 的 selective AURC；
 > 4. 只有 AURC 相对改善至少 `10%` 且至少 `4/5` seeds 方向一致，才进入 Q0-C
->    消融与 Guarded MPC；否则保留 Q0-A 工程结果，但停止把 DE-DWM 作为核心方法。
+>    消融与 Guarded MPC。实际仅 3/5 通过，因此已执行停止规则。
 
 > ## 2026-08-20 执行基线修订（优先于本文旧 G2 叙事）
 >

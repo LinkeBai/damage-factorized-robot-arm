@@ -1,0 +1,14 @@
+version: g2_dual_expert_gate_q0b_v1
+status: frozen_2026-08-21
+q0a_config: config/experiment/g2_dual_expert_gate_q0a_v1.yaml
+seeds: [7, 17, 27, 37, 47]
+primary_domain: D3__mixed_composition
+coverages: [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+score:
+  baseline: depth_rank_object_epistemic
+  candidate: equal_weight_depth_rank_object_epistemic_plus_cross
+target_error: fusion_overall_rmse
+gate:
+  minimum_mean_aurc_improvement_pct: 10.0
+  minimum_mean_partial_spearman: 0.0
+  minimum_positive_seeds: 4
