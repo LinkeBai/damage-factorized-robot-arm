@@ -175,3 +175,16 @@ def test_shadow_object_context_fits_budget_and_has_independent_hidden_path():
     assert isinstance(hidden, tuple) and len(hidden) == 3
     assert hidden[2].shape == (3, 4)
     assert sum(p.numel() for p in model.parameters()) == 338074
+
+
+def test_two_robot_experts_fit_budget_and_keep_separate_hidden_states():
+    from robotarm.models.topology_graph_world_model import TopologyGraphConfig
+    model = BlockTriangularDPWM(TopologyGraphConfig(hidden_dim=96),
+                               contact_conditioned_robot=True,
+                               independent_object_encoder=True,
+                               object_hidden_dim=32, robot_expert_count=2)
+    prediction, hidden = model.step(*_inputs(), None)
+    assert prediction.shape == (3, 14)
+    assert hidden[0].shape == (3, 10, 96)
+    assert hidden[1].shape == (3, 5, 32)
+    assert sum(p.numel() for p in model.parameters()) == 337448

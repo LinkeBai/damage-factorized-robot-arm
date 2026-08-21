@@ -59,7 +59,8 @@ def robot_losses(model, batch, horizon, use_topology=False):
 
 
 def train_robot_only(model, batch, *, epochs, learning_rate, horizon, use_topology=False):
-    parameters = [p for name, p in model.named_parameters() if name.startswith("robot_")]
+    parameters = [p for name, p in model.named_parameters()
+                  if name.startswith("robot_") or name.startswith("additional_robot_experts.")]
     optimizer = torch.optim.Adam(parameters, lr=learning_rate)
     history = []
     for epoch in range(epochs):
@@ -152,6 +153,7 @@ def main():
         kinematic_integration_dt=cfg.get("kinematic_integration_dt"),
         kinematic_position_blend=float(cfg.get("kinematic_position_blend", 1.0)),
         shadow_object_rank=int(cfg.get("shadow_object_rank", 0)),
+        robot_expert_count=int(cfg.get("robot_expert_count", 1)),
     ).to(device)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = baseline.state_dict(); target = candidate.state_dict()

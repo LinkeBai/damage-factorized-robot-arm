@@ -1876,6 +1876,14 @@ free +0.17%、object +21.96%、overall +1.10%、4/12退化，NO-GO。双对象�
 减轻object-feedback drift但不能制造跨seed稳定robot优势；不得以seed7 primary
 升级方法主张。
 
+Z20 固定预算 robot ensemble（2026-08-22）：两个独立 h96 robot graph experts 加
+单一 object32 共337,448参数，比 h136/240 baseline少654；每步平均 robot transition
+后解析投影。robot按公平240 epochs/h10训练，loss从0.1790降至0.01070，低于强
+baseline训练loss约0.0176；随后object120 epochs/h5降至0.000726。然而seed7
+primary相对强baseline为free -30.20%、object +42.01%、overall -24.31%，NO-GO，
+停止seed17/27。总参数/训练loss匹配不等于分布外泛化；从头训练的双窄专家仍显著
+不如预训练宽h136 scaffold。下一步必须保留强scaffold，不再用窄ensemble替代。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

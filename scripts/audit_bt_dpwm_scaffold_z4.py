@@ -69,6 +69,12 @@ def main():
                 object_hidden_dim=int(cfg["object_hidden_dim"]),
                 reaction_rank=int(cfg.get("reaction_rank", 0)),
                 shadow_object_rank=int(cfg["shadow_object_rank"])).to(device)
+        if int(cfg.get("robot_expert_count", 1)) > 1:
+            candidate = BlockTriangularDPWM(
+                TopologyGraphConfig(hidden_dim=int(cfg["robot_hidden_dim"])),
+                contact_conditioned_robot=True, independent_object_encoder=True,
+                object_hidden_dim=int(cfg["object_hidden_dim"]),
+                robot_expert_count=int(cfg["robot_expert_count"])).to(device)
         candidate.kinematic_integration_dt = cfg.get("kinematic_integration_dt")
         candidate.kinematic_position_blend = (args.kinematic_position_blend
                                                if args.kinematic_position_blend is not None

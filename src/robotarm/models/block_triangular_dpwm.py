@@ -33,6 +33,7 @@ class BlockTriangularDPWM(nn.Module):
         kinematic_integration_dt: float | None = None,
         kinematic_position_blend: float = 1.0,
         shadow_object_rank: int = 0,
+        robot_expert_count: int = 1,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -51,6 +52,11 @@ class BlockTriangularDPWM(nn.Module):
         self.kinematic_integration_dt = kinematic_integration_dt
         self.kinematic_position_blend = kinematic_position_blend
         self.shadow_object_rank = shadow_object_rank
+        self.robot_expert_count = robot_expert_count
+        if robot_expert_count < 1:
+            raise ValueError("robot_expert_count must be positive")
+        if robot_expert_count > 1 and (reaction_rank > 0 or shadow_object_rank > 0):
+            raise ValueError("robot ensembles cannot combine with reaction or shadow in this gate")
         if shadow_object_rank > 0 and reaction_event_decay is not None:
             raise ValueError("shadow object context and reaction event trace cannot share hidden slot")
         if not 0.0 <= kinematic_position_blend <= 1.0:
@@ -75,6 +81,24 @@ class BlockTriangularDPWM(nn.Module):
         self.robot_head = nn.Sequential(
             nn.Linear(c.hidden_dim, c.hidden_dim), nn.SiLU(), nn.Linear(c.hidden_dim, 2)
         )
+        self.additional_robot_experts = nn.ModuleList()
+        for _ in range(robot_expert_count - 1):
+            self.additional_robot_experts.append(nn.ModuleDict({
+                "encoder": nn.Sequential(
+                    nn.Linear(robot_input_dim, c.hidden_dim), nn.SiLU(),
+                    nn.Linear(c.hidden_dim, c.hidden_dim), nn.SiLU(),
+                ),
+                "message": nn.Sequential(
+                    nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.SiLU(),
+                    nn.Linear(c.hidden_dim, c.hidden_dim),
+                ),
+                "updater": nn.GRUCell(c.hidden_dim, c.hidden_dim),
+                "temporal": nn.GRUCell(c.hidden_dim, c.hidden_dim),
+                "head": nn.Sequential(
+                    nn.Linear(c.hidden_dim, c.hidden_dim), nn.SiLU(),
+                    nn.Linear(c.hidden_dim, 2),
+                ),
+            }))
         # Directed bridge: projected robot state/code -> object transition.
         self.object_head = nn.Sequential(
             nn.Linear(c.hidden_dim + 2 * c.dof + c.object_dim, c.hidden_dim), nn.SiLU(),
@@ -240,21 +264,35 @@ class BlockTriangularDPWM(nn.Module):
             context_obj = obj if robot_context is None else robot_context
             object_context = context_obj.unsqueeze(1).expand(-1, c.dof, -1)
             features = torch.cat((features, object_context), dim=-1)
-        nodes = self.robot_encoder(features)
-        for _ in range(c.message_steps):
-            messages = self.robot_message(torch.cat((nodes, self._neighbor_sum(nodes)), -1))
-            nodes = self.robot_update(messages.flatten(0, 1), nodes.flatten(0, 1)).view_as(nodes)
         robot_hidden = hidden
         if self.independent_object_encoder and hidden is not None:
-            robot_hidden = hidden[0] if isinstance(hidden, tuple) else hidden[:, :c.dof]
+            robot_hidden = (hidden[0] if isinstance(hidden, tuple)
+                            else hidden[:, :c.dof * self.robot_expert_count])
         elif self.reaction_event_decay is not None and isinstance(hidden, tuple):
             robot_hidden = hidden[0]
-        if robot_hidden is None:
-            robot_hidden = torch.zeros_like(nodes)
-        next_hidden = self.robot_temporal(
-            nodes.flatten(0, 1), robot_hidden.flatten(0, 1)
-        ).view_as(nodes)
-        delta = self.robot_head(next_hidden)
+        hidden_chunks = ([None] * self.robot_expert_count if robot_hidden is None
+                         else list(robot_hidden.split(c.dof, dim=1)))
+        experts = [(self.robot_encoder, self.robot_message, self.robot_update,
+                    self.robot_temporal, self.robot_head)]
+        experts.extend((item["encoder"], item["message"], item["updater"],
+                        item["temporal"], item["head"])
+                       for item in self.additional_robot_experts)
+        next_hiddens, deltas = [], []
+        for index, (encoder, message_net, update, temporal, head) in enumerate(experts):
+            nodes = encoder(features)
+            for _ in range(c.message_steps):
+                messages = message_net(torch.cat((nodes, self._neighbor_sum(nodes)), -1))
+                nodes = update(messages.flatten(0, 1), nodes.flatten(0, 1)).view_as(nodes)
+            prior = hidden_chunks[index]
+            if prior is None:
+                prior = torch.zeros_like(nodes)
+            expert_hidden = temporal(
+                nodes.flatten(0, 1), prior.flatten(0, 1)
+            ).view_as(nodes)
+            next_hiddens.append(expert_hidden)
+            deltas.append(head(expert_hidden))
+        next_hidden = torch.cat(next_hiddens, dim=1)
+        delta = torch.stack(deltas).mean(0)
         next_qvel = qvel + delta[..., 1]
         next_q = q + delta[..., 0]
         if self.kinematic_integration_dt is not None:
