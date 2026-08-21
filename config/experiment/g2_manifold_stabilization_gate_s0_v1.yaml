@@ -1,0 +1,12 @@
+version: g2_manifold_stabilization_gate_s0_v1
+status: frozen_2026-08-21
+q0a_config: config/experiment/g2_dual_expert_gate_q0a_v1.yaml
+seeds: [7]
+matched_graph_epochs: 60
+matched_graph_learning_rate: 0.001
+primary_domain: D3__mixed_composition
+gate:
+  minimum_ft_free_improvement_vs_direct_projection_pct: 5.0
+  maximum_ft_free_regression_vs_matched_projected_pct: 5.0
+  maximum_ft_object_regression_vs_ordinary_pct: 2.0
+  minimum_autonomous_minus_teacher_forced_gain_pct_points: 10.0

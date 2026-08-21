@@ -28,6 +28,14 @@
 >   而非逐步专家更准。该解释目前仅为探索性诊断，下一候选若继续，必须以 direct
 >   projection、matched unconstrained joint expert 和 teacher-forced rollout 做新的归因门。
 >   详见 `reports/g2-dual-expert-mechanism-diagnostic-20260821.md`。
+> - 新机制随后执行 S0/S1 归因门。FT 相对 ordinary direct projection 在 seed
+>   7/17/27 的 depth-10 free-arm 改善为 `55.60%/43.74%/54.22%`，且相对 ordinary
+>   的收益从 depth 1 到 depth 10 扩大 `23.40/29.50/23.33` 个百分点，支持广义的
+>   recurrent manifold stabilization。但 projected matched graph joint expert 在
+>   seed 17/27 又比 FT 好 `42.85%/30.98%`；因此 FT-specific attribution 仅 1/3
+>   通过，已不可能达到冻结 4/5，seed 37/47 按停止规则不再运行。结论为：单纯 direct
+>   projection 不够，独立 joint expert + projection 有效，但固定变换几何的稳定独立
+>   贡献仍不成立。详见 `reports/g2-manifold-stabilization-gate-s0-s1-20260821.md`。
 >
 > ## 2026-08-21 可转发执行摘要（Q0-A 设计与历史）
 >
