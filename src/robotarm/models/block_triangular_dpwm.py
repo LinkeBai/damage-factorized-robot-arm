@@ -30,6 +30,8 @@ class BlockTriangularDPWM(nn.Module):
         reaction_physical_features: bool = False,
         reaction_event_decay: float | None = None,
         reaction_fixed_initialization: bool = False,
+        kinematic_integration_dt: float | None = None,
+        kinematic_position_blend: float = 1.0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -45,6 +47,10 @@ class BlockTriangularDPWM(nn.Module):
         self.reaction_physical_features = reaction_physical_features
         self.reaction_event_decay = reaction_event_decay
         self.reaction_fixed_initialization = reaction_fixed_initialization
+        self.kinematic_integration_dt = kinematic_integration_dt
+        self.kinematic_position_blend = kinematic_position_blend
+        if not 0.0 <= kinematic_position_blend <= 1.0:
+            raise ValueError("kinematic_position_blend must be in [0, 1]")
         if reaction_event_decay is not None and not 0.0 <= reaction_event_decay < 1.0:
             raise ValueError("reaction_event_decay must be in [0, 1)")
         # q, qvel, projected action, locked, lock angle, normalized depth.
@@ -225,7 +231,13 @@ class BlockTriangularDPWM(nn.Module):
             nodes.flatten(0, 1), robot_hidden.flatten(0, 1)
         ).view_as(nodes)
         delta = self.robot_head(next_hidden)
-        robot = torch.cat((q + delta[..., 0], qvel + delta[..., 1]), -1)
+        next_qvel = qvel + delta[..., 1]
+        next_q = q + delta[..., 0]
+        if self.kinematic_integration_dt is not None:
+            integrated_q = q + self.kinematic_integration_dt * next_qvel
+            blend = self.kinematic_position_blend
+            next_q = (1.0 - blend) * next_q + blend * integrated_q
+        robot = torch.cat((next_q, next_qvel), -1)
         provisional = torch.cat((robot, obj), -1)
         projected_robot = self.surgery.project_state(provisional, mask, lock_angle)[:, :2*c.dof]
         if self.reaction_rank > 0:

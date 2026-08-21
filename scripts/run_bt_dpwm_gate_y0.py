@@ -149,6 +149,8 @@ def main():
         reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
         reaction_event_decay=cfg.get("reaction_event_decay"),
         reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False)),
+        kinematic_integration_dt=cfg.get("kinematic_integration_dt"),
+        kinematic_position_blend=float(cfg.get("kinematic_position_blend", 1.0)),
     ).to(device)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = baseline.state_dict(); target = candidate.state_dict()

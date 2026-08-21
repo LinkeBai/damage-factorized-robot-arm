@@ -1854,6 +1854,14 @@ primary overall +6.50%，四域 free +2.17%、object +25.81%、overall +3.58%、
 NO-GO。内部 topology 是此前遗漏的核心机制，但在 leave-D3-out 数据下仍不能提供
 可重复 robot 改善。下一步不得把任何单 seed topology 结果升级为主张。
 
+Z18 解析关节积分审计（2026-08-22）：缓存轨迹中 `q[t+1]-q[t]` 对 current/next/
+average qvel 的最优标量步长均约0.005 s；半隐式积分的位置增量 residual RMSE约为
+原增量RMSE的29.4%，支持加入无参数运动学约束。在冻结 Z5 zero-reaction scaffold
+上，将 learned q 与 `q+0.005*qvel_next` 融合，seed7 四域 overall 从 blend0 的
++2.12% 平滑升到 blend0.75 的 +2.51%，1/4退化；纯积分为+2.48%。锁定blend0.75
+后三seed×四域为 free -0.37%、object +21.96%、overall +0.58%、6/12退化，
+NO-GO。解析积分关系真实但不足以跨seed改善强baseline，不进入最终组件。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

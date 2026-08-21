@@ -31,6 +31,7 @@ def main():
     parser.add_argument("--reaction-gate-temperature", type=float)
     parser.add_argument("--reaction-scale", type=float)
     parser.add_argument("--reaction-event-decay", type=float)
+    parser.add_argument("--kinematic-position-blend", type=float)
     args = parser.parse_args(); cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     seeds = [int(x) for x in args.seeds.split(",")]
     if any(seed not in cfg["seeds"] for seed in seeds): raise ValueError("seed outside frozen list")
@@ -61,6 +62,10 @@ def main():
             reaction_event_decay=(args.reaction_event_decay if args.reaction_event_decay is not None
                                   else cfg.get("reaction_event_decay")),
             reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False))).to(device)
+        candidate.kinematic_integration_dt = cfg.get("kinematic_integration_dt")
+        candidate.kinematic_position_blend = (args.kinematic_position_blend
+                                               if args.kinematic_position_blend is not None
+                                               else float(cfg.get("kinematic_position_blend", 1.0)))
         candidate.load_state_dict(torch.load(str(cfg["candidate_model_template"]).format(seed=seed), map_location=device))
         baseline.eval(); candidate.eval()
         for domain_id in cfg["domains"]:
@@ -99,6 +104,7 @@ def main():
                "reaction_gate_temperature": args.reaction_gate_temperature,
                "reaction_scale": args.reaction_scale,
                "reaction_event_decay": args.reaction_event_decay,
+               "kinematic_position_blend": args.kinematic_position_blend,
                "mean_free_improvement_pct": means["free"],
                "mean_object_improvement_pct": means["object"],
                "mean_overall_improvement_pct": means["overall"],

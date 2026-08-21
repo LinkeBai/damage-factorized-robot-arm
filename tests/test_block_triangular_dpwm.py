@@ -153,3 +153,12 @@ def test_fixed_reaction_initialization_is_seed_invariant():
                                second.reaction_adapter[0].weight)
     torch.testing.assert_close(first.reaction_adapter[0].bias,
                                second.reaction_adapter[0].bias)
+
+
+def test_kinematic_projection_enforces_semi_implicit_position_step():
+    model = BlockTriangularDPWM(kinematic_integration_dt=0.005,
+                               kinematic_position_blend=1.0)
+    state, action, mask, angle = _inputs()
+    prediction, _ = model.step(state, action, mask, angle, None)
+    torch.testing.assert_close(prediction[:, :5],
+                               state[:, :5] + 0.005 * prediction[:, 5:10])
