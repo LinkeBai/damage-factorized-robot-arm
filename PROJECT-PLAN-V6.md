@@ -1713,6 +1713,32 @@ artifacts:
 
 ---
 
+## 19.1 BT-DPWM 固定路线更新（2026-08-21）
+
+核心方法已固定为 **Block-Triangular Damage-Projected World Model（BT-DPWM）**，
+不再切换到新的方法名称。双专家不是废弃路线，而是 BT-DPWM 中 robot/object
+独立表示的来源；BT-DPWM 进一步加入有向耦合、解析损伤投影和可执行梯度边界。
+
+X0--Y6 逐步门控已经完成。严格 object-agnostic robot、全程梯度手术、末段
+joint-only refinement 和同时双 horizon 更新均被实验否决。当前唯一保留版本 Y6：
+
+1. contact-conditioned robot graph 以 rollout horizon 10 训练；
+2. 解析投影在每一步强制锁定关节位置/速度约束；
+3. 冻结 robot block；
+4. independent recurrent object graph 在固定 robot rollout 上以 horizon 5 训练；
+5. object loss 不能反向更新 robot block。
+
+Seed 7 对 frozen compute-matched shared graph 的 depth-10 结果：free-arm +4.16%，
+object +3.69%，overall +4.16%，constraint violation RMS=0，达到预注册门槛。
+该结果仅为单 seed provisional PASS；在多 seed、compute/parameter audit 和 DFWM
+直接比较完成前，不升级为论文主张。完整审计见
+`reports/g2-bt-dpwm-gates-x0-y6-20260821.md`。
+
+下一步严格限制为：多 seed 复现 -> compute/parameter audit -> DFWM 同协议比较 ->
+通过后才进入真机 smoke/G3。任何新改动必须针对复现中观察到的具体失败，不再新建核心框架。
+
+---
+
 ## 20. 当前 Gate 决策与下一 owner
 
 **当前阶段**：G0 已通过；G1 原始 DFWM No-Go；G1 robust zero-shot Pivot
