@@ -32,6 +32,8 @@ def main():
     parser.add_argument("--reaction-scale", type=float)
     parser.add_argument("--reaction-event-decay", type=float)
     parser.add_argument("--kinematic-position-blend", type=float)
+    parser.add_argument("--robot-position-delta-scale", type=float)
+    parser.add_argument("--robot-velocity-delta-scale", type=float)
     args = parser.parse_args(); cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     seeds = [int(x) for x in args.seeds.split(",")]
     if any(seed not in cfg["seeds"] for seed in seeds): raise ValueError("seed outside frozen list")
@@ -61,7 +63,21 @@ def main():
             reaction_physical_features=bool(cfg.get("reaction_physical_features", False)),
             reaction_event_decay=(args.reaction_event_decay if args.reaction_event_decay is not None
                                   else cfg.get("reaction_event_decay")),
-            reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False))).to(device)
+            reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False)),
+            contact_gated_object_context=bool(
+                cfg.get("contact_gated_object_context", False)
+            ),
+            linear_physical_reaction=bool(
+                cfg.get("linear_physical_reaction", False)
+            ),
+            robot_position_delta_scale=(
+                args.robot_position_delta_scale if args.robot_position_delta_scale is not None
+                else float(cfg.get("robot_position_delta_scale", 1.0))
+            ),
+            robot_velocity_delta_scale=(
+                args.robot_velocity_delta_scale if args.robot_velocity_delta_scale is not None
+                else float(cfg.get("robot_velocity_delta_scale", 1.0))
+            )).to(device)
         if int(cfg.get("shadow_object_rank", 0)):
             candidate = BlockTriangularDPWM(
                 TopologyGraphConfig(hidden_dim=int(cfg["robot_hidden_dim"])),
@@ -118,6 +134,8 @@ def main():
                "reaction_scale": args.reaction_scale,
                "reaction_event_decay": args.reaction_event_decay,
                "kinematic_position_blend": args.kinematic_position_blend,
+               "robot_position_delta_scale": args.robot_position_delta_scale,
+               "robot_velocity_delta_scale": args.robot_velocity_delta_scale,
                "mean_free_improvement_pct": means["free"],
                "mean_object_improvement_pct": means["object"],
                "mean_overall_improvement_pct": means["overall"],

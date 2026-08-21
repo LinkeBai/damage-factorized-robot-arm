@@ -17,7 +17,7 @@ from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
-from scripts.run_dual_expert_fair_gate_v0 import train_model
+from scripts.run_dual_expert_fair_gate_v0 import _component_loss, train_model
 from scripts.run_dual_expert_gate_q0a import _batch
 from scripts.run_object_preserving_projection_x1 import evaluate
 from scripts.run_object_preserving_projection_x1 import _losses
@@ -91,6 +91,113 @@ def train_blockwise_horizons(model, batch, *, epochs, learning_rate,
     return history
 
 
+@torch.no_grad()
+def shared_loss(model, batch, horizon, use_topology=False):
+    """Deterministic shared rollout objective used for frozen validation selection."""
+    states, actions, mask, angle = batch
+    zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
+    hidden, one_step = None, []
+    for step in range(actions.shape[1]):
+        prediction, hidden = model.step(
+            states[:, step], actions[:, step], model_mask, model_angle, hidden
+        )
+        one_step.append(_component_loss(prediction, states[:, step + 1], "shared"))
+    rollout = []
+    rollout_horizon = min(horizon, actions.shape[1])
+    for start in range(0, actions.shape[1] - rollout_horizon + 1, rollout_horizon):
+        prediction, hidden = states[:, start], None
+        for offset in range(rollout_horizon):
+            prediction, hidden = model.step(
+                prediction, actions[:, start + offset], model_mask, model_angle, hidden
+            )
+            rollout.append(_component_loss(
+                prediction, states[:, start + offset + 1], "shared"
+            ))
+    return torch.stack(one_step).mean() + 0.5 * torch.stack(rollout).mean()
+
+
+def train_shared_with_selection(model, batch, validation_batch, *, epochs,
+                                learning_rate, horizon, validation_every,
+                                ema_decay, use_topology=False):
+    """Train once and select final/EMA/checkpoint only on the frozen validation split."""
+    states, actions, mask, angle = batch
+    zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    history, validation_history = [], []
+    ema = None
+    best_state, best_value, best_epoch = None, float("inf"), None
+    for epoch in range(1, epochs + 1):
+        hidden, one_step = None, []
+        for step in range(actions.shape[1]):
+            prediction, hidden = model.step(
+                states[:, step], actions[:, step], model_mask, model_angle, hidden
+            )
+            one_step.append(_component_loss(prediction, states[:, step + 1], "shared"))
+        rollout = []
+        rollout_horizon = min(horizon, actions.shape[1])
+        for start in range(0, actions.shape[1] - rollout_horizon + 1, rollout_horizon):
+            prediction, hidden = states[:, start], None
+            for offset in range(rollout_horizon):
+                prediction, hidden = model.step(
+                    prediction, actions[:, start + offset], model_mask, model_angle, hidden
+                )
+                rollout.append(_component_loss(
+                    prediction, states[:, start + offset + 1], "shared"
+                ))
+        loss = torch.stack(one_step).mean() + 0.5 * torch.stack(rollout).mean()
+        optimizer.zero_grad(); loss.backward()
+        gradient = float(torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0))
+        optimizer.step(); history.append(float(loss.detach()))
+        state = model.state_dict()
+        if ema is None:
+            ema = {name: value.detach().clone() for name, value in state.items()}
+        else:
+            for name, value in state.items():
+                ema[name].mul_(ema_decay).add_(value.detach(), alpha=1.0 - ema_decay)
+        if epoch % validation_every == 0 or epoch == epochs:
+            value = float(shared_loss(
+                model, validation_batch, horizon, use_topology=use_topology
+            ))
+            validation_history.append({"epoch": epoch, "loss": value})
+            if value < best_value:
+                best_state = {name: tensor.detach().clone() for name, tensor in state.items()}
+                best_value, best_epoch = value, epoch
+        if epoch == 1 or epoch % 10 == 0:
+            suffix = f" val={value:.6f}" if (epoch % validation_every == 0 or epoch == epochs) else ""
+            print(f"  select epoch={epoch:03d} loss={loss.item():.6f}{suffix} "
+                  f"grad={gradient:.3f}", flush=True)
+    final_state = {name: tensor.detach().clone() for name, tensor in model.state_dict().items()}
+    final_value = float(shared_loss(
+        model, validation_batch, horizon, use_topology=use_topology
+    ))
+    model.load_state_dict(ema)
+    ema_value = float(shared_loss(
+        model, validation_batch, horizon, use_topology=use_topology
+    ))
+    candidates = {
+        "final": (final_value, final_state, epochs),
+        "ema": (ema_value, ema, epochs),
+        "validation_best": (best_value, best_state, best_epoch),
+    }
+    selected_name, (selected_value, selected_state, selected_epoch) = min(
+        candidates.items(), key=lambda item: item[1][0]
+    )
+    model.load_state_dict(selected_state)
+    diagnostics = {
+        "validation_history": validation_history,
+        "candidate_validation_loss": {name: value[0] for name, value in candidates.items()},
+        "selected": selected_name,
+        "selected_epoch": selected_epoch,
+        "selected_validation_loss": selected_value,
+        "ema_decay": ema_decay,
+    }
+    print(f"[scaffold] selected={selected_name} epoch={selected_epoch} "
+          f"validation_loss={selected_value:.6f}", flush=True)
+    return history, diagnostics
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
@@ -118,6 +225,14 @@ def main():
         seed=args.seed * 10_000, targets=tuple(x.as_array() for x in targets.calibration), **common))
     model_cfg = TopologyGraphConfig(hidden_dim=int(cfg["hidden_dim"]))
     baseline_cfg = TopologyGraphConfig(hidden_dim=int(cfg.get("baseline_hidden_dim", cfg["hidden_dim"])))
+    scaffold_cfg = TopologyGraphConfig(
+        hidden_dim=int(cfg.get("baseline_hidden_dim", cfg["hidden_dim"])),
+        contact_gated_object_context=bool(cfg.get("contact_gated_object_context", False)),
+        contact_gate_threshold=float(cfg.get("reaction_gate_threshold", -0.005)),
+        contact_gate_temperature=float(cfg.get("reaction_gate_temperature", 0.002)),
+        kinematic_integration_dt=cfg.get("kinematic_integration_dt"),
+        kinematic_position_blend=float(cfg.get("kinematic_position_blend", 1.0)),
+    )
     baseline = TopologyGraphWorldModel(baseline_cfg).to(device)
     if bool(cfg.get("train_baseline", False)):
         torch.manual_seed(args.seed)
@@ -136,6 +251,39 @@ def main():
     else:
         baseline.load_state_dict(torch.load(args.v0_run_dir / "models.pt", map_location=device)["shared_compute_matched"])
         baseline_history = None
+    scaffold_source = baseline
+    swa_history, swa_count, scaffold_selection = None, 0, None
+    if int(cfg.get("selection_scaffold_epochs", 0)):
+        validation_key = json.dumps({"kind": "push_validation", "seed": args.seed,
+            "domains": [x.domain_id for x in protocol.validation], "q0a": q0a}, sort_keys=True)
+        validation_data = cached_collect(args.cache_dir, validation_key, lambda: collect_push_domains(
+            protocol.validation,
+            trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
+            seed=args.seed * 10_000 + 750,
+            targets=tuple(x.as_array() for x in targets.validation), **common))
+        torch.manual_seed(args.seed)
+        scaffold_source = TopologyGraphWorldModel(scaffold_cfg).to(device)
+        print("[scaffold] train shared selection source", flush=True)
+        swa_history, scaffold_selection = train_shared_with_selection(
+            scaffold_source, _batch(train_data, device), _batch(validation_data, device),
+            epochs=int(cfg["selection_scaffold_epochs"]),
+            learning_rate=float(cfg["selection_scaffold_learning_rate"]),
+            horizon=int(cfg["selection_scaffold_rollout_horizon"]),
+            validation_every=int(cfg.get("selection_validation_every", 10)),
+            ema_decay=float(cfg.get("selection_ema_decay", 0.99)),
+            use_topology=bool(cfg.get("selection_use_topology", False)),
+        )
+    if int(cfg.get("swa_scaffold_epochs", 0)):
+        torch.manual_seed(args.seed)
+        scaffold_source = TopologyGraphWorldModel(baseline_cfg).to(device)
+        print("[scaffold] train shared SWA source", flush=True)
+        swa_history, swa_count = train_shared_with_swa(
+            scaffold_source, _batch(train_data, device),
+            epochs=int(cfg["swa_scaffold_epochs"]),
+            learning_rate=float(cfg["swa_scaffold_learning_rate"]),
+            horizon=int(cfg["swa_scaffold_rollout_horizon"]),
+            swa_start=int(cfg["swa_scaffold_start"]),
+        )
     torch.manual_seed(args.seed)
     candidate = BlockTriangularDPWM(
         model_cfg,
@@ -154,9 +302,10 @@ def main():
         kinematic_position_blend=float(cfg.get("kinematic_position_blend", 1.0)),
         shadow_object_rank=int(cfg.get("shadow_object_rank", 0)),
         robot_expert_count=int(cfg.get("robot_expert_count", 1)),
+        contact_gated_object_context=bool(cfg.get("contact_gated_object_context", False)),
     ).to(device)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
-        source = baseline.state_dict(); target = candidate.state_dict()
+        source = scaffold_source.state_dict(); target = candidate.state_dict()
         prefixes = {
             "node_encoder.": "robot_encoder.",
             "message.": "robot_message.",
@@ -302,6 +451,8 @@ def main():
                "block_coordinate_training": bool(cfg.get("block_coordinate_training", False)),
                "reaction_epochs": int(cfg.get("reaction_epochs", 0)),
                "baseline_history": baseline_history,
+               "swa_scaffold_history": swa_history, "swa_scaffold_count": swa_count,
+               "scaffold_selection": scaffold_selection,
                "object_improvement_pct": obj, "free_arm_improvement_pct": free,
                "overall_improvement_pct": overall, "gate_passed": passed,
                "rows": rows, "history": history}

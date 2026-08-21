@@ -12,6 +12,7 @@ import torch
 from torch import nn
 
 from .topology_surgery import TopologySurgery
+from .contact_geometry import pusher_box_contact_gate
 
 
 @dataclass
@@ -20,6 +21,11 @@ class TopologyGraphConfig:
     object_dim: int = 4
     hidden_dim: int = 96
     message_steps: int = 2
+    contact_gated_object_context: bool = False
+    contact_gate_threshold: float = -0.005
+    contact_gate_temperature: float = 0.002
+    kinematic_integration_dt: float | None = None
+    kinematic_position_blend: float = 1.0
 
 
 class TopologyGraphWorldModel(nn.Module):
@@ -71,6 +77,12 @@ class TopologyGraphWorldModel(nn.Module):
         depth = torch.linspace(0.0, 1.0, c.dof, device=state.device, dtype=state.dtype)
         depth = depth.view(1, c.dof).expand(state.shape[0], -1)
         obj_nodes = obj.unsqueeze(1).expand(-1, c.dof, -1)
+        if c.contact_gated_object_context:
+            gate = pusher_box_contact_gate(
+                q, obj[:, :2], threshold=c.contact_gate_threshold,
+                temperature=c.contact_gate_temperature,
+            )
+            obj_nodes = obj_nodes * gate.view(-1, 1, 1)
         features = torch.cat(
             (q.unsqueeze(-1), qvel.unsqueeze(-1), action.unsqueeze(-1),
              mask.unsqueeze(-1), lock_angle.unsqueeze(-1), depth.unsqueeze(-1), obj_nodes),
@@ -90,6 +102,10 @@ class TopologyGraphWorldModel(nn.Module):
         joint_delta = self.joint_head(hidden)
         next_q = q + joint_delta[..., 0]
         next_qvel = qvel + joint_delta[..., 1]
+        if c.kinematic_integration_dt is not None:
+            integrated_q = q + c.kinematic_integration_dt * next_qvel
+            next_q = ((1.0 - c.kinematic_position_blend) * next_q
+                      + c.kinematic_position_blend * integrated_q)
         pooled = hidden.mean(dim=1)
         next_obj = obj + self.object_head(torch.cat((pooled, obj), dim=-1))
         prediction = torch.cat((next_q, next_qvel, next_obj), dim=-1)

@@ -1892,6 +1892,40 @@ NO-GO，停止seed17/27。即使低维、低学习率的监督式head重拟合�
 泛化；后续必须完整保留h136 robot scaffold，不再用当前D2/D4训练集更新其动力学
 权重。
 
+Z22--Z26 scaffold 选择与结构约束审计（2026-08-22）：Z22 对同一 h136/240
+轨迹最后80个 checkpoint 做 SWA，seed7 primary object +42.07%，但 free -84.11%、
+overall -74.72%；固定学习率下的参数平均离开了可部署 robot basin。Z23 在冻结
+validation split 比较 final/EMA/逐轮最优，选择 final epoch240，仍为 free -93.50%、
+overall -83.53%。这证明 shared validation loss 不能评价复制到 BT-DPWM 后的
+leave-D3 robot rollout。
+
+Z24 引入零参数 analytic contact-gated object→robot context。审计发现原解析 gate
+只看 XY，D3 中将机械臂垂直越过方块误判为接触；修正为完整3D capsule-box距离后
+三 split precision 达100%，但旧 -5 mm 阈值 recall过低。仅由train/validation
+选择0 mm后，D3 contact F1为0.62；旧权重阈值探针仍为四域overall -24.50%，不
+重训扩展。Z25 从第一轮起训练显式 topology-conditioned h136/240 scaffold，最终
+validation 0.00724，但primary free -128.50%、overall -116.37%。Z26 从训练起执行
+半隐式 `q_next=q+0.005*v_next`，validation进一步降至0.00680，primary仍free
+-92.24%、overall -82.35%。Z23--Z26 一致说明：当前D2/D4数据上任何 robot
+scaffold 重识别，即使训练/validation更优和结构关系正确，都会破坏held-out D3；
+后续不得再以降低训练loss为理由重训h136主体。
+
+Z27--Z30 冻结 scaffold 小修正审计（2026-08-22）：Z27 在 Z4 上增加22参数的
+关节共享线性物理残差，用闭式ridge拟合并由普通validation选λ=1，primary free
+-57.29%、overall -49.60%。Z28 改为训练集内部 leave-one-topology-out 选择，λ
+提高到1000，仍为free -52.64%、overall -45.26%；已见拓扑残差不能外推D3。
+Z29 将development seed7的同一physical adapter权重部署到三seed各自scaffold，
+三seed×四域为free -4.69%、object +21.96%、overall -3.63%、8/12退化，排除
+adapter随机训练坐标是主因。Z30 对frozen scaffold做零参数q/v delta contraction，
+seed7最佳position scale=0.90也仅四域overall +2.52%，未达到+5%。因此additive
+correction、跨seed共享correction与简单contractive scaling均冻结为NO-GO。
+
+当前最强诚实结论仍是Z4 frozen-scaffold/object-specialization：跨seed object收益
+稳定，但overall不足。达到+5%必须产生真正可迁移的robot改善；现有12-cell候选
+oracle仅+5.21%且仍有2个退化cell。下一实验若继续，只允许预先定义、部署可用的
+状态级confidence/selection机制，并必须包含zero-correction安全路径；禁止继续
+重训scaffold、调test阈值或添加未经归因的新专家。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

@@ -12,6 +12,7 @@ from torch import nn
 
 from .topology_graph_world_model import TopologyGraphConfig
 from .topology_surgery import TopologySurgery
+from .contact_geometry import pusher_box_contact_gate
 
 
 class BlockTriangularDPWM(nn.Module):
@@ -34,6 +35,10 @@ class BlockTriangularDPWM(nn.Module):
         kinematic_position_blend: float = 1.0,
         shadow_object_rank: int = 0,
         robot_expert_count: int = 1,
+        contact_gated_object_context: bool = False,
+        linear_physical_reaction: bool = False,
+        robot_position_delta_scale: float = 1.0,
+        robot_velocity_delta_scale: float = 1.0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -53,6 +58,10 @@ class BlockTriangularDPWM(nn.Module):
         self.kinematic_position_blend = kinematic_position_blend
         self.shadow_object_rank = shadow_object_rank
         self.robot_expert_count = robot_expert_count
+        self.contact_gated_object_context = contact_gated_object_context
+        self.linear_physical_reaction = linear_physical_reaction
+        self.robot_position_delta_scale = robot_position_delta_scale
+        self.robot_velocity_delta_scale = robot_velocity_delta_scale
         if robot_expert_count < 1:
             raise ValueError("robot_expert_count must be positive")
         if robot_expert_count > 1 and (reaction_rank > 0 or shadow_object_rank > 0):
@@ -137,6 +146,10 @@ class BlockTriangularDPWM(nn.Module):
                     self.reaction_adapter[0].reset_parameters()
             nn.init.zeros_(self.reaction_adapter[-1].weight)
             nn.init.zeros_(self.reaction_adapter[-1].bias)
+        if linear_physical_reaction:
+            self.linear_reaction_adapter = nn.Linear(robot_input_dim, 2)
+            nn.init.zeros_(self.linear_reaction_adapter.weight)
+            nn.init.zeros_(self.linear_reaction_adapter.bias)
         if reaction_geometry_gate:
             self.register_buffer("reaction_axes", torch.tensor(
                 [[0., 0., 1.], [0., 1., 0.], [0., 1., 0.], [0., 1., 0.], [0., 0., 1.]]
@@ -262,6 +275,12 @@ class BlockTriangularDPWM(nn.Module):
         features = torch.stack((q, qvel, action, mask, lock_angle, depth), dim=-1)
         if self.contact_conditioned_robot:
             context_obj = obj if robot_context is None else robot_context
+            if self.contact_gated_object_context:
+                gate = pusher_box_contact_gate(
+                    q, obj[:, :2], threshold=self.reaction_gate_threshold,
+                    temperature=self.reaction_gate_temperature,
+                )
+                context_obj = context_obj * gate.unsqueeze(-1)
             object_context = context_obj.unsqueeze(1).expand(-1, c.dof, -1)
             features = torch.cat((features, object_context), dim=-1)
         robot_hidden = hidden
@@ -293,8 +312,8 @@ class BlockTriangularDPWM(nn.Module):
             deltas.append(head(expert_hidden))
         next_hidden = torch.cat(next_hiddens, dim=1)
         delta = torch.stack(deltas).mean(0)
-        next_qvel = qvel + delta[..., 1]
-        next_q = q + delta[..., 0]
+        next_qvel = qvel + self.robot_velocity_delta_scale * delta[..., 1]
+        next_q = q + self.robot_position_delta_scale * delta[..., 0]
         if self.kinematic_integration_dt is not None:
             integrated_q = q + self.kinematic_integration_dt * next_qvel
             blend = self.kinematic_position_blend
@@ -324,6 +343,15 @@ class BlockTriangularDPWM(nn.Module):
             corrected[:, c.dof:] += reaction[..., 1]
             projected_robot = self.surgery.project_state(
                 torch.cat((corrected, obj), -1), mask, lock_angle)[:, :2*c.dof]
+        if self.linear_physical_reaction:
+            reaction = self.linear_reaction_adapter(features)
+            reaction = reaction * (1.0 - mask).unsqueeze(-1)
+            corrected = projected_robot.clone()
+            corrected[:, :c.dof] += reaction[..., 0]
+            corrected[:, c.dof:] += reaction[..., 1]
+            projected_robot = self.surgery.project_state(
+                torch.cat((corrected, obj), -1), mask, lock_angle
+            )[:, :2*c.dof]
         if self.reaction_event_decay is not None:
             if not self.reaction_geometry_gate:
                 raise RuntimeError("event decay requires reaction_geometry_gate")

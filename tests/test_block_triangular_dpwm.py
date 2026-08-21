@@ -188,3 +188,77 @@ def test_two_robot_experts_fit_budget_and_keep_separate_hidden_states():
     assert hidden[0].shape == (3, 10, 96)
     assert hidden[1].shape == (3, 5, 32)
     assert sum(p.numel() for p in model.parameters()) == 337448
+
+
+def test_contact_gated_context_is_parameter_free_and_ignores_far_object():
+    plain = BlockTriangularDPWM(contact_conditioned_robot=True)
+    gated = BlockTriangularDPWM(contact_conditioned_robot=True,
+                               contact_gated_object_context=True)
+    assert sum(p.numel() for p in plain.parameters()) == sum(p.numel() for p in gated.parameters())
+    state, action, mask, angle = _inputs(batch=2)
+    state[:, :10] = 0.0
+    action[:] = 0.0
+    state[0, 10:12] = torch.tensor([10.0, 10.0])
+    state[1, 10:12] = torch.tensor([20.0, 20.0])
+    state[:, 12:] = 0.0
+    robot, _, _, _, _ = gated.step_robot(state, action, mask, angle, None)
+    torch.testing.assert_close(robot[0], robot[1])
+
+
+def test_gated_shared_scaffold_copy_preserves_one_step_robot_function():
+    from robotarm.models.topology_graph_world_model import (
+        TopologyGraphConfig, TopologyGraphWorldModel,
+    )
+    cfg = TopologyGraphConfig(hidden_dim=16, contact_gated_object_context=True)
+    shared = TopologyGraphWorldModel(cfg)
+    candidate = BlockTriangularDPWM(
+        TopologyGraphConfig(hidden_dim=16), contact_conditioned_robot=True,
+        contact_gated_object_context=True,
+    )
+    source, target = shared.state_dict(), candidate.state_dict()
+    for left, right in (("node_encoder.", "robot_encoder."),
+                        ("message.", "robot_message."),
+                        ("update.", "robot_update."),
+                        ("temporal.", "robot_temporal."),
+                        ("joint_head.", "robot_head.")):
+        for name, value in source.items():
+            if name.startswith(left):
+                target[right + name[len(left):]] = value
+    candidate.load_state_dict(target)
+    state, action, mask, angle = _inputs()
+    shared_prediction, shared_hidden = shared.step(state, action, mask, angle, None)
+    robot, candidate_hidden, _, _, _ = candidate.step_robot(
+        state, action, mask, angle, None
+    )
+    torch.testing.assert_close(robot, shared_prediction[:, :10])
+    torch.testing.assert_close(candidate_hidden, shared_hidden)
+
+
+def test_semi_implicit_shared_scaffold_enforces_position_update():
+    from robotarm.models.topology_graph_world_model import (
+        TopologyGraphConfig, TopologyGraphWorldModel,
+    )
+    model = TopologyGraphWorldModel(TopologyGraphConfig(
+        hidden_dim=16, kinematic_integration_dt=0.005,
+        kinematic_position_blend=1.0,
+    ))
+    state, action, mask, angle = _inputs()
+    prediction, _ = model.step(state, action, mask, angle, None)
+    torch.testing.assert_close(
+        prediction[:, :5], state[:, :5] + 0.005 * prediction[:, 5:10]
+    )
+
+
+def test_zero_linear_physical_reaction_preserves_forward_with_22_parameters():
+    torch.manual_seed(31)
+    plain = BlockTriangularDPWM(contact_conditioned_robot=True)
+    torch.manual_seed(31)
+    linear = BlockTriangularDPWM(contact_conditioned_robot=True,
+                                linear_physical_reaction=True)
+    linear.load_state_dict({**linear.state_dict(), **plain.state_dict()})
+    inputs = _inputs()
+    first, _ = plain.step(*inputs, None)
+    second, _ = linear.step(*inputs, None)
+    torch.testing.assert_close(first, second)
+    assert (sum(p.numel() for p in linear.parameters())
+            - sum(p.numel() for p in plain.parameters())) == 22
