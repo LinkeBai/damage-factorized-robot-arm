@@ -1739,6 +1739,14 @@ PASS；在 compute/parameter audit、跨损伤域和公开强基线比较完成�
 下一步严格限制为：多 seed 复现 -> compute/parameter audit -> DFWM 同协议比较 ->
 通过后才进入真机 smoke/G3。任何新改动必须针对复现中观察到的具体失败，不再新建核心框架。
 
+**后续公平性审计更新：** Z0 对 h96/120 shared 的四测试域三 seed 均值仍为正
+（free +6.20%、object +2.21%、overall +6.15%），但 12 个 cell 中有两个轻微
+overall 退化，严格门槛 NO-GO。Z1 进一步训练参数匹配 h136 shared 240 epochs；
+BT-DPWM 相对该强基线三 seed 平均为 free -39.02%、object +36.40%、overall
+-36.19%，0/3 PASS。故不得再宣称当前 Y6 overall 超过公平强基线。保留的机制
+证据是 object block 的稳定优势；下一步只允许在固定约 338k 总参数预算内把容量
+从 object block 重分配给 robot block，再重复相同 Z1，禁止切换核心框架。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

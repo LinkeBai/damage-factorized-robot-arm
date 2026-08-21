@@ -1,0 +1,18 @@
+version: g2_bt_dpwm_audit_z0_v1
+status: frozen_2026-08-21
+y6_config: config/experiment/g2_bt_dpwm_replication_y6_v1.yaml
+seeds: [7, 17, 27]
+domains:
+  - D3__mixed_composition
+  - D2__mixed_composition
+  - D4__mixed_composition
+  - D3__mixed_unseen
+timing:
+  batch_size: 64
+  warmup_rollouts: 20
+  measured_rollouts: 100
+  horizon: 10
+cross_domain_gate:
+  minimum_mean_overall_improvement_pct: 1.0
+  maximum_domains_with_overall_regression: 1
+  maximum_constraint_violation_rms: 1.0e-7
