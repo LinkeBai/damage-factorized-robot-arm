@@ -21,12 +21,16 @@ class BlockTriangularDPWM(nn.Module):
         self, cfg: TopologyGraphConfig | None = None, *,
         contact_conditioned_robot: bool = False,
         independent_object_encoder: bool = False,
+        object_hidden_dim: int | None = None,
+        reaction_rank: int = 0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
         self.contact_conditioned_robot = contact_conditioned_robot
         self.independent_object_encoder = independent_object_encoder
         c = self.cfg
+        self.object_hidden_dim = object_hidden_dim or c.hidden_dim
+        self.reaction_rank = reaction_rank
         # q, qvel, projected action, locked, lock angle, normalized depth.
         # Y1 may additionally condition on the current object state.  This is a
         # forward contact context; the object loss still cannot cross the
@@ -52,23 +56,31 @@ class BlockTriangularDPWM(nn.Module):
             nn.Linear(c.hidden_dim, c.object_dim),
         )
         if independent_object_encoder:
+            oh = self.object_hidden_dim
             # projected q/qvel, action, locked, lock angle, depth, object state
             object_input_dim = 6 + c.object_dim
             self.object_encoder = nn.Sequential(
-                nn.Linear(object_input_dim, c.hidden_dim), nn.SiLU(),
-                nn.Linear(c.hidden_dim, c.hidden_dim), nn.SiLU(),
+                nn.Linear(object_input_dim, oh), nn.SiLU(),
+                nn.Linear(oh, oh), nn.SiLU(),
             )
             self.object_message = nn.Sequential(
-                nn.Linear(2 * c.hidden_dim, c.hidden_dim), nn.SiLU(),
-                nn.Linear(c.hidden_dim, c.hidden_dim),
+                nn.Linear(2 * oh, oh), nn.SiLU(),
+                nn.Linear(oh, oh),
             )
-            self.object_update = nn.GRUCell(c.hidden_dim, c.hidden_dim)
-            self.object_temporal = nn.GRUCell(c.hidden_dim, c.hidden_dim)
+            self.object_update = nn.GRUCell(oh, oh)
+            self.object_temporal = nn.GRUCell(oh, oh)
             self.object_head = nn.Sequential(
-                nn.Linear(c.hidden_dim + c.object_dim, c.hidden_dim), nn.SiLU(),
-                nn.Linear(c.hidden_dim, c.object_dim),
+                nn.Linear(oh + c.object_dim, oh), nn.SiLU(),
+                nn.Linear(oh, c.object_dim),
             )
         self.surgery = TopologySurgery()
+        if reaction_rank > 0:
+            self.reaction_adapter = nn.Sequential(
+                nn.Linear(c.hidden_dim + c.object_dim, reaction_rank), nn.Tanh(),
+                nn.Linear(reaction_rank, 2),
+            )
+            nn.init.zeros_(self.reaction_adapter[-1].weight)
+            nn.init.zeros_(self.reaction_adapter[-1].bias)
 
     @staticmethod
     def _neighbor_sum(nodes: torch.Tensor) -> torch.Tensor:
@@ -80,7 +92,7 @@ class BlockTriangularDPWM(nn.Module):
     def step(self, state, action, mask, lock_angle, hidden):
         object_hidden = None
         if self.independent_object_encoder and hidden is not None:
-            object_hidden = hidden[:, self.cfg.dof:]
+            object_hidden = hidden[1] if isinstance(hidden, tuple) else hidden[:, self.cfg.dof:]
         projected_robot, next_hidden, obj, action, depth = self.step_robot(
             state, action, mask, lock_angle, hidden
         )
@@ -107,7 +119,7 @@ class BlockTriangularDPWM(nn.Module):
             nodes = self.robot_update(messages.flatten(0, 1), nodes.flatten(0, 1)).view_as(nodes)
         robot_hidden = hidden
         if self.independent_object_encoder and hidden is not None:
-            robot_hidden = hidden[:, :c.dof]
+            robot_hidden = hidden[0] if isinstance(hidden, tuple) else hidden[:, :c.dof]
         if robot_hidden is None:
             robot_hidden = torch.zeros_like(nodes)
         next_hidden = self.robot_temporal(
@@ -117,6 +129,15 @@ class BlockTriangularDPWM(nn.Module):
         robot = torch.cat((q + delta[..., 0], qvel + delta[..., 1]), -1)
         provisional = torch.cat((robot, obj), -1)
         projected_robot = self.surgery.project_state(provisional, mask, lock_angle)[:, :2*c.dof]
+        if self.reaction_rank > 0:
+            context = obj.unsqueeze(1).expand(-1, c.dof, -1)
+            reaction = self.reaction_adapter(torch.cat((next_hidden, context), -1))
+            reaction = reaction * (1.0 - mask).unsqueeze(-1)
+            corrected = projected_robot.clone()
+            corrected[:, :c.dof] += reaction[..., 0]
+            corrected[:, c.dof:] += reaction[..., 1]
+            projected_robot = self.surgery.project_state(
+                torch.cat((corrected, obj), -1), mask, lock_angle)[:, :2*c.dof]
         return projected_robot, next_hidden, obj, action, depth
 
     def step_object(
@@ -148,7 +169,11 @@ class BlockTriangularDPWM(nn.Module):
             ).view_as(object_code)
             next_obj = obj + self.object_head(torch.cat(
                 (next_object_hidden.mean(1), obj), -1))
-            returned_hidden = torch.cat((robot_hidden, next_object_hidden), 1)
+            returned_hidden = (
+                torch.cat((robot_hidden, next_object_hidden), 1)
+                if robot_hidden.shape[-1] == next_object_hidden.shape[-1]
+                else (robot_hidden, next_object_hidden)
+            )
         else:
             bridge = torch.cat((robot_hidden.mean(1), projected_robot), -1).detach()
             next_obj = obj + self.object_head(torch.cat((bridge, obj), -1))

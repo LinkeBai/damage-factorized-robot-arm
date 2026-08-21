@@ -1762,6 +1762,16 @@ free RMSE 仅从 0.3272 改到 0.3220。Z3 的同宽 h96/240 shared 对照中，
 后出现。容量分配假设获得直接支持但尚未最终证明；下一门必须固定总参数约
 338k，增大 robot width、缩小 object width，不得增加总容量或 epochs。
 
+固定预算 Z4--Z5 更新（2026-08-22）：随机 robot128/object56（337,518 params）
+在 seed7 主域 free -90.13%，NO-GO。改为从 h136/240 shared 复制并冻结稳定
+robot scaffold、丢弃其 object head、训练独立 object32 后，Z4b（336,910 params）
+seed7 主域 overall +6.35%，四域均值 free +0.65%、object +25.57%、overall
++2.12%。加入零初始化 rank-8 reaction adapter 的 Z5 总参数338,056（比baseline少46），
+seed7 四域 overall +5.03%，但三seed×四域最终为 free -0.36%、object +22.00%、
+overall +0.59%，4/12退化，NO-GO。最终goal（overall均值至少+5%、最多1个退化）
+尚未完成。下一步仅允许同架构、同参数的 validation-selected reaction，并必须把
+zero-reaction checkpoint 纳入选择，禁止增参或换核心框架。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

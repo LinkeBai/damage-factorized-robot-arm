@@ -62,3 +62,34 @@ def test_independent_object_encoder_has_own_recurrent_representation():
                         if name.startswith("robot_")]
     assert all(p.grad is None or torch.count_nonzero(p.grad) == 0 for p in robot_parameters)
     assert any(p.grad is not None for p in model.object_encoder.parameters())
+
+
+def test_asymmetric_hidden_widths_preserve_directed_gradient_boundary():
+    model = BlockTriangularDPWM(
+        contact_conditioned_robot=True,
+        independent_object_encoder=True,
+        object_hidden_dim=48,
+    )
+    prediction, hidden = model.step(*_inputs(), None)
+    assert isinstance(hidden, tuple)
+    assert hidden[0].shape == (3, 5, 96)
+    assert hidden[1].shape == (3, 5, 48)
+    prediction[:, 10:].pow(2).mean().backward()
+    assert all(
+        parameter.grad is None or torch.count_nonzero(parameter.grad) == 0
+        for name, parameter in model.named_parameters() if name.startswith("robot_")
+    )
+
+
+def test_zero_initialized_reaction_adapter_preserves_forward_then_receives_joint_gradient():
+    torch.manual_seed(3)
+    plain = BlockTriangularDPWM(contact_conditioned_robot=True)
+    torch.manual_seed(3)
+    adapted = BlockTriangularDPWM(contact_conditioned_robot=True, reaction_rank=8)
+    adapted.load_state_dict({**adapted.state_dict(), **plain.state_dict()})
+    inputs = _inputs()
+    first, _ = plain.step(*inputs, None)
+    second, _ = adapted.step(*inputs, None)
+    torch.testing.assert_close(first, second)
+    second[:, :10].pow(2).mean().backward()
+    assert any(parameter.grad is not None for parameter in adapted.reaction_adapter.parameters())

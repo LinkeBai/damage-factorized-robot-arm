@@ -1,0 +1,20 @@
+version: g2_bt_dpwm_reaction_audit_z5_v1
+status: frozen_2026-08-22
+q0a_config: config/experiment/g2_dual_expert_gate_q0a_v1.yaml
+seeds: [7, 17, 27]
+robot_hidden_dim: 136
+object_hidden_dim: 32
+reaction_rank: 8
+baseline_model_template: runs/g2_bt_dpwm_param_match_z1/seed{seed}_v1/shared_model.pt
+candidate_model_template: runs/g2_bt_dpwm_reaction_z5/seed{seed}_v1/model.pt
+domains:
+  - D3__mixed_composition
+  - D2__mixed_composition
+  - D4__mixed_composition
+  - D3__mixed_unseen
+gate:
+  minimum_mean_free_improvement_pct: 0.0
+  minimum_mean_object_improvement_pct: 0.0
+  minimum_mean_overall_improvement_pct: 5.0
+  maximum_overall_regression_count: 1
+  maximum_constraint_violation_rms: 1.0e-7

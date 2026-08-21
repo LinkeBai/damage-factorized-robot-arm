@@ -139,7 +139,27 @@ def main():
         model_cfg,
         contact_conditioned_robot=bool(cfg.get("contact_conditioned_robot", False)),
         independent_object_encoder=bool(cfg.get("independent_object_encoder", False)),
+        object_hidden_dim=int(cfg.get("object_hidden_dim", cfg["hidden_dim"])),
+        reaction_rank=int(cfg.get("reaction_rank", 0)),
     ).to(device)
+    if bool(cfg.get("initialize_robot_from_baseline", False)):
+        source = baseline.state_dict(); target = candidate.state_dict()
+        prefixes = {
+            "node_encoder.": "robot_encoder.",
+            "message.": "robot_message.",
+            "update.": "robot_update.",
+            "temporal.": "robot_temporal.",
+            "joint_head.": "robot_head.",
+        }
+        copied = 0
+        for source_prefix, target_prefix in prefixes.items():
+            for name, value in source.items():
+                if name.startswith(source_prefix):
+                    destination = target_prefix + name[len(source_prefix):]
+                    if destination in target and target[destination].shape == value.shape:
+                        target[destination] = value.detach().clone(); copied += value.numel()
+        candidate.load_state_dict(target)
+        print(f"[initialize] copied {copied:,} robot parameters from baseline", flush=True)
     batch = _batch(train_data, device)
     refinement_epochs = int(cfg.get("joint_refinement_epochs", 0))
     shared_epochs = int(cfg["epochs"]) - refinement_epochs
@@ -148,7 +168,10 @@ def main():
             if name.startswith("object_"):
                 parameter.requires_grad_(False)
         print("[block 1/2] robot", flush=True)
-        if bool(cfg.get("robot_only_forward", False)):
+        if int(cfg["robot_epochs"]) == 0:
+            robot_history = []
+            print("[block 1/2] frozen pretrained robot; no additional updates", flush=True)
+        elif bool(cfg.get("robot_only_forward", False)):
             robot_history = train_robot_only(
                 candidate, batch, epochs=int(cfg["robot_epochs"]),
                 learning_rate=float(cfg["learning_rate"]),
@@ -169,6 +192,17 @@ def main():
             rollout_horizon=int(cfg["object_rollout_training_horizon"]),
         )
         history = robot_history + object_history
+        reaction_epochs = int(cfg.get("reaction_epochs", 0))
+        if reaction_epochs:
+            for name, parameter in candidate.named_parameters():
+                parameter.requires_grad_(name.startswith("reaction_adapter."))
+            print(f"[block 3/3] reaction adapter epochs={reaction_epochs}", flush=True)
+            reaction_history = train_model(
+                candidate, batch, component="joint", epochs=reaction_epochs,
+                learning_rate=float(cfg["reaction_learning_rate"]),
+                rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
+            )
+            history.extend(reaction_history)
     elif "robot_rollout_training_horizon" in cfg:
         history = train_blockwise_horizons(
             candidate, batch, epochs=shared_epochs,
@@ -213,6 +247,7 @@ def main():
                "parameters": sum(p.numel() for p in candidate.parameters()),
                "shared_epochs": shared_epochs, "joint_refinement_epochs": refinement_epochs,
                "block_coordinate_training": bool(cfg.get("block_coordinate_training", False)),
+               "reaction_epochs": int(cfg.get("reaction_epochs", 0)),
                "baseline_history": baseline_history,
                "object_improvement_pct": obj, "free_arm_improvement_pct": free,
                "overall_improvement_pct": overall, "gate_passed": passed,
