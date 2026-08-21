@@ -78,6 +78,19 @@ class BlockTriangularDPWM(nn.Module):
         return result
 
     def step(self, state, action, mask, lock_angle, hidden):
+        object_hidden = None
+        if self.independent_object_encoder and hidden is not None:
+            object_hidden = hidden[:, self.cfg.dof:]
+        projected_robot, next_hidden, obj, action, depth = self.step_robot(
+            state, action, mask, lock_angle, hidden
+        )
+        return self.step_object(
+            projected_robot, obj, action, mask, lock_angle, depth, next_hidden,
+            object_hidden,
+        )
+
+    def step_robot(self, state, action, mask, lock_angle, hidden):
+        """Advance only the robot block, skipping all object-block compute."""
         c = self.cfg
         state = self.surgery.project_state(state, mask, lock_angle)
         action = self.surgery.project_action(action, mask)
@@ -93,9 +106,8 @@ class BlockTriangularDPWM(nn.Module):
             messages = self.robot_message(torch.cat((nodes, self._neighbor_sum(nodes)), -1))
             nodes = self.robot_update(messages.flatten(0, 1), nodes.flatten(0, 1)).view_as(nodes)
         robot_hidden = hidden
-        object_hidden = None
         if self.independent_object_encoder and hidden is not None:
-            robot_hidden, object_hidden = hidden[:, :c.dof], hidden[:, c.dof:]
+            robot_hidden = hidden[:, :c.dof]
         if robot_hidden is None:
             robot_hidden = torch.zeros_like(nodes)
         next_hidden = self.robot_temporal(
@@ -105,6 +117,14 @@ class BlockTriangularDPWM(nn.Module):
         robot = torch.cat((q + delta[..., 0], qvel + delta[..., 1]), -1)
         provisional = torch.cat((robot, obj), -1)
         projected_robot = self.surgery.project_state(provisional, mask, lock_angle)[:, :2*c.dof]
+        return projected_robot, next_hidden, obj, action, depth
+
+    def step_object(
+        self, projected_robot, obj, action, mask, lock_angle, depth, robot_hidden,
+        object_hidden=None,
+    ):
+        """Advance the object block from a projected robot transition."""
+        c = self.cfg
         if self.independent_object_encoder:
             projected_q = projected_robot[:, :c.dof]
             projected_qvel = projected_robot[:, c.dof:]
@@ -128,10 +148,10 @@ class BlockTriangularDPWM(nn.Module):
             ).view_as(object_code)
             next_obj = obj + self.object_head(torch.cat(
                 (next_object_hidden.mean(1), obj), -1))
-            returned_hidden = torch.cat((next_hidden, next_object_hidden), 1)
+            returned_hidden = torch.cat((robot_hidden, next_object_hidden), 1)
         else:
-            bridge = torch.cat((next_hidden.mean(1), projected_robot), -1).detach()
+            bridge = torch.cat((robot_hidden.mean(1), projected_robot), -1).detach()
             next_obj = obj + self.object_head(torch.cat((bridge, obj), -1))
-            returned_hidden = next_hidden
+            returned_hidden = robot_hidden
         prediction = torch.cat((projected_robot, next_obj), -1)
         return self.surgery.project_state(prediction, mask, lock_angle), returned_hidden

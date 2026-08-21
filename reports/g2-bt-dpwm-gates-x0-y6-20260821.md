@@ -48,7 +48,10 @@ depth 10; positive is better.  Constraint violation RMS is zero for Y6.
 
 ## Current evidence boundary
 
-Y6 is a seed-7 provisional mechanism pass, not yet a robustness claim and not yet
-evidence that BT-DPWM exceeds DFWM across seeds or on hardware.  The architecture
-and training schedule are now frozen.  Next work is replication, parameter/compute
-accounting, DFWM comparison, and then real-robot validation if those gates pass.
+Y6 subsequently passed frozen replications at seeds 17 and 27. Across seeds
+7/17/27, free-arm, object, and overall improvements are respectively
+7.90%/5.30%/7.88% on average, with 3/3 per-seed PASS. See
+`reports/g2-bt-dpwm-y6-replication-20260821.md`. This is a three-seed primary-domain
+mechanism result, not yet evidence across damage domains or on hardware. Next work
+is parameter/compute accounting, multi-domain/public-baseline comparison, and then
+real-robot validation if those gates pass.

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -21,6 +22,53 @@ from scripts.run_dual_expert_gate_q0a import _batch
 from scripts.run_object_preserving_projection_x1 import evaluate
 from scripts.run_object_preserving_projection_x1 import _losses
 from scripts.run_push_benchmark import collect_push_domains
+
+
+def cached_collect(cache_dir, cache_key, collector):
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(cache_key.encode("utf-8")).hexdigest()[:20]
+    path = cache_dir / f"{digest}.pt"
+    if path.exists():
+        print(f"[cache hit] {path}", flush=True)
+        return torch.load(path, map_location="cpu", weights_only=False)
+    print(f"[cache miss] {path}", flush=True)
+    trajectories = collector()
+    torch.save(trajectories, path)
+    return trajectories
+
+
+def robot_losses(model, batch, horizon):
+    states, actions, mask, _ = batch
+    zeros = torch.zeros_like(mask)
+    one_step, hidden = [], None
+    for step in range(actions.shape[1]):
+        robot, hidden, _, _, _ = model.step_robot(
+            states[:, step], actions[:, step], zeros, zeros, hidden)
+        one_step.append((robot - states[:, step + 1, :10]).pow(2).mean())
+    rollout = []
+    horizon = min(horizon, actions.shape[1])
+    for start in range(0, actions.shape[1] - horizon + 1, horizon):
+        prediction, hidden = states[:, start], None
+        for offset in range(horizon):
+            robot, hidden, obj, _, _ = model.step_robot(
+                prediction, actions[:, start + offset], zeros, zeros, hidden)
+            rollout.append((robot - states[:, start + offset + 1, :10]).pow(2).mean())
+            prediction = torch.cat((robot, obj), -1)
+    return torch.stack(one_step).mean() + 0.5 * torch.stack(rollout).mean()
+
+
+def train_robot_only(model, batch, *, epochs, learning_rate, horizon):
+    parameters = [p for name, p in model.named_parameters() if name.startswith("robot_")]
+    optimizer = torch.optim.Adam(parameters, lr=learning_rate)
+    history = []
+    for epoch in range(epochs):
+        loss = robot_losses(model, batch, horizon)
+        optimizer.zero_grad(); loss.backward()
+        gradient = float(torch.nn.utils.clip_grad_norm_(parameters, 5.0))
+        optimizer.step(); history.append(float(loss.detach()))
+        if epoch == 0 or (epoch + 1) % 10 == 0:
+            print(f"  epoch={epoch+1:03d} loss={loss.item():.6f} grad={gradient:.3f}", flush=True)
+    return history
 
 
 def train_blockwise_horizons(model, batch, *, epochs, learning_rate,
@@ -47,6 +95,7 @@ def main():
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--v0-run-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--cache-dir", type=Path, default=Path("runs/trajectory_cache"))
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     if args.seed not in cfg["seeds"]:
@@ -60,12 +109,25 @@ def main():
     common = dict(steps=int(q0a["steps"]), excitation="goal",
                   block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
                   goal_exploration_std=float(q0a["goal_exploration_std"]))
-    train_data = collect_push_domains(
+    train_key = json.dumps({"kind": "push_train", "seed": args.seed,
+        "domains": [x.domain_id for x in protocol.train], "q0a": q0a}, sort_keys=True)
+    train_data = cached_collect(args.cache_dir, train_key, lambda: collect_push_domains(
         protocol.train, trajectories_per_domain=int(q0a["trajectories_per_train_domain"]),
-        seed=args.seed * 10_000, targets=tuple(x.as_array() for x in targets.calibration), **common)
+        seed=args.seed * 10_000, targets=tuple(x.as_array() for x in targets.calibration), **common))
     model_cfg = TopologyGraphConfig(hidden_dim=int(cfg["hidden_dim"]))
     baseline = TopologyGraphWorldModel(model_cfg).to(device)
-    baseline.load_state_dict(torch.load(args.v0_run_dir / "models.pt", map_location=device)["shared_compute_matched"])
+    if bool(cfg.get("train_baseline", False)):
+        torch.manual_seed(args.seed)
+        baseline = TopologyGraphWorldModel(model_cfg).to(device)
+        print("[baseline] train shared compute-matched", flush=True)
+        baseline_history = train_model(
+            baseline, _batch(train_data, device), component="shared",
+            epochs=int(cfg["baseline_epochs"]), learning_rate=float(cfg["learning_rate"]),
+            rollout_horizon=int(cfg["baseline_rollout_training_horizon"]),
+        )
+    else:
+        baseline.load_state_dict(torch.load(args.v0_run_dir / "models.pt", map_location=device)["shared_compute_matched"])
+        baseline_history = None
     torch.manual_seed(args.seed)
     candidate = BlockTriangularDPWM(
         model_cfg,
@@ -80,11 +142,18 @@ def main():
             if name.startswith("object_"):
                 parameter.requires_grad_(False)
         print("[block 1/2] robot", flush=True)
-        robot_history = train_model(
-            candidate, batch, component="joint", epochs=int(cfg["robot_epochs"]),
-            learning_rate=float(cfg["learning_rate"]),
-            rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
-        )
+        if bool(cfg.get("robot_only_forward", False)):
+            robot_history = train_robot_only(
+                candidate, batch, epochs=int(cfg["robot_epochs"]),
+                learning_rate=float(cfg["learning_rate"]),
+                horizon=int(cfg["robot_rollout_training_horizon"]),
+            )
+        else:
+            robot_history = train_model(
+                candidate, batch, component="joint", epochs=int(cfg["robot_epochs"]),
+                learning_rate=float(cfg["learning_rate"]),
+                rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
+            )
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(name.startswith("object_"))
         print("[block 2/2] object on frozen robot rollouts", flush=True)
@@ -118,10 +187,12 @@ def main():
         history.extend(refinement)
     domain = next(x for x in protocol.test if x.domain_id == cfg["primary_domain"])
     index = list(protocol.test).index(domain)
-    test_data = collect_push_domains(
+    test_seed = args.seed * 100_000 + index * 1000 + 500
+    test_key = json.dumps({"kind": "push_test", "seed": test_seed,
+        "domain": domain.domain_id, "q0a": q0a}, sort_keys=True)
+    test_data = cached_collect(args.cache_dir, test_key, lambda: collect_push_domains(
         (domain,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
-        seed=args.seed * 100_000 + index * 1000 + 500,
-        targets=tuple(x.as_array() for x in targets.evaluation), **common)
+        seed=test_seed, targets=tuple(x.as_array() for x in targets.evaluation), **common))
     rows = evaluate({"shared_baseline": baseline, "bt_dpwm": candidate}, domain, test_data,
                     device, int(q0a["rollout_horizon"]))
     result = {row["method"]: row for row in rows}; base, cand = result["shared_baseline"], result["bt_dpwm"]
@@ -136,12 +207,15 @@ def main():
                "parameters": sum(p.numel() for p in candidate.parameters()),
                "shared_epochs": shared_epochs, "joint_refinement_epochs": refinement_epochs,
                "block_coordinate_training": bool(cfg.get("block_coordinate_training", False)),
+               "baseline_history": baseline_history,
                "object_improvement_pct": obj, "free_arm_improvement_pct": free,
                "overall_improvement_pct": overall, "gate_passed": passed,
                "rows": rows, "history": history}
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     torch.save(candidate.state_dict(), args.output_dir / "model.pt")
+    if bool(cfg.get("train_baseline", False)):
+        torch.save(baseline.state_dict(), args.output_dir / "baseline_model.pt")
     print(f"[Y0] object={obj:+.2f}% free={free:+.2f}% overall={overall:+.2f}% "
           f"decision={'PASS' if passed else 'NO-GO'}", flush=True)
 

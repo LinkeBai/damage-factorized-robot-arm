@@ -1730,8 +1730,10 @@ joint-only refinement 和同时双 horizon 更新均被实验否决。当前唯�
 
 Seed 7 对 frozen compute-matched shared graph 的 depth-10 结果：free-arm +4.16%，
 object +3.69%，overall +4.16%，constraint violation RMS=0，达到预注册门槛。
-该结果仅为单 seed provisional PASS；在多 seed、compute/parameter audit 和 DFWM
-直接比较完成前，不升级为论文主张。完整审计见
+冻结 seed 17/27 复现也通过；三 seed 均值为 free-arm +7.90%、object +5.30%、
+overall +7.88%，3/3 per-seed PASS。该结果升级为 primary-domain 三 seed mechanism
+PASS；在 compute/parameter audit、跨损伤域和公开强基线比较完成前，不升级为
+完整论文主张。完整审计见
 `reports/g2-bt-dpwm-gates-x0-y6-20260821.md`。
 
 下一步严格限制为：多 seed 复现 -> compute/parameter audit -> DFWM 同协议比较 ->
