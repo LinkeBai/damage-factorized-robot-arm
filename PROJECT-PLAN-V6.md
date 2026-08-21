@@ -1,16 +1,32 @@
 # Project Plan V6 — Robust Zero-Shot Structured Dynamics
 
 **项目**：低成本机械臂关节锁定后的稳健零样本结构化动力学
-**版本日期**：2026-08-20
+**版本日期**：2026-08-21
 **规划模式**：standard  
 **规划基线**：本文件是后续执行的最新基线；旧版计划和失败实验保留为审计记录  
-**当前状态**：G0 已通过；原始 DFWM 全分支 No-Go；CR-GWM/RC-GWM 不具备稳定预测优势；FT-GWM K0 PASS、K1 two-seed provisional PASS，但完整 Push world model 的 K2 NO-GO，后续 FTC-WM Gate L 亦 NO-GO。最终 G2 synthesis 已完成：结构化优势不成立，保留 ordinary ensemble + selective prediction 与 K1 约束关节动力学；下一决策为是否以该收缩主张进入 G3。
+**当前状态**：原始 DFWM 与完整结构化 object/contact world model 均已 No-Go；ordinary ensemble 的预测收益、selective prediction 和 FT-GWM K1 的约束关节动力学仍成立。新的 Dual-Expert Damage World Model（DE-DWM）以冻结异构专家分别预测 joint/object，Q0-A seed 7/17 均通过融合保真门。下一唯一方法实验为 Q0-B：验证 cross-expert structural discrepancy 是否提供独立于 ensemble disagreement 的风险信息。
 **证据约束**：实测结果均指向可追溯 artifact；未来时间、GPU-h、工时和阈值仍属于项目管理估计
 
-> ## 2026-08-21 Dual-Expert Gate Q0-A 修订（当前最新状态）
+> ## 2026-08-21 可转发执行摘要（当前最新状态）
 >
-> - 新候选方法为冻结的 product-space dual expert：FT-GWM K1 独占 joint
->   state，ordinary constant-condition ensemble 独占 object state；不训练融合 gate。
+> ### 1. 当前核心方法
+>
+> 新候选方法暂称 **Dual-Expert Damage World Model（DE-DWM）**。它不是继续给
+> DFWM 增加 latent/contact head，而是把已有正结果组合成不可旁路的 product-space
+> 分工：
+>
+> - **Structural expert**：FT-GWM K1，保留锁定连杆的固定 SE(3) 几何，仅预测
+>   joint state，并解析保证锁定关节位置/速度约束。
+> - **Predictive expert**：ordinary constant-condition deep ensemble，负责
+>   object state 与经验不确定性。
+> - **Product-space fusion**：下一状态的 joint 来自 structural expert，object
+>   来自 predictive expert；第一版冻结两个专家，不训练额外 gate。
+> - **待验证核心量**：两个异构专家在 joint 子空间的分歧
+>   `u_cross = RMSE(joint_data_expert, joint_structural_expert)`。目标是检测普通
+>   ensemble 成员可能共同犯下、因而无法被内部 disagreement 暴露的结构错误。
+>
+> ### 2. Q0-A 融合保真结果
+>
 > - Q0-A 使用 leave-one-joint-out 冻结协议、相同训练/评估轨迹、seed 7/17。
 >   主域 D3 mixed composition 的 object RMSE 分别从 `0.3103/0.1467` 变为
 >   `0.3036/0.1438`（改善 `2.15%/1.98%`）；free-arm RMSE 分别改善
@@ -18,8 +34,45 @@
 >   回退不超过 2%、free-arm 回退不超过 5%、violation 不超过 `1e-7` 的门槛。
 > - 当前结论仅为 **Q0-A TWO-SEED PASS**：证明冻结异构专家能够组合且保持预测
 >   保真。尚未证明 cross-expert discrepancy 提供独立风险信息，也未证明控制收益；
->   下一唯一实验为 Q0-B 固定深度风险校准与条件增益检验。
+>   不得把 Q0-A 写成风险感知或控制性能已经成立。
 > - 权威报告：`reports/g2-dual-expert-gate-q0a-20260821.md`。
+>
+> ### 3. 旧结论如何串联到新方法
+>
+> | 已有证据 | 对 DE-DWM 的约束 |
+> |---|---|
+> | ordinary ensemble 相对参数匹配单模型改善 `30.74%`，95% CI `[15.06%, 42.62%]`，5/5 seeds | 保留为 predictive expert |
+> | structured vs ordinary ensemble 仅改善 `2.47%` 且 CI 跨零 | 不再把 topology conditioning 本身作为预测创新 |
+> | 50% coverage 下 selective RMSE 下降约 `50.50%` | 保留 ensemble uncertainty，但固定深度重新校准 |
+> | FT-GWM K0 PASS、K1 two-seed provisional PASS | 保留为 structural expert |
+> | FT-GWM K2、FTC-WM L、hybrid-contact M、multi-contact N 均 No-Go | structural branch 不再学习 object/contact |
+> | Guarded MPC 的统计区间跨零 | Q0-B 前不做控制收益主张 |
+>
+> 因此旧工作没有作废：它们构成了“预测专家擅长 object、结构专家擅长约束，任何
+> 单一专家都不足”的证据链；但旧数字只能支持设计动机，不能替代 DE-DWM 的新实验。
+>
+> ### 4. MuJoCo Warp 加速试验
+>
+> 本机环境为 MuJoCo `3.11.0`、Warp `1.16.0`、RTX 4060 Laptop GPU。
+> raw physics benchmark 结果为：32 worlds 时 CPU 约 `267k steps/s`、Warp 约
+> `90k steps/s`；256 worlds 时 CPU 约 `177k steps/s`、Warp 约
+> `678k steps/s`，Warp 约 `3.8x`。100 步一致性测试的 qpos/qvel RMSE 约为
+> `8.3e-8/1.0e-7`。
+>
+> 结论：Warp 在数百环境的大 batch 下有价值，但当前每次约 24 条训练轨迹时反而
+> 不能加速；首次 JIT 还需约 31 秒。因此现阶段保留 CPU MuJoCo 冻结数据协议，待
+> Q0-B 需要数百/数千条校准轨迹时再接入 Warp。当前训练加速优先级是 FT-GWM 边
+> 传播张量化、FK 缓存和 rollout 编译。
+>
+> ### 5. 下一步冻结决策
+>
+> 下一唯一方法实验是 **Q0-B fixed-depth conditional-risk gate**：
+>
+> 1. 在每个固定 rollout depth 分别计算 ensemble disagreement、`u_cross` 和真实误差；
+> 2. 检验 `u_cross` 在控制 ensemble disagreement 后是否仍有独立解释力；
+> 3. 比较 ensemble-only 与 ensemble + cross-expert risk score 的 selective AURC；
+> 4. 只有 AURC 相对改善至少 `10%` 且至少 `4/5` seeds 方向一致，才进入 Q0-C
+>    消融与 Guarded MPC；否则保留 Q0-A 工程结果，但停止把 DE-DWM 作为核心方法。
 
 > ## 2026-08-20 执行基线修订（优先于本文旧 G2 叙事）
 >
