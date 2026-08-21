@@ -93,3 +93,15 @@ def test_zero_initialized_reaction_adapter_preserves_forward_then_receives_joint
     torch.testing.assert_close(first, second)
     second[:, :10].pow(2).mean().backward()
     assert any(parameter.grad is not None for parameter in adapted.reaction_adapter.parameters())
+
+
+def test_geometry_gated_reaction_adds_no_parameters_and_suppresses_far_object():
+    plain = BlockTriangularDPWM(contact_conditioned_robot=True, reaction_rank=8)
+    gated = BlockTriangularDPWM(contact_conditioned_robot=True, reaction_rank=8,
+                               reaction_geometry_gate=True)
+    assert sum(p.numel() for p in plain.parameters()) == sum(p.numel() for p in gated.parameters())
+    q = torch.zeros(2, 5)
+    near = torch.tensor([[0.0, 0.0], [10.0, 10.0]])
+    gate = gated._reaction_contact_gate(q, near)
+    assert gate[0] > gate[1]
+    assert gate[1] < 1e-4

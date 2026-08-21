@@ -141,6 +141,9 @@ def main():
         independent_object_encoder=bool(cfg.get("independent_object_encoder", False)),
         object_hidden_dim=int(cfg.get("object_hidden_dim", cfg["hidden_dim"])),
         reaction_rank=int(cfg.get("reaction_rank", 0)),
+        reaction_geometry_gate=bool(cfg.get("reaction_geometry_gate", False)),
+        reaction_gate_threshold=float(cfg.get("reaction_gate_threshold", -0.005)),
+        reaction_gate_temperature=float(cfg.get("reaction_gate_temperature", 0.002)),
     ).to(device)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = baseline.state_dict(); target = candidate.state_dict()

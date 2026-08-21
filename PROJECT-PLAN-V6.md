@@ -1772,6 +1772,27 @@ overall +0.59%，4/12退化，NO-GO。最终goal（overall均值至少+5%、最�
 尚未完成。下一步仅允许同架构、同参数的 validation-selected reaction，并必须把
 zero-reaction checkpoint 纳入选择，禁止增参或换核心框架。
 
+Z6--Z8 稳定化更新（2026-08-22）：Z6 以三 validation domain 每两轮选择
+reaction checkpoint，并显式包含 epoch0。seed7/17/27 分别选择 40/0/40；冻结后
+三 seed×四域为 free -0.71%、object +22.00%、overall +0.24%、6/12 退化，
+NO-GO。seed27 validation 改善但 test 退化，证明当前 validation-free 指标不能可靠
+选择 reaction。
+
+reaction 输出诊断显示 contact/non-contact 范数比仅为 1.18/0.76/0.99；adapter
+没有事件选择性。解析 pusher-box gap 则跨种子稳定分离：contact gap 中位数约
+-11.5 mm、90% 分位约 -8.0 mm，non-contact 10% 分位约 -1.5 mm。Z7 因而加入
+零参数解析 soft gate（总参数仍为 338,056）。带门重训的 seed7 四域为 free
++2.34%、object +25.57%、overall +3.73%、0/4 退化；方向正确但未达 +5%。对
+冻结 Z5 adapter 扫描后锁定 threshold=+5 mm、temperature=2 mm，三 seed×四域
+为 free +0.77%、object +21.99%、overall +1.68%、5/12 退化，仍 NO-GO。
+
+Z8 将同一 gated adapter 改成 teacher-forced one-step residual training，seed7 四域
+仅 free +0.80%、object +25.54%、overall +2.27%、1/4 退化，亦 NO-GO。因此当前
+问题已经收窄为：reaction 需要接触事件触发后的有限衰减记忆与跨 seed 尺度约束；
+纯当前几何门、纯 validation checkpoint 或纯一步残差均不足。下一实验只能在同一
+rank-8 reaction 模块内实现 bounded event-memory，并以 Z4b zero-reaction、Z5
+ungated、Z7 current-gate 为严格消融；不得扩充参数预算或更换 BT-DPWM。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

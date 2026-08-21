@@ -27,6 +27,8 @@ def main():
     parser.add_argument("--seeds", type=str, required=True)
     parser.add_argument("--cache-dir", type=Path, default=Path("runs/trajectory_cache"))
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--reaction-gate-threshold", type=float)
+    parser.add_argument("--reaction-gate-temperature", type=float)
     args = parser.parse_args(); cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     seeds = [int(x) for x in args.seeds.split(",")]
     if any(seed not in cfg["seeds"] for seed in seeds): raise ValueError("seed outside frozen list")
@@ -45,7 +47,12 @@ def main():
             TopologyGraphConfig(hidden_dim=int(cfg["robot_hidden_dim"])),
             contact_conditioned_robot=True, independent_object_encoder=True,
             object_hidden_dim=int(cfg["object_hidden_dim"]),
-            reaction_rank=int(cfg.get("reaction_rank", 0))).to(device)
+            reaction_rank=int(cfg.get("reaction_rank", 0)),
+            reaction_geometry_gate=bool(cfg.get("reaction_geometry_gate", False)),
+            reaction_gate_threshold=(args.reaction_gate_threshold if args.reaction_gate_threshold is not None
+                                     else float(cfg.get("reaction_gate_threshold", -0.005))),
+            reaction_gate_temperature=(args.reaction_gate_temperature if args.reaction_gate_temperature is not None
+                                       else float(cfg.get("reaction_gate_temperature", 0.002)))).to(device)
         candidate.load_state_dict(torch.load(str(cfg["candidate_model_template"]).format(seed=seed), map_location=device))
         baseline.eval(); candidate.eval()
         for domain_id in cfg["domains"]:
@@ -73,6 +80,8 @@ def main():
               and regressions <= gate["maximum_overall_regression_count"]
               and max(r["constraint_violation_rms"] for r in rows) <= gate["maximum_constraint_violation_rms"])
     summary = {"config_version": cfg["version"], "seeds": seeds, "rows": rows,
+               "reaction_gate_threshold": args.reaction_gate_threshold,
+               "reaction_gate_temperature": args.reaction_gate_temperature,
                "mean_free_improvement_pct": means["free"],
                "mean_object_improvement_pct": means["object"],
                "mean_overall_improvement_pct": means["overall"],
