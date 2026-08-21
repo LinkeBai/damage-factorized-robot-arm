@@ -36,6 +36,13 @@
 >   通过，已不可能达到冻结 4/5，seed 37/47 按停止规则不再运行。结论为：单纯 direct
 >   projection 不够，独立 joint expert + projection 有效，但固定变换几何的稳定独立
 >   贡献仍不成立。详见 `reports/g2-manifold-stabilization-gate-s0-s1-20260821.md`。
+> - 随后的 T0 实现显式 tangent-normal transition：保留完整链空间消息，但清零锁定
+>   节点 recurrent hidden 和 joint delta。seed 7 depth-10 free-arm RMSE 为
+>   projected matched `0.44`、topology-projected `0.49`、tangent `0.51`；tangent
+>   相对两对照回退 `17.14%/4.69%`，判 **NO-GO**，不扩种子。这说明锁定节点的
+>   temporal feature 仍携带有用历史，而 exact output projection 已足以消除法向坐标
+>   误差；简单 hidden masking 不能构成新核心创新。详见
+>   `reports/g2-tangent-manifold-gate-t0-20260821.md`。
 >
 > ## 2026-08-21 可转发执行摘要（Q0-A 设计与历史）
 >

@@ -1,0 +1,12 @@
+version: g2_tangent_manifold_gate_t0_v1
+status: frozen_2026-08-21
+q0a_config: config/experiment/g2_dual_expert_gate_q0a_v1.yaml
+seeds: [7]
+epochs: 60
+learning_rate: 0.001
+primary_domain: D3__mixed_composition
+gate:
+  minimum_tangent_free_improvement_vs_projected_matched_pct: 5.0
+  minimum_tangent_free_improvement_vs_topology_projected_pct: 5.0
+  maximum_object_regression_vs_projected_matched_pct: 2.0
+  maximum_constraint_violation_rms: 1.0e-7
