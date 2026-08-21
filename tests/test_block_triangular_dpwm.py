@@ -162,3 +162,16 @@ def test_kinematic_projection_enforces_semi_implicit_position_step():
     prediction, _ = model.step(state, action, mask, angle, None)
     torch.testing.assert_close(prediction[:, :5],
                                state[:, :5] + 0.005 * prediction[:, 5:10])
+
+
+def test_shadow_object_context_fits_budget_and_has_independent_hidden_path():
+    from robotarm.models.topology_graph_world_model import TopologyGraphConfig
+    model = BlockTriangularDPWM(TopologyGraphConfig(hidden_dim=136),
+                               contact_conditioned_robot=True,
+                               independent_object_encoder=True,
+                               object_hidden_dim=32, shadow_object_rank=8)
+    prediction, hidden = model.step(*_inputs(), None)
+    assert prediction.shape[-1] == 14
+    assert isinstance(hidden, tuple) and len(hidden) == 3
+    assert hidden[2].shape == (3, 4)
+    assert sum(p.numel() for p in model.parameters()) == 338074

@@ -62,6 +62,13 @@ def main():
             reaction_event_decay=(args.reaction_event_decay if args.reaction_event_decay is not None
                                   else cfg.get("reaction_event_decay")),
             reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False))).to(device)
+        if int(cfg.get("shadow_object_rank", 0)):
+            candidate = BlockTriangularDPWM(
+                TopologyGraphConfig(hidden_dim=int(cfg["robot_hidden_dim"])),
+                contact_conditioned_robot=True, independent_object_encoder=True,
+                object_hidden_dim=int(cfg["object_hidden_dim"]),
+                reaction_rank=int(cfg.get("reaction_rank", 0)),
+                shadow_object_rank=int(cfg["shadow_object_rank"])).to(device)
         candidate.kinematic_integration_dt = cfg.get("kinematic_integration_dt")
         candidate.kinematic_position_blend = (args.kinematic_position_blend
                                                if args.kinematic_position_blend is not None

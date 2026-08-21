@@ -1862,6 +1862,20 @@ average qvel 的最优标量步长均约0.005 s；半隐式积分的位置增量
 后三seed×四域为 free -0.37%、object +21.96%、overall +0.58%、6/12退化，
 NO-GO。解析积分关系真实但不足以跨seed改善强baseline，不进入最终组件。
 
+Z19 双对象路径审计（2026-08-22）：过滤掉弱 h96 baseline 后，Z4--Z18 已有候选的
+12-cell oracle 组合上界为 free +4.45%、object +21.99%、overall +5.21%，但仍有
+2个退化 cell；目标在数值上接近可达，但现有机制间没有可部署统一选择规则。
+
+为隔离 independent object rollout 对 frozen robot scaffold 的输入分布漂移，Z19 在
+同一 BT-DPWM 内加入 rank-8 shadow object context：shadow 只供 robot 条件化，独立
+object expert 仍输出最终 object。shadow head共1,164参数，总模型338,074，比
+h136/240 baseline少28；robot完全冻结，shadow joint-rollout训练40轮后再训练
+object120轮。seed7 primary为free +4.71%、object +42.14%、overall +8.09%，四域
+为free +2.35%、object +25.55%、overall +3.71%、1/4退化。锁定后三seed×四域为
+free +0.17%、object +21.96%、overall +1.10%、4/12退化，NO-GO。双对象路径能
+减轻object-feedback drift但不能制造跨seed稳定robot优势；不得以seed7 primary
+升级方法主张。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

@@ -151,6 +151,7 @@ def main():
         reaction_fixed_initialization=bool(cfg.get("reaction_fixed_initialization", False)),
         kinematic_integration_dt=cfg.get("kinematic_integration_dt"),
         kinematic_position_blend=float(cfg.get("kinematic_position_blend", 1.0)),
+        shadow_object_rank=int(cfg.get("shadow_object_rank", 0)),
     ).to(device)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = baseline.state_dict(); target = candidate.state_dict()
@@ -213,16 +214,28 @@ def main():
             )
         if topology_hook is not None:
             topology_hook.remove()
+        shadow_epochs = int(cfg.get("shadow_epochs", 0))
+        shadow_history = []
+        if shadow_epochs:
+            for name, parameter in candidate.named_parameters():
+                parameter.requires_grad_(name.startswith("shadow_context_head."))
+            print(f"[block 2/3] shadow context epochs={shadow_epochs}", flush=True)
+            shadow_history = train_model(
+                candidate, batch, component="joint", epochs=shadow_epochs,
+                learning_rate=float(cfg.get("shadow_learning_rate", cfg["learning_rate"])),
+                rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
+                use_topology=use_topology,
+            )
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(name.startswith("object_"))
-        print("[block 2/2] object on frozen robot rollouts", flush=True)
+        print("[block object] object on frozen robot/shadow rollouts", flush=True)
         object_history = train_model(
             candidate, batch, component="object", epochs=int(cfg["object_epochs"]),
             learning_rate=float(cfg["learning_rate"]),
             rollout_horizon=int(cfg["object_rollout_training_horizon"]),
             use_topology=use_topology,
         )
-        history = robot_history + object_history
+        history = robot_history + shadow_history + object_history
         reaction_epochs = int(cfg.get("reaction_epochs", 0))
         if reaction_epochs:
             for name, parameter in candidate.named_parameters():

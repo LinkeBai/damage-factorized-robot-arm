@@ -32,6 +32,7 @@ class BlockTriangularDPWM(nn.Module):
         reaction_fixed_initialization: bool = False,
         kinematic_integration_dt: float | None = None,
         kinematic_position_blend: float = 1.0,
+        shadow_object_rank: int = 0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -49,6 +50,9 @@ class BlockTriangularDPWM(nn.Module):
         self.reaction_fixed_initialization = reaction_fixed_initialization
         self.kinematic_integration_dt = kinematic_integration_dt
         self.kinematic_position_blend = kinematic_position_blend
+        self.shadow_object_rank = shadow_object_rank
+        if shadow_object_rank > 0 and reaction_event_decay is not None:
+            raise ValueError("shadow object context and reaction event trace cannot share hidden slot")
         if not 0.0 <= kinematic_position_blend <= 1.0:
             raise ValueError("kinematic_position_blend must be in [0, 1]")
         if reaction_event_decay is not None and not 0.0 <= reaction_event_decay < 1.0:
@@ -117,6 +121,13 @@ class BlockTriangularDPWM(nn.Module):
                 [[0., 0., .120], [0., 0., 0.], [0., 0., .110],
                  [0., 0., .120], [0., 0., .060]]
             ), persistent=False)
+        if shadow_object_rank > 0:
+            self.shadow_context_head = nn.Sequential(
+                nn.Linear(c.hidden_dim + c.object_dim, shadow_object_rank), nn.Tanh(),
+                nn.Linear(shadow_object_rank, c.object_dim),
+            )
+            nn.init.zeros_(self.shadow_context_head[-1].weight)
+            nn.init.zeros_(self.shadow_context_head[-1].bias)
 
     @staticmethod
     def _neighbor_sum(nodes: torch.Tensor) -> torch.Tensor:
@@ -187,8 +198,12 @@ class BlockTriangularDPWM(nn.Module):
         object_hidden = None
         if self.independent_object_encoder and hidden is not None:
             object_hidden = hidden[1] if isinstance(hidden, tuple) else hidden[:, self.cfg.dof:]
+        shadow_obj = None
+        if self.shadow_object_rank > 0:
+            shadow_obj = (hidden[2] if isinstance(hidden, tuple) and len(hidden) == 3
+                          else state[:, 2 * self.cfg.dof:])
         projected_robot, next_hidden, obj, action, depth = self.step_robot(
-            state, action, mask, lock_angle, hidden
+            state, action, mask, lock_angle, hidden, robot_context=shadow_obj
         )
         reaction_trace = None
         if self.reaction_event_decay is not None:
@@ -197,6 +212,14 @@ class BlockTriangularDPWM(nn.Module):
             projected_robot, obj, action, mask, lock_angle, depth, next_hidden,
             object_hidden,
         )
+        if shadow_obj is not None:
+            next_shadow = shadow_obj + self.shadow_context_head(torch.cat(
+                (next_hidden.mean(1), shadow_obj), -1
+            ))
+            if isinstance(returned_hidden, tuple):
+                returned_hidden = (*returned_hidden, next_shadow)
+            else:
+                returned_hidden = (returned_hidden, next_shadow)
         if reaction_trace is not None:
             if isinstance(returned_hidden, tuple):
                 returned_hidden = (*returned_hidden, reaction_trace)
@@ -204,7 +227,7 @@ class BlockTriangularDPWM(nn.Module):
                 returned_hidden = (returned_hidden, reaction_trace)
         return prediction, returned_hidden
 
-    def step_robot(self, state, action, mask, lock_angle, hidden):
+    def step_robot(self, state, action, mask, lock_angle, hidden, robot_context=None):
         """Advance only the robot block, skipping all object-block compute."""
         c = self.cfg
         state = self.surgery.project_state(state, mask, lock_angle)
@@ -214,7 +237,8 @@ class BlockTriangularDPWM(nn.Module):
         depth = depth.view(1, -1).expand(state.shape[0], -1)
         features = torch.stack((q, qvel, action, mask, lock_angle, depth), dim=-1)
         if self.contact_conditioned_robot:
-            object_context = obj.unsqueeze(1).expand(-1, c.dof, -1)
+            context_obj = obj if robot_context is None else robot_context
+            object_context = context_obj.unsqueeze(1).expand(-1, c.dof, -1)
             features = torch.cat((features, object_context), dim=-1)
         nodes = self.robot_encoder(features)
         for _ in range(c.message_steps):
