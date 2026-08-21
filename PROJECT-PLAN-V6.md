@@ -1747,6 +1747,13 @@ BT-DPWM 相对该强基线三 seed 平均为 free -39.02%、object +36.40%、ove
 证据是 object block 的稳定优势；下一步只允许在固定约 338k 总参数预算内把容量
 从 object block 重分配给 robot block，再重复相同 Z1，禁止切换核心框架。
 
+在容量改动前完成 Y7 robot-budget 归因：保持结构不变，将 robot h10 训练从
+120 增至 240 epochs，object 仍为 120/h5。robot train loss 从 0.02291 降至
+0.01108，但 seed 7 主域相对 h136/240 为 free -72.94%、object +46.57%、overall
+-64.09%，NO-GO；因此停止 seed 17/27，排除“仅更新次数不足”。容量分配仍只是
+待验证假设。下一步须先区分 robot 表示/conditioning 归纳偏置与缺少 contact
+辅助监督，不得继续追加 epoch。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

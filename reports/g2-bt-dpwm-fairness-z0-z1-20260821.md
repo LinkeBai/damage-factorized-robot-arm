@@ -46,3 +46,19 @@ rollout, but its earlier overall PASS against h96/120 must not be presented as a
 general method win. The next permitted intervention stays inside BT-DPWM: reallocate
 the fixed ~338k parameter budget from the over-performing object block to the robot
 block, then rerun the same Z1 gate. No new framework or naming is authorized.
+
+## Y7: robot-update-budget attribution
+
+Before changing capacity, Y7 tested the cheaper alternative explanation that the
+robot block was merely under-trained. With architecture and seed fixed, robot
+training was increased from 120 to 240 epochs at horizon 10; object training stayed
+at 120 epochs/horizon 5. Robot training loss fell from 0.02291 at epoch 120 to
+0.01108 at epoch 240. Nevertheless, on the primary D3 domain versus h136/240,
+free-arm regressed 72.94%, object improved 46.57%, and overall regressed 64.09%.
+
+Y7 is a seed-7 attribution NO-GO and is stopped without spending seeds 17/27. More
+robot updates reduce the training objective but worsen held-out long rollout, so
+simple update budget is not the cause. Capacity allocation also remains unproven.
+The next diagnosis must distinguish robot representation/conditioning bias from
+missing contact-related auxiliary supervision; it must not add epochs or rename the
+method.

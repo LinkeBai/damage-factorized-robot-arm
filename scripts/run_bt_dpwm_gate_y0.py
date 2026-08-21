@@ -115,7 +115,8 @@ def main():
         protocol.train, trajectories_per_domain=int(q0a["trajectories_per_train_domain"]),
         seed=args.seed * 10_000, targets=tuple(x.as_array() for x in targets.calibration), **common))
     model_cfg = TopologyGraphConfig(hidden_dim=int(cfg["hidden_dim"]))
-    baseline = TopologyGraphWorldModel(model_cfg).to(device)
+    baseline_cfg = TopologyGraphConfig(hidden_dim=int(cfg.get("baseline_hidden_dim", cfg["hidden_dim"])))
+    baseline = TopologyGraphWorldModel(baseline_cfg).to(device)
     if bool(cfg.get("train_baseline", False)):
         torch.manual_seed(args.seed)
         baseline = TopologyGraphWorldModel(model_cfg).to(device)
@@ -125,6 +126,11 @@ def main():
             epochs=int(cfg["baseline_epochs"]), learning_rate=float(cfg["learning_rate"]),
             rollout_horizon=int(cfg["baseline_rollout_training_horizon"]),
         )
+    elif "external_baseline_model_template" in cfg:
+        baseline_path = Path(str(cfg["external_baseline_model_template"]).format(seed=args.seed))
+        baseline.load_state_dict(torch.load(baseline_path, map_location=device))
+        baseline_history = None
+        print(f"[baseline] loaded {baseline_path}", flush=True)
     else:
         baseline.load_state_dict(torch.load(args.v0_run_dir / "models.pt", map_location=device)["shared_compute_matched"])
         baseline_history = None
