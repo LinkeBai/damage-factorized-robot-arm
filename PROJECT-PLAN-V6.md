@@ -21,6 +21,13 @@
 > - Q0-A 仍保留为工程正结果；它证明异构专家可以无损组合并满足精确约束，但不足以
 >   支撑 DE-DWM 作为论文核心风险机制。权威报告：
 >   `reports/g2-dual-expert-gate-q0b-20260821.md`。
+> - Q0-B 后只读机制诊断进一步发现：在相同 fused state 上，FT structural expert
+>   的局部 joint correction gain 五种子均值为负，正修正样本仅约 `11%--34%`；
+>   `u_cross` 也不能稳定预测 correction gain 或 object residual。因此 Q0-A 的多步
+>   free-arm 收益更可能来自 exact constraint/geometry 对 recurrent rollout 的流形稳定，
+>   而非逐步专家更准。该解释目前仅为探索性诊断，下一候选若继续，必须以 direct
+>   projection、matched unconstrained joint expert 和 teacher-forced rollout 做新的归因门。
+>   详见 `reports/g2-dual-expert-mechanism-diagnostic-20260821.md`。
 >
 > ## 2026-08-21 可转发执行摘要（Q0-A 设计与历史）
 >
