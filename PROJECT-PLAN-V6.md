@@ -50,6 +50,16 @@
 >   对预测稳定性不可替代”判 **NO-GO**。当前确认的预测收益来自 joint/object 独立
 >   transition；projection 的确认价值是把 violation 从 `0.30` 降到 `0`，而不是提高
 >   free/object RMSE。详见 `reports/g2-dppwm-core-ablation-u0-20260821.md`。
+> - V0 最终消除架构/预算混杂：shared parameter-matched graph（338,102 参数，
+>   60轮）、shared compute-matched graph（169,542 参数，120轮）与 independent
+>   joint/object graphs（合计339,084参数，各60轮）使用相同数据、优化器和 rollout
+>   loss。seed 7 depth-10 free/object 为 shared-param `0.34/0.05`、shared-compute
+>   `0.32/0.05`、independent `0.36/0.04`；independent free 分别回退
+>   `3.26%/9.82%`，虽 object 改善 `3.94%`，仍判 **NO-GO**。因此早期约53%的
+>   product收益不能归因于 factorization，主要混入了 graph joint specialist 与旧 generic
+>   ensemble 的架构/训练差异。按冻结顺序不进入 BT-DPWM；混合 backbone 双专家仅保留
+>   为工程 incumbent，不作为因果创新证据。详见
+>   `reports/g2-dual-expert-fair-gate-v0-20260821.md`。
 >
 > ## 2026-08-21 可转发执行摘要（Q0-A 设计与历史）
 >
