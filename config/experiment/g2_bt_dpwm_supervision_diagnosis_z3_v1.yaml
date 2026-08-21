@@ -1,0 +1,17 @@
+version: g2_bt_dpwm_supervision_diagnosis_z3_v1
+status: frozen_2026-08-22
+y6_config: config/experiment/g2_bt_dpwm_replication_y6_v1.yaml
+seeds: [7]
+shared_hidden_dim: 96
+shared_epochs: 240
+shared_learning_rate: 0.001
+shared_rollout_training_horizon: 5
+domains:
+  - D3__mixed_composition
+  - D2__mixed_composition
+  - D4__mixed_composition
+  - D3__mixed_unseen
+gate:
+  minimum_mean_overall_improvement_pct: 1.0
+  maximum_domains_with_overall_regression: 1
+  maximum_constraint_violation_rms: 1.0e-7

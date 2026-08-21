@@ -1754,6 +1754,14 @@ BT-DPWM 相对该强基线三 seed 平均为 free -39.02%、object +36.40%、ove
 待验证假设。下一步须先区分 robot 表示/conditioning 归纳偏置与缺少 contact
 辅助监督，不得继续追加 epoch。
 
+Z2 冻结诊断进一步排除 contact representation 与 object-feedback drift：hidden
+contact AUC 为 shared 0.996、Y6 0.990、Y7 0.995；true-object oracle 对 Y6 depth10
+free RMSE 仅从 0.3272 改到 0.3220。Z3 的同宽 h96/240 shared 对照中，Y6 四域
+均值为 free +0.14%、object +7.08%、overall +0.25%。因此 h96 robot 本身并未因
+梯度边界或 joint-only 监督显著落后；Z1 的巨大差距主要在 shared 扩宽到 h136
+后出现。容量分配假设获得直接支持但尚未最终证明；下一门必须固定总参数约
+338k，增大 robot width、缩小 object width，不得增加总容量或 epochs。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

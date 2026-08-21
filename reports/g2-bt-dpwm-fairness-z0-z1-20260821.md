@@ -62,3 +62,23 @@ simple update budget is not the cause. Capacity allocation also remains unproven
 The next diagnosis must distinguish robot representation/conditioning bias from
 missing contact-related auxiliary supervision; it must not add epochs or rename the
 method.
+
+## Z2--Z3: representation, feedback, and capacity attribution
+
+Z2 used frozen models only. Linear contact probes on disjoint training trajectories
+showed that robot hidden states were already strongly contact-informative: shared
+h136 AUC 0.996, Y6 0.990, and Y7 0.995. Both contact and non-contact robot rollout
+errors were worse in BT. Supplying the true object state at every recursive step
+barely changed depth-10 robot RMSE (Y6 0.3272 -> 0.3220; Y7 0.3336 -> 0.3330),
+excluding contact recognition and object-feedback drift as primary causes.
+
+Depth stratification showed Y6 better than strong shared at depths 1--2 but diverging
+from depth 3 onward. Z3 then trained a same-width shared h96 model for 240 epochs.
+Against that model across four domains, Y6 was +0.14% free-arm, +7.08% object, and
++0.25% overall. Thus joint-only supervision and the hard gradient boundary do not
+create a material robot deficit at matched robot width. The large Z1 deficit appears
+only when the shared baseline concentrates its parameter budget at h136.
+
+This supports, but does not yet prove, the capacity-allocation hypothesis. The next
+gate must keep total BT-DPWM parameters near 338k while increasing robot width and
+reducing object width. It must not increase total capacity or add training epochs.
