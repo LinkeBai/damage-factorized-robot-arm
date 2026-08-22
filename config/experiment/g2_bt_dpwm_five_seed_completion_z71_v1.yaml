@@ -1,0 +1,26 @@
+version: g2_bt_dpwm_five_seed_completion_z71_v1
+status: frozen_before_seed37_47_results
+method: stable_uncertainty_calibrated_bt_dpwm_z69_z70
+seeds: [7, 17, 27, 37, 47]
+new_seeds: [37, 47]
+transition_budgets: [0, 5, 10, 25, 50]
+domains: [D2__friction_motor, D3__mixed_composition, D4__delay_deadband,
+          D3__unseen_residual]
+base_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
+bt_config: config/experiment/g2_bt_dpwm_zero_topology_columns_z69_v1.yaml
+adapter_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
+encoder_config: config/experiment/g2_bt_dpwm_context_encoder_z65_v1.yaml
+evaluation_config: config/experiment/g2_bt_dpwm_z69_context_eval_z70_v1.yaml
+confidence_level: 0.95
+bootstrap_resamples: 10000
+primary_estimand: mean_bt_relative_shared_overall_pct
+gate:
+  all_bt_own_gains_nonnegative: true
+  aggregate_bt_curve_monotonic: true
+  maximum_constraint_violation_rmse: 1.0e-7
+  minimum_k10_k25_sample_efficiency_difference_pct: 0.0
+  minimum_k50_relative_shared_pct: -1.0
+notes:
+  - Seeds 37 and 47 are fixed before their checkpoints or results exist.
+  - No seed may be replaced or excluded based on outcome.
+  - Shared and BT use the same calibration data, adapter architecture, and optimizer budget.
