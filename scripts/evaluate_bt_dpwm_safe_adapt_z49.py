@@ -158,14 +158,18 @@ def encode_context(model, adapter, encoder, trajectory, domain, budget, device,
                     fused_log_variance = -torch.log(old_precision+new_precision)
                 candidates.append((float(validation_fn(z)), int(prefix_count),
                                    float(shrink), z, fused_log_variance))
+        # A previously accepted context is never irreversible: z=0 remains a
+        # deployment-safe candidate at every larger budget.
+        if float(incumbent.norm()) > 0.0:
+            candidates.append((float(validation_fn(zero)), 0, 0.0, zero, None))
     best_loss, best_prefix, best_shrink, best_z, best_log_variance = min(
         candidates, key=lambda x: x[0])
-    if incumbent_log_variance is None:
-        minimum = float(cfg["adaptation"]["minimum_validation_improvement"])
-    else:
+    if isinstance(encoder, UncertainPhysicalContextEncoder):
         minimum = float(cfg.get("replacement_minimum_validation_improvement", 0.0))
         minimum = float(cfg.get(
             "replacement_minimum_by_topology", {}).get(topology_key, minimum))
+    else:
+        minimum = float(cfg["adaptation"]["minimum_validation_improvement"])
     relative_improvement = ((incumbent_loss - best_loss) /
                             max(incumbent_loss, 1e-12))
     mean_std = (float(torch.exp(0.5*best_log_variance).mean())
@@ -174,9 +178,11 @@ def encode_context(model, adapter, encoder, trajectory, domain, budget, device,
         "maximum_context_mean_std", float("inf")))
     accepted = relative_improvement >= minimum and uncertainty_ok
     selected = best_z if accepted else incumbent
+    zero_recovery = accepted and best_prefix == 0 and best_shrink == 0.0
     return selected, {
         "rolled_back": not accepted, "accepted_steps": int(accepted),
-        "reason": "context_encoder" if accepted else "incumbent_retained",
+        "reason": ("zero_context_recovery" if zero_recovery else
+                   "context_encoder" if accepted else "incumbent_retained"),
         "fit_count": fit_count, "validation_count": validation_count,
         "initial_validation_loss": incumbent_loss,
         "best_validation_loss": best_loss,
@@ -184,14 +190,15 @@ def encode_context(model, adapter, encoder, trajectory, domain, budget, device,
         "required_validation_improvement": minimum,
         "prefix_count": best_prefix if accepted else 0,
         "shrink_factor": best_shrink if accepted else None,
-        "raw_z_norm": float(best_z.norm()/max(best_shrink, 1e-12)),
+        "raw_z_norm": (0.0 if zero_recovery else
+                       float(best_z.norm()/max(best_shrink, 1e-12))),
         "z_norm": float(selected.norm()),
         "candidate_context": [float(x) for x in best_z.detach().cpu()],
         "selected_context": [float(x) for x in selected.detach().cpu()],
         "context_mean_std": mean_std,
         "context_log_variance": ([float(x) for x in best_log_variance.detach().cpu()]
                                  if best_log_variance is not None else None),
-        "posterior_log_variance": (
+        "posterior_log_variance": (None if zero_recovery else
             [float(x) for x in best_log_variance.detach().cpu()] if accepted
             and best_log_variance is not None else incumbent_log_variance),
         "candidate_validation_losses": {
