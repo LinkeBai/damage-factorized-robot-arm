@@ -1,0 +1,12 @@
+version: g2_bt_dpwm_z80_context_posterior_calibration_v1
+status: frozen_before_independent_context_coverage_collection
+encoder_config: config/experiment/g2_bt_dpwm_context_encoder_z65_v1.yaml
+encoder_run_template: runs/g2_bt_dpwm_context_encoder_z65/seed{seed}_v1
+development_seeds: [7, 17, 27, 37, 47]
+confirmation_seeds: [57, 67]
+collection_seed_offset: 80640
+trajectories_per_domain: 2
+transition_budgets: [3, 6, 15, 30]
+nominal_coverages: [0.50, 0.80, 0.90, 0.95]
+temperature_clip: [0.05, 20.0]
+maximum_mean_absolute_coverage_error: 0.10
