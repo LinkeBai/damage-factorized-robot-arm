@@ -23,6 +23,13 @@ def test_safe_excitation_is_bounded_and_projects_lock():
     assert np.array_equal(first[:, 2], np.zeros(50))
 
 
+def test_smaller_transition_budgets_are_exact_prefixes():
+    full = safe_excitation(CalibrationPlan("D2", 1, 50, 10.0, .04, 107))
+    for budget in (5, 10, 25):
+        short = safe_excitation(CalibrationPlan("D2", 1, budget, 10.0, .04, 107))
+        np.testing.assert_array_equal(short, full[:budget])
+
+
 def test_transition_validation_rejects_lock_drift():
     states = np.zeros((6, 14)); actions = np.zeros((5, 5))
     states[-1, 1] = .2

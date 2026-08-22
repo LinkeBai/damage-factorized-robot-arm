@@ -2156,3 +2156,8 @@ Z69 已修正旧 BT checkpoint 将 shared 训练中从未激活的 topology 输�
 检查硬件安全配置、舵机串口、OpenCV ArUco、合格内参与实时视觉流，并将是否允许低幅 smoke
 写成机器可读 JSON。2026-08-22 当前审计为 NO-GO（仅硬件配置通过；串口、OpenCV、标定、
 实时流未通过），且确认未执行运动。该 gate 必须先转为全绿，不能用 synthetic pose 绕过。
+
+真实 transition budget 协议进一步冻结为 nested-prefix：每个 topology/repetition 只采集一条
+K50 安全激励轨迹，K=0/5/10/25/50 均从同一条轨迹依次取前缀。执行模式拒绝单独采 K5/K10/
+K25，防止把不同初始状态或重复运动混入样本效率横轴；因此 D2/D3×3 的物理采集总量为6条
+K50轨迹，而不是24条相互独立的预算轨迹。

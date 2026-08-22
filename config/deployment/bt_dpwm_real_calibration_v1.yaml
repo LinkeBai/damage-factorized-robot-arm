@@ -3,6 +3,7 @@ topologies:
   D2: {locked_joint_index: 1}
   D3: {locked_joint_index: 2}
 transition_budgets: [0, 5, 10, 25, 50]
+collection_transitions: 50  # collect once; all budgets are nested prefixes
 frequency_hz: 10.0
 action_amplitude_rad: 0.04
 maximum_vision_age_ms: 150

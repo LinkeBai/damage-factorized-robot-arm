@@ -54,7 +54,8 @@ def main():
     ap.add_argument("--config", type=Path, default=Path(
         "config/deployment/bt_dpwm_real_calibration_v1.yaml"))
     ap.add_argument("--topology", choices=("D2", "D3"), required=True)
-    ap.add_argument("--budget", type=int, choices=(5, 10, 25, 50), required=True)
+    ap.add_argument("--budget", type=int, choices=(5, 10, 25, 50), default=50,
+                    help="dry-run override only; execution must collect the full nested trajectory")
     ap.add_argument("--repetition", type=int, choices=(1, 2, 3), required=True)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--port", default="COM3")
@@ -64,6 +65,11 @@ def main():
     ap.add_argument("--acknowledge-risk", default="")
     args = ap.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    collection_transitions = int(cfg.get("collection_transitions",
+                                     max(cfg["transition_budgets"])))
+    if args.execute and args.budget != collection_transitions:
+        raise SystemExit(
+            f"execution requires --budget {collection_transitions}; K budgets are nested prefixes")
     joint_map = yaml.safe_load(Path("hardware/joint_map.yaml").read_text(encoding="utf-8"))
     safety = yaml.safe_load(Path("hardware/safety_limits.yaml").read_text(encoding="utf-8"))
     locked = int(cfg["topologies"][args.topology]["locked_joint_index"])
@@ -74,7 +80,9 @@ def main():
     output = args.output_dir/args.topology/f"rep{args.repetition}_k{args.budget}"
     output.mkdir(parents=True, exist_ok=True)
     plan_payload = {"config_version": cfg["version"], **plan.__dict__,
-                    "execute": args.execute, "actions": actions.tolist()}
+                    "execute": args.execute, "actions": actions.tolist(),
+                    "budget_protocol": "nested_prefixes",
+                    "inference_budgets": cfg["transition_budgets"]}
     (output/"plan.json").write_text(json.dumps(plan_payload, indent=2), encoding="utf-8")
     if not args.execute:
         print(f"dry-run only; wrote {output/'plan.json'}")
