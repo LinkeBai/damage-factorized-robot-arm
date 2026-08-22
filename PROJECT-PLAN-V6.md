@@ -2261,3 +2261,23 @@ Spearman为-0.734（p=4.47e-5，方向相反）；K50为+0.119（p=0.779，不�
 `uncertainty-calibrated safe adaptation`强主张不成立，G2仍不能完成。允许的下一改善仅限同一
 posterior在新development风险标签上的校准，并需另设未见confirmation seeds；57/67不可复用
 为修改后规则的确认集。
+
+Z80将Z65重新按其训练目标审计为8维physical-context posterior：NLL中的log-variance对应
+经`CONTEXT_SCALE`归一化的误差，而不是可直接平均的物理单位risk std。五development seed
+在独立active probes上拟合per-budget/per-dimension Gaussian temperature，57/67使用另一组
+probe只做coverage；67域×2轨迹×4预算得到2680/1072条development/confirmation记录。正确的
+dimensionwise coverage MACE为0.0856，通过冻结≤0.10总门，且80/90/95%区间MACE为
+0.056/0.030/0.030；但50%区间MACE达0.226，最差单cell误差0.410。故高coverage物理context
+区间获得有限校准证据，完整Gaussian posterior仍非均匀校准，且不能替代Z79失败的rollout-risk
+排序。下一步保持同一posterior，使用development经验分位数做budget/dimension conformal校准，
+并以新encoder seed和新probe确认，不能重复使用已观察的57/67 coverage作为最终证据。
+
+Z81保持Z65 encoder及posterior mean不变，用7/17/27/37/47的独立probe拟合
+`|normalized context error|/posterior std`的budget×dimension经验分位半径；encoder seed77/87
+及新probe在任何Z81 coverage结果前冻结，只用于确认。overall dimensionwise MACE为0.0289，
+50/80/90/95%分别0.0454/0.0397/0.0167/0.0139，budget3/6/15/30分别0.0326/0.0261/
+0.0260/0.0309，全部低于预注册0.10门。故同一physical-context posterior经conformal层后可获得
+跨新encoder seed的coverage校准；Z80的50%误差由0.226降至0.045。其角色必须与安全风险分开：
+conformal intervals量化物理context估计不确定性，nested support+hysteresis负责更新决策，永久
+z=0负责可逆回退，解析投影负责锁定坐标。Z79关于raw spread不能排序rollout harm的失败仍成立；
+旧`mean_std<=0.30`不得继续承担安全主张，若从可执行Z75中删除仍需新end-to-end confirmation。
