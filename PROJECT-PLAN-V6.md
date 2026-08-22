@@ -2192,3 +2192,28 @@ violation为0；K25/K50 seed-bootstrap 95% CI约为[+1.36%,+5.61%]。公平share
 Z71失败结果及Z72--Z74开发轨迹全部保留，不能用Z75覆盖。由于Z75由五seed安全审计产生，
 论文级确认还需要未参与改动的独立confirmation seed；在此之前将其标为development pass on
 safety/monotonicity，而不是最终G2 Go。
+
+---
+
+## 24. Z76 独立确认结论（2026-08-23）
+
+在任何seed57/67 checkpoint产生前，独立冻结两seed、四域、K=0/5/10/25/50及1个百分点
+paired-equivalence门槛；Z69基础机制、Z70公平adapter、Z65 uncertainty encoder和Z75嵌套
+support安全规则均未根据确认结果修改。两seed均完整保留V0、Z32、Z69和最终Z75链路。
+
+确认集再次暴露旧双专家不稳定：seed57 V0 free +6.14%但object -2.82%；seed67 V0 free
+-25.98%（相对compute-matched为-32.28%）。seed67 Z32将free回退缩至-16.06%，Z69仅通过
+清零未训练topology输入列并保留解析投影，将free/overall恢复到+0.47%/+0.27%；seed57
+Z69为free/overall +2.21%/+2.05%，但object仍-20.42%。因此这些Y0结果继续作为NO-GO和
+根因恢复证据，不替代最终few-shot结果。
+
+Z76最终BT-own K=0/5/10/25/50均值为`0/3.880/3.880/8.065/8.065%`，shared为
+`0/3.933/3.933/6.440/8.686%`。全部seed/domain/budget的BT-own gain非负，均值单调，
+constraint violation为0；K50 BT-own两seedbootstrap区间为[+3.24%,+12.89%]。这使
+“可逆、安全、能产生有用改善”的窄主张获得独立确认。
+
+更强的paired sample-efficiency gate未通过：K25 BT-minus-shared CI下界为-0.051个百分点，
+在1pp等效界内；K50下界为-1.191pp，比-1pp门槛差0.191pp。尽管K50 BT相对shared均值
+为+0.092%，仍必须按配对下界判NO-GO，不能声称独立确认下等效或领先。当前仍处G2补证据，
+不是完整G2 Go，更未进入G3。下一步冻结方法，完成BT机制消融、robustness、uncertainty
+calibration、compute/failure ledger和统一论文表；不得在seed57/67上调Z75阈值。
