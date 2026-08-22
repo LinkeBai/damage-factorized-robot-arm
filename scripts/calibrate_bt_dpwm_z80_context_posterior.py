@@ -47,7 +47,11 @@ def coverage_summary(records, temperatures, nominal_coverages):
             summaries.append({"budget": budget, "nominal_coverage": float(nominal),
                 "empirical_coverage": float(per_dimension.mean()),
                 "per_dimension_coverage": per_dimension.tolist(),
-                "absolute_error": float(abs(per_dimension.mean()-nominal))})
+                "absolute_error": float(abs(per_dimension.mean()-nominal)),
+                "mean_dimensionwise_absolute_error": float(
+                    np.mean(np.abs(per_dimension-nominal))),
+                "maximum_dimensionwise_absolute_error": float(
+                    np.max(np.abs(per_dimension-nominal)))})
     return summaries
 
 
@@ -117,8 +121,9 @@ def main():
         development, temperatures, cfg["nominal_coverages"])
     confirmation_coverage = coverage_summary(
         confirmation, temperatures, cfg["nominal_coverages"])
-    confirmation_mace = float(np.mean(
-        [row["absolute_error"] for row in confirmation_coverage]))
+    confirmation_mace = float(np.mean([
+        row["mean_dimensionwise_absolute_error"]
+        for row in confirmation_coverage]))
     output = {"version": cfg["version"], "device": str(device),
               "context_scale": CONTEXT_SCALE.tolist(),
               "development_seeds": cfg["development_seeds"],
