@@ -2217,3 +2217,14 @@ constraint violation为0；K50 BT-own两seedbootstrap区间为[+3.24%,+12.89%]�
 为+0.092%，仍必须按配对下界判NO-GO，不能声称独立确认下等效或领先。当前仍处G2补证据，
 不是完整G2 Go，更未进入G3。下一步冻结方法，完成BT机制消融、robustness、uncertainty
 calibration、compute/failure ledger和统一论文表；不得在seed57/67上调Z75阈值。
+
+Z76确认后的纯诊断消融进一步定位了uncertainty问题。移除nested support memory在57/67上
+未产生负BT-own gain，因此独立两seed本身不能证明memory必要；其必要性证据仍来自开发集
+seed47的历史窗口遗忘反例。只移除`context_mean_std<=0.30`、保留uncertain encoder、统一
+hysteresis、永久z=0与nested support后，五个development seed及seed57逐行完全不变；seed67
+D3 unseen唯一受影响，原规则因mean std 0.464拒绝的context在消融中使overall RMSE从
+0.26596降至0.22851（BT-own +14.08%）。七seed共12个被support验证接受的更新中，仅该更新
+超过0.30且它是有益的。故当前绝对posterior-std阈值没有风险校准证据且表现过保守；论文只能
+把posterior spread写为诊断量，安全主张主要由paired support验证、hysteresis与可逆z=0承担。
+不得在确认seed上直接删阈值后宣称新方法通过；若改为topology/budget条件风险界，必须使用新
+development数据并另设未见confirmation seeds。
