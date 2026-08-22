@@ -1,0 +1,22 @@
+version: g2_bt_dpwm_z76_confirmation_v1
+status: frozen_before_any_seed57_67_checkpoint
+development_seeds: [7, 17, 27, 37, 47]
+confirmation_seeds: [57, 67]
+method: stable_uncertainty_calibrated_bt_dpwm_z69_z65_z75
+transition_budgets: [0, 5, 10, 25, 50]
+domains: [D2__mixed_composition, D3__mixed_composition,
+          D4__mixed_composition, D3__mixed_unseen]
+bootstrap_resamples: 10000
+confidence_level: 0.95
+equivalence_margin_pct_points: 1.0
+gate:
+  all_bt_own_gains_nonnegative: true
+  aggregate_bt_curve_monotonic: true
+  maximum_constraint_violation_rmse: 1.0e-7
+  minimum_k25_bt_own_gain_pct: 0.0
+  minimum_k50_bt_own_gain_pct: 0.0
+  minimum_k50_relative_shared_pct: -1.0
+notes:
+  - Seeds 57 and 67 were fixed after Z75 development and before their checkpoints existed.
+  - No confirmation seed may be replaced or excluded based on outcome.
+  - Z75 config and checkpoints are frozen; only same-seed base/adapter/encoder training is allowed.
