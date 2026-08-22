@@ -37,6 +37,14 @@ from scripts.run_object_preserving_projection_x1 import evaluate
 from scripts.run_push_benchmark import collect_push_domains
 
 
+class IdentityTopologySurgery:
+    def project_state(self, state, damage_mask, lock_angle):
+        return state
+
+    def project_action(self, action, damage_mask):
+        return action
+
+
 def register_robustness_domains(specifications):
     """Build evaluation-only domains from frozen inline residual profiles."""
     domains = []
@@ -292,6 +300,11 @@ def main():
                         help="Optional domain ids for focused diagnostics.")
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    if cfg.get("base_evaluation_config"):
+        parent_cfg = yaml.safe_load(Path(
+            cfg["base_evaluation_config"]).read_text(encoding="utf-8"))
+        cfg = {**parent_cfg, **{key: value for key, value in cfg.items()
+                               if key != "base_evaluation_config"}}
     z48_cfg = yaml.safe_load(Path(cfg["z48_config"]).read_text(encoding="utf-8"))
     base_cfg = yaml.safe_load(Path(z48_cfg["base_config"]).read_text(encoding="utf-8"))
     q0a = yaml.safe_load(Path(base_cfg["q0a_config"]).read_text(encoding="utf-8"))
@@ -346,6 +359,10 @@ def main():
     bt_adapter = ProjectedResidualInnovation(**adapter_args).to(device)
     shared_adapter.load_state_dict(torch.load(adapter_run/"shared_adapter.pt", map_location=device))
     bt_adapter.load_state_dict(torch.load(adapter_run/"bt_adapter.pt", map_location=device))
+    if cfg.get("bt_disable_locked_residual_projection", False):
+        bt_adapter.project_free_coordinates = False
+    if cfg.get("bt_disable_analytic_projection", False):
+        bt.surgery = IdentityTopologySurgery()
     for module in (shared, bt, shared_adapter, bt_adapter):
         module.eval()
         for parameter in module.parameters(): parameter.requires_grad_(False)
@@ -415,14 +432,26 @@ def main():
                     domain, budget, device, cfg, False)
                 bt_z, bt_diag = adapt(bt, bt_adapter, adaptation_trajectory,
                     domain, budget, device, cfg, True)
+            if budget == 0 and cfg.get("bt_k0_ablation_context") is not None:
+                bt_z = torch.as_tensor(cfg["bt_k0_ablation_context"], device=device,
+                                       dtype=next(bt_adapter.parameters()).dtype)
+                bt_diag = {"rolled_back": False, "accepted_steps": 0,
+                           "reason": "nonzero_k0_ablation",
+                           "z_norm": float(bt_z.norm())}
             shared_model = FewShotProjectedModel(
                 shared, shared_adapter, base_uses_topology=False).to(device)
-            bt_model = FewShotProjectedModel(bt, bt_adapter).to(device)
+            bt_model = FewShotProjectedModel(bt, bt_adapter,
+                adapter_before_object=not cfg.get(
+                    "bt_post_object_residual_ablation", False)).to(device)
+            if cfg.get("bt_disable_analytic_projection", False):
+                bt_model.surgery = IdentityTopologySurgery()
             shared_model.set_residual_context(shared_z)
             bt_model.set_residual_context(bt_z)
             result = evaluate({"shared": shared_model, "bt_dpwm": bt_model},
                 domain, evaluation_trajectories, device, int(q0a["rollout_horizon"]),
-                topology_aware_methods=("shared", "bt_dpwm"))
+                topology_aware_methods=("shared", "bt_dpwm"),
+                unprojected_methods=(("bt_dpwm",) if cfg.get(
+                    "bt_unprojected_evaluation", False) else ()))
             values = {x["method"]: x for x in result}
             base, candidate = values["shared"], values["bt_dpwm"]
             bt_candidate_counterfactual = None

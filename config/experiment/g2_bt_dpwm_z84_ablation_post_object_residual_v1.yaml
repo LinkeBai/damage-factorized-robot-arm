@@ -1,0 +1,4 @@
+version: g2_bt_dpwm_z84_ablation_post_object_residual_v1
+status: frozen_structural_ablation
+base_evaluation_config: config/experiment/g2_bt_dpwm_z75_nested_support_gate_v1.yaml
+bt_post_object_residual_ablation: true

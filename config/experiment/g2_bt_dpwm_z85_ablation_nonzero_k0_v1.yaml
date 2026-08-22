@@ -1,0 +1,6 @@
+version: g2_bt_dpwm_z85_ablation_nonzero_k0_v1
+status: frozen_structural_ablation
+base_evaluation_config: config/experiment/g2_bt_dpwm_z75_nested_support_gate_v1.yaml
+# Deterministic balanced vector with norm 0.17, matching accepted-context scale.
+bt_k0_ablation_context: [0.060104, 0.060104, 0.060104, 0.060104,
+                         0.060104, 0.060104, 0.060104, 0.060104]

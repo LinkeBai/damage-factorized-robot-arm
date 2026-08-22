@@ -58,6 +58,31 @@ def test_bt_object_block_receives_adapted_robot_transition():
     assert not torch.allclose(adapted_prediction[:, 10:], zero_prediction[:, 10:])
 
 
+def test_post_object_ablation_blocks_residual_from_object_transition():
+    torch.manual_seed(13)
+    base = BlockTriangularDPWM(independent_object_encoder=True)
+    adapter = ProjectedResidualInnovation(latent_dim=8, rank=8)
+    wrapped = FewShotProjectedModel(base, adapter, adapter_before_object=False)
+    state, action, mask, angle = _inputs()
+    wrapped.set_residual_context(torch.zeros(8))
+    zero_prediction, _ = wrapped.step(state, action, mask, angle, None)
+    wrapped.set_residual_context(torch.ones(8))
+    adapted_prediction, _ = wrapped.step(state, action, mask, angle, None)
+    assert not torch.allclose(adapted_prediction[:, :10], zero_prediction[:, :10])
+    torch.testing.assert_close(adapted_prediction[:, 10:], zero_prediction[:, 10:])
+
+
+def test_locked_residual_ablation_emits_locked_coordinate_correction():
+    torch.manual_seed(17)
+    adapter = ProjectedResidualInnovation(
+        latent_dim=8, rank=8, project_free_coordinates=False)
+    state, action, mask, _ = _inputs()
+    mask[:, 2] = 1.0
+    correction = adapter(state, action, mask, torch.ones(8))
+    assert torch.count_nonzero(correction[:, 2]) > 0
+    assert torch.count_nonzero(correction[:, 7]) > 0
+
+
 def test_physical_correction_limits_bound_each_free_coordinate():
     adapter = ProjectedResidualInnovation(
         position_limit=0.0015, velocity_limit=0.025)

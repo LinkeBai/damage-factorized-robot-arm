@@ -85,7 +85,8 @@ def train(model, batch, *, epochs, learning_rate, horizon):
 
 
 @torch.no_grad()
-def evaluate(models, domain, trajectories, device, horizon, topology_aware_methods=()):
+def evaluate(models, domain, trajectories, device, horizon,
+             topology_aware_methods=(), unprojected_methods=()):
     states = torch.stack([x.states for x in trajectories]).to(device)
     actions = torch.stack([x.actions for x in trajectories]).to(device)
     mask, angle = _damage_tensors([domain.damage] * len(trajectories), device)
@@ -103,7 +104,8 @@ def evaluate(models, domain, trajectories, device, horizon, topology_aware_metho
                                            else (zeros, zeros))
                 raw, hidden[name] = model.step(pred[name], actions[:, start + depth],
                                                model_mask, model_angle, hidden[name])
-                pred[name] = surgery.project_state(raw, mask, angle)
+                pred[name] = (raw if name in unprojected_methods else
+                              surgery.project_state(raw, mask, angle))
                 if depth == horizon - 1:
                     error = (pred[name] - target).pow(2)
                     values[name]["free"].append((error[:, :10] * free_mask).sum(-1) / free_count)

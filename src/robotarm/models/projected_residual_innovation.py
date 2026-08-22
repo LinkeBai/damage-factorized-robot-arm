@@ -32,7 +32,8 @@ class ProjectedResidualInnovation(nn.Module):
                  memory_dim: int = 0,
                  analytic_history: bool = False,
                  history_deadband: float = 0.04,
-                 shared_joint_basis: bool = False) -> None:
+                 shared_joint_basis: bool = False,
+                 project_free_coordinates: bool = True) -> None:
         super().__init__()
         self.dof = dof
         self.latent_dim = latent_dim
@@ -42,6 +43,7 @@ class ProjectedResidualInnovation(nn.Module):
         self.memory_dim = int(memory_dim)
         self.analytic_history = bool(analytic_history)
         self.shared_joint_basis = bool(shared_joint_basis)
+        self.project_free_coordinates = bool(project_free_coordinates)
         self.history_deadband = float(history_deadband)
         if self.analytic_history and self.memory_dim:
             raise ValueError("analytic history and learned recurrent memory are exclusive")
@@ -161,8 +163,9 @@ class ProjectedResidualInnovation(nn.Module):
         if self.correction_limits is not None:
             limits = self.correction_limits.to(robot_correction)
             robot_correction = limits * torch.tanh(robot_correction / limits)
-        free = torch.cat((1.0 - damage_mask, 1.0 - damage_mask), dim=-1)
-        robot_correction = robot_correction * free
+        if self.project_free_coordinates:
+            free = torch.cat((1.0 - damage_mask, 1.0 - damage_mask), dim=-1)
+            robot_correction = robot_correction * free
         object_zeros = state.new_zeros(
             state.shape[0], state.shape[-1] - 2 * self.dof
         )
@@ -184,11 +187,13 @@ class FewShotProjectedModel(nn.Module):
     """Attach residual innovation to a frozen-compatible BT-DPWM interface."""
 
     def __init__(self, base_model: nn.Module, adapter: ProjectedResidualInnovation,
-                 *, base_uses_topology: bool = True):
+                 *, base_uses_topology: bool = True,
+                 adapter_before_object: bool = True):
         super().__init__()
         self.base_model = base_model
         self.adapter = adapter
         self.base_uses_topology = base_uses_topology
+        self.adapter_before_object = bool(adapter_before_object)
         self.surgery = TopologySurgery()
         self.register_buffer(
             "residual_context", torch.zeros(adapter.latent_dim), persistent=False
@@ -217,7 +222,8 @@ class FewShotProjectedModel(nn.Module):
         # BT-DPWM exposes its triangular blocks.  Insert the calibrated robot
         # transition before the object block so object rollout is a genuine
         # downstream consequence of robot adaptation.
-        if hasattr(self.base_model, "step_robot") and hasattr(self.base_model, "step_object"):
+        if (self.adapter_before_object and hasattr(self.base_model, "step_robot")
+                and hasattr(self.base_model, "step_object")):
             object_hidden = None
             if getattr(self.base_model, "independent_object_encoder", False) and base_hidden is not None:
                 object_hidden = (base_hidden[1] if isinstance(base_hidden, tuple)
