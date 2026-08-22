@@ -40,6 +40,8 @@ empirically supported deployment safety chain is support validation + hysteresis
 - `runs/g2_bt_dpwm_final_synthesis_v1/summary.json`: verdict and provenance.
 - `runs/g2_bt_dpwm_final_synthesis_v1/claim_table.csv`: paper/table source.
 - `runs/g2_bt_dpwm_final_synthesis_v1/budget_curves.csv`: numeric curve source.
+- `runs/g2_bt_dpwm_final_synthesis_v1/completion_audit.json`: 40/40
+  requirement-and-version-control checks passed.
 - Z75--Z85 source summaries remain immutable inputs; Z78 retains failed runs.
 
 ## Next gate

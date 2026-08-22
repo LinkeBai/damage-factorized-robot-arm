@@ -2323,3 +2323,7 @@ rollout risk、block-triangular object bridge是主要性能来源。
 是否进入G3是论文定位决策，而不是继续换模型：若接受窄主张，先让真机readiness全绿并执行
 intact/D3低幅smoke；若坚持性能领先主张，则需在同一模型内另开development并使用全新confirmation
 seeds，现有57/67不得再次作为未见验证集。
+
+最终completion audit逐项检查11类统一artifact的本地存在性和Git跟踪状态，以及18项实验要求，
+共40/40通过；冻结的aggregate、confirmation/robustness/structural-ablation paired raw summaries、
+claim table和curve source已选择性纳入版本控制，不再只存在于被`.gitignore`排除的本地`runs/`。

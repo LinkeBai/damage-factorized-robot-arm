@@ -1,0 +1,655 @@
+{
+  "version": "g2_bt_dpwm_z80_context_posterior_calibration_v1",
+  "device": "cuda",
+  "context_scale": [
+    0.30000001192092896,
+    0.699999988079071,
+    0.699999988079071,
+    1.0,
+    0.6000000238418579,
+    0.6000000238418579,
+    0.6000000238418579,
+    0.6000000238418579
+  ],
+  "development_seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "confirmation_seeds": [
+    57,
+    67
+  ],
+  "domain_count": 67,
+  "development_record_count": 2680,
+  "confirmation_record_count": 1072,
+  "temperature_by_budget_and_dimension": {
+    "3": [
+      0.8141541905964818,
+      1.0110250870414794,
+      1.0051747596086973,
+      0.4991214034152049,
+      0.9230414206094311,
+      0.39104645935749566,
+      0.3851288372007477,
+      0.9059063346524981
+    ],
+    "6": [
+      0.9583622897168055,
+      0.9708641288298046,
+      0.9602617674117667,
+      0.9673754727265057,
+      0.9610299302176197,
+      1.0168017133066103,
+      1.0254779563068865,
+      0.9498970025742259
+    ],
+    "15": [
+      1.0060173263021726,
+      1.0253950190736618,
+      1.0294796038875935,
+      0.9103841072013078,
+      1.0285122061623155,
+      1.0787036273535608,
+      1.0955518491238483,
+      1.0381404641030534
+    ],
+    "30": [
+      1.2995903654806373,
+      1.12826808571073,
+      1.0451651846388201,
+      1.126160404409421,
+      1.044282133421221,
+      0.7649421827803401,
+      0.7823949073351494,
+      1.071264958112729
+    ]
+  },
+  "development_coverage": [
+    {
+      "budget": 3,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.4255597014925373,
+      "per_dimension_coverage": [
+        0.382089552238806,
+        0.4208955223880597,
+        0.373134328358209,
+        0.6253731343283582,
+        0.1537313432835821,
+        0.6268656716417911,
+        0.6194029850746269,
+        0.20298507462686566
+      ],
+      "absolute_error": 0.0744402985074627,
+      "mean_dimensionwise_absolute_error": 0.1673507462686567,
+      "maximum_dimensionwise_absolute_error": 0.34626865671641793
+    },
+    {
+      "budget": 3,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.8319029850746269,
+      "per_dimension_coverage": [
+        0.8417910447761194,
+        0.7895522388059701,
+        0.7417910447761195,
+        0.7373134328358208,
+        0.8507462686567164,
+        0.9149253731343283,
+        0.9283582089552239,
+        0.8507462686567164
+      ],
+      "absolute_error": 0.031902985074626855,
+      "mean_dimensionwise_absolute_error": 0.06473880597014925,
+      "maximum_dimensionwise_absolute_error": 0.12835820895522387
+    },
+    {
+      "budget": 3,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9324626865671641,
+      "per_dimension_coverage": [
+        0.9074626865671642,
+        0.9253731343283582,
+        0.9432835820895522,
+        0.8835820895522388,
+        0.9656716417910448,
+        0.9402985074626866,
+        0.9402985074626866,
+        0.9537313432835821
+      ],
+      "absolute_error": 0.03246268656716411,
+      "mean_dimensionwise_absolute_error": 0.03656716417910448,
+      "maximum_dimensionwise_absolute_error": 0.06567164179104479
+    },
+    {
+      "budget": 3,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.9686567164179104,
+      "per_dimension_coverage": [
+        0.9462686567164179,
+        0.9850746268656716,
+        1.0,
+        0.9313432835820895,
+        1.0,
+        0.9432835820895522,
+        0.9432835820895522,
+        1.0
+      ],
+      "absolute_error": 0.018656716417910446,
+      "mean_dimensionwise_absolute_error": 0.02761194029850747,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.4313432835820895,
+      "per_dimension_coverage": [
+        0.3537313432835821,
+        0.3880597014925373,
+        0.35074626865671643,
+        0.43283582089552236,
+        0.15522388059701492,
+        0.7880597014925373,
+        0.7731343283582089,
+        0.208955223880597
+      ],
+      "absolute_error": 0.06865671641791049,
+      "mean_dimensionwise_absolute_error": 0.208955223880597,
+      "maximum_dimensionwise_absolute_error": 0.3447761194029851
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.8281716417910447,
+      "per_dimension_coverage": [
+        0.7970149253731343,
+        0.7776119402985074,
+        0.7776119402985074,
+        0.7597014925373134,
+        0.844776119402985,
+        0.9104477611940298,
+        0.9104477611940298,
+        0.8477611940298507
+      ],
+      "absolute_error": 0.0281716417910447,
+      "mean_dimensionwise_absolute_error": 0.05018656716417909,
+      "maximum_dimensionwise_absolute_error": 0.11044776119402977
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9281716417910448,
+      "per_dimension_coverage": [
+        0.9343283582089552,
+        0.9298507462686567,
+        0.9507462686567164,
+        0.9194029850746268,
+        0.9492537313432836,
+        0.9104477611940298,
+        0.9104477611940298,
+        0.9208955223880597
+      ],
+      "absolute_error": 0.02817164179104481,
+      "mean_dimensionwise_absolute_error": 0.02817164179104474,
+      "maximum_dimensionwise_absolute_error": 0.05074626865671639
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.9735074626865672,
+      "per_dimension_coverage": [
+        0.9731343283582089,
+        0.9880597014925373,
+        1.0,
+        0.9850746268656716,
+        1.0,
+        0.9194029850746268,
+        0.9223880597014925,
+        1.0
+      ],
+      "absolute_error": 0.023507462686567226,
+      "mean_dimensionwise_absolute_error": 0.03805970149253733,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.49421641791044774,
+      "per_dimension_coverage": [
+        0.46417910447761196,
+        0.3880597014925373,
+        0.3761194029850746,
+        0.47761194029850745,
+        0.208955223880597,
+        0.9104477611940298,
+        0.9044776119402985,
+        0.22388059701492538
+      ],
+      "absolute_error": 0.005783582089552264,
+      "mean_dimensionwise_absolute_error": 0.20951492537313432,
+      "maximum_dimensionwise_absolute_error": 0.4104477611940298
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.839365671641791,
+      "per_dimension_coverage": [
+        0.7492537313432835,
+        0.8626865671641791,
+        0.8134328358208955,
+        0.7716417910447761,
+        0.8492537313432836,
+        0.9104477611940298,
+        0.9104477611940298,
+        0.8477611940298507
+      ],
+      "absolute_error": 0.039365671641790945,
+      "mean_dimensionwise_absolute_error": 0.0591417910447761,
+      "maximum_dimensionwise_absolute_error": 0.11044776119402977
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9192164179104478,
+      "per_dimension_coverage": [
+        0.9014925373134328,
+        0.9194029850746268,
+        0.9208955223880597,
+        0.8895522388059701,
+        0.9656716417910448,
+        0.9104477611940298,
+        0.9104477611940298,
+        0.935820895522388
+      ],
+      "absolute_error": 0.019216417910447814,
+      "mean_dimensionwise_absolute_error": 0.021828358208955193,
+      "maximum_dimensionwise_absolute_error": 0.06567164179104479
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.9617537313432836,
+      "per_dimension_coverage": [
+        0.9880597014925373,
+        0.9432835820895522,
+        0.9731343283582089,
+        0.9686567164179104,
+        1.0,
+        0.9104477611940298,
+        0.9104477611940298,
+        1.0
+      ],
+      "absolute_error": 0.011753731343283613,
+      "mean_dimensionwise_absolute_error": 0.03320895522388061,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.47313432835820896,
+      "per_dimension_coverage": [
+        0.33880597014925373,
+        0.47761194029850745,
+        0.49402985074626865,
+        0.4671641791044776,
+        0.21492537313432836,
+        0.7626865671641792,
+        0.755223880597015,
+        0.2746268656716418
+      ],
+      "absolute_error": 0.026865671641791045,
+      "mean_dimensionwise_absolute_error": 0.15634328358208954,
+      "maximum_dimensionwise_absolute_error": 0.28507462686567164
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.8328358208955224,
+      "per_dimension_coverage": [
+        0.808955223880597,
+        0.8313432835820895,
+        0.7746268656716417,
+        0.7850746268656716,
+        0.8507462686567164,
+        0.8805970149253731,
+        0.8835820895522388,
+        0.8477611940298507
+      ],
+      "absolute_error": 0.032835820895522394,
+      "mean_dimensionwise_absolute_error": 0.042910447761194015,
+      "maximum_dimensionwise_absolute_error": 0.08358208955223878
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9186567164179105,
+      "per_dimension_coverage": [
+        0.9552238805970149,
+        0.9343283582089552,
+        0.9253731343283582,
+        0.8925373134328358,
+        0.9283582089552239,
+        0.8985074626865671,
+        0.8925373134328358,
+        0.9223880597014925
+      ],
+      "absolute_error": 0.018656716417910446,
+      "mean_dimensionwise_absolute_error": 0.022761194029850745,
+      "maximum_dimensionwise_absolute_error": 0.055223880597014885
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.9597014925373134,
+      "per_dimension_coverage": [
+        0.9731343283582089,
+        0.9522388059701492,
+        0.9492537313432836,
+        0.9641791044776119,
+        1.0,
+        0.9164179104477612,
+        0.9223880597014925,
+        1.0
+      ],
+      "absolute_error": 0.00970149253731345,
+      "mean_dimensionwise_absolute_error": 0.025186567164179094,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    }
+  ],
+  "confirmation_coverage": [
+    {
+      "budget": 3,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.40671641791044777,
+      "per_dimension_coverage": [
+        0.34701492537313433,
+        0.376865671641791,
+        0.3208955223880597,
+        0.43283582089552236,
+        0.13805970149253732,
+        0.7835820895522388,
+        0.6977611940298507,
+        0.15671641791044777
+      ],
+      "absolute_error": 0.09328358208955223,
+      "mean_dimensionwise_absolute_error": 0.21361940298507465,
+      "maximum_dimensionwise_absolute_error": 0.3619402985074627
+    },
+    {
+      "budget": 3,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.8554104477611941,
+      "per_dimension_coverage": [
+        0.8731343283582089,
+        0.7985074626865671,
+        0.8171641791044776,
+        0.7798507462686567,
+        0.8507462686567164,
+        0.9402985074626866,
+        0.9328358208955224,
+        0.8507462686567164
+      ],
+      "absolute_error": 0.05541044776119408,
+      "mean_dimensionwise_absolute_error": 0.06082089552238805,
+      "maximum_dimensionwise_absolute_error": 0.14029850746268657
+    },
+    {
+      "budget": 3,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9277052238805971,
+      "per_dimension_coverage": [
+        0.9104477611940298,
+        0.917910447761194,
+        0.9328358208955224,
+        0.8694029850746269,
+        0.9701492537313433,
+        0.9402985074626866,
+        0.9402985074626866,
+        0.9402985074626866
+      ],
+      "absolute_error": 0.02770522388059704,
+      "mean_dimensionwise_absolute_error": 0.0353544776119403,
+      "maximum_dimensionwise_absolute_error": 0.07014925373134329
+    },
+    {
+      "budget": 3,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.9682835820895522,
+      "per_dimension_coverage": [
+        0.9402985074626866,
+        1.0,
+        0.9925373134328358,
+        0.917910447761194,
+        1.0,
+        0.9477611940298507,
+        0.9477611940298507,
+        1.0
+      ],
+      "absolute_error": 0.018283582089552275,
+      "mean_dimensionwise_absolute_error": 0.02985074626865672,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.4393656716417911,
+      "per_dimension_coverage": [
+        0.3880597014925373,
+        0.35074626865671643,
+        0.2947761194029851,
+        0.4626865671641791,
+        0.15671641791044777,
+        0.8507462686567164,
+        0.8694029850746269,
+        0.1417910447761194
+      ],
+      "absolute_error": 0.06063432835820892,
+      "mean_dimensionwise_absolute_error": 0.24067164179104478,
+      "maximum_dimensionwise_absolute_error": 0.3694029850746269
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.8353544776119404,
+      "per_dimension_coverage": [
+        0.7835820895522388,
+        0.8059701492537313,
+        0.7873134328358209,
+        0.7835820895522388,
+        0.8507462686567164,
+        0.9104477611940298,
+        0.9104477611940298,
+        0.8507462686567164
+      ],
+      "absolute_error": 0.03535447761194033,
+      "mean_dimensionwise_absolute_error": 0.046735074626865644,
+      "maximum_dimensionwise_absolute_error": 0.11044776119402977
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9305037313432836,
+      "per_dimension_coverage": [
+        0.9104477611940298,
+        0.9402985074626866,
+        0.9552238805970149,
+        0.917910447761194,
+        0.9514925373134329,
+        0.9253731343283582,
+        0.9253731343283582,
+        0.917910447761194
+      ],
+      "absolute_error": 0.030503731343283547,
+      "mean_dimensionwise_absolute_error": 0.03050373134328356,
+      "maximum_dimensionwise_absolute_error": 0.055223880597014885
+    },
+    {
+      "budget": 6,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.978544776119403,
+      "per_dimension_coverage": [
+        0.9850746268656716,
+        1.0,
+        1.0,
+        0.9776119402985075,
+        1.0,
+        0.9328358208955224,
+        0.9328358208955224,
+        1.0
+      ],
+      "absolute_error": 0.028544776119403092,
+      "mean_dimensionwise_absolute_error": 0.03712686567164181,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.4794776119402985,
+      "per_dimension_coverage": [
+        0.5,
+        0.3880597014925373,
+        0.3358208955223881,
+        0.39552238805970147,
+        0.208955223880597,
+        0.9104477611940298,
+        0.9104477611940298,
+        0.1865671641791045
+      ],
+      "absolute_error": 0.020522388059701524,
+      "mean_dimensionwise_absolute_error": 0.22574626865671643,
+      "maximum_dimensionwise_absolute_error": 0.4104477611940298
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.820429104477612,
+      "per_dimension_coverage": [
+        0.7388059701492538,
+        0.8097014925373134,
+        0.75,
+        0.7425373134328358,
+        0.8507462686567164,
+        0.9104477611940298,
+        0.9104477611940298,
+        0.8507462686567164
+      ],
+      "absolute_error": 0.020429104477611926,
+      "mean_dimensionwise_absolute_error": 0.06259328358208953,
+      "maximum_dimensionwise_absolute_error": 0.11044776119402977
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9202425373134329,
+      "per_dimension_coverage": [
+        0.8731343283582089,
+        0.9104477611940298,
+        0.9253731343283582,
+        0.9067164179104478,
+        0.9552238805970149,
+        0.9328358208955224,
+        0.9253731343283582,
+        0.9328358208955224
+      ],
+      "absolute_error": 0.02024253731343284,
+      "mean_dimensionwise_absolute_error": 0.026958955223880587,
+      "maximum_dimensionwise_absolute_error": 0.055223880597014885
+    },
+    {
+      "budget": 15,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.9743470149253732,
+      "per_dimension_coverage": [
+        0.9850746268656716,
+        0.9776119402985075,
+        1.0,
+        0.9514925373134329,
+        1.0,
+        0.9402985074626866,
+        0.9402985074626866,
+        1.0
+      ],
+      "absolute_error": 0.024347014925373278,
+      "mean_dimensionwise_absolute_error": 0.029197761194029864,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.5,
+      "empirical_coverage": 0.47761194029850745,
+      "per_dimension_coverage": [
+        0.26119402985074625,
+        0.5447761194029851,
+        0.4701492537313433,
+        0.40298507462686567,
+        0.1791044776119403,
+        0.8731343283582089,
+        0.8880597014925373,
+        0.20149253731343283
+      ],
+      "absolute_error": 0.022388059701492546,
+      "mean_dimensionwise_absolute_error": 0.22388059701492538,
+      "maximum_dimensionwise_absolute_error": 0.3880597014925373
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.8,
+      "empirical_coverage": 0.840018656716418,
+      "per_dimension_coverage": [
+        0.8208955223880597,
+        0.835820895522388,
+        0.8097014925373134,
+        0.7425373134328358,
+        0.8582089552238806,
+        0.9029850746268657,
+        0.9104477611940298,
+        0.8395522388059702
+      ],
+      "absolute_error": 0.04001865671641791,
+      "mean_dimensionwise_absolute_error": 0.05438432835820893,
+      "maximum_dimensionwise_absolute_error": 0.11044776119402977
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.9,
+      "empirical_coverage": 0.9272388059701493,
+      "per_dimension_coverage": [
+        0.9552238805970149,
+        0.9104477611940298,
+        0.9328358208955224,
+        0.9029850746268657,
+        0.9328358208955224,
+        0.9402985074626866,
+        0.9253731343283582,
+        0.917910447761194
+      ],
+      "absolute_error": 0.02723880597014927,
+      "mean_dimensionwise_absolute_error": 0.027238805970149244,
+      "maximum_dimensionwise_absolute_error": 0.055223880597014885
+    },
+    {
+      "budget": 30,
+      "nominal_coverage": 0.95,
+      "empirical_coverage": 0.9701492537313432,
+      "per_dimension_coverage": [
+        0.9850746268656716,
+        0.9552238805970149,
+        0.9776119402985075,
+        0.9925373134328358,
+        1.0,
+        0.9402985074626866,
+        0.9402985074626866,
+        0.9701492537313433
+      ],
+      "absolute_error": 0.020149253731343242,
+      "mean_dimensionwise_absolute_error": 0.02500000000000001,
+      "maximum_dimensionwise_absolute_error": 0.050000000000000044
+    }
+  ],
+  "confirmation_mean_absolute_coverage_error": 0.08560517723880598,
+  "gate": {
+    "maximum_mean_absolute_coverage_error": 0.1,
+    "passed": true
+  }
+}

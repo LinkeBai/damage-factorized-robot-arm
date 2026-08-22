@@ -1,0 +1,208 @@
+{
+  "version": "bt_dpwm_g2_completion_audit_v1",
+  "checks": [
+    {
+      "requirement": "artifact:development",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z75_nested_support/five_seed_development_v1/summary.json"
+    },
+    {
+      "requirement": "git_tracked:development",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z75_nested_support/five_seed_development_v1/summary.json"
+    },
+    {
+      "requirement": "artifact:confirmation",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z76_confirmation/two_seed_confirmation_v1/summary.json"
+    },
+    {
+      "requirement": "git_tracked:confirmation",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z76_confirmation/two_seed_confirmation_v1/summary.json"
+    },
+    {
+      "requirement": "artifact:robustness",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z77_robustness/two_seed_summary_v1/summary.json"
+    },
+    {
+      "requirement": "git_tracked:robustness",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z77_robustness/two_seed_summary_v1/summary.json"
+    },
+    {
+      "requirement": "artifact:compute_failure",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z78_compute_failure_ledger/summary.json"
+    },
+    {
+      "requirement": "git_tracked:compute_failure",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z78_compute_failure_ledger/summary.json"
+    },
+    {
+      "requirement": "artifact:rollout_risk",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z79_uncertainty_counterfactual/calibration_v1/summary.json"
+    },
+    {
+      "requirement": "git_tracked:rollout_risk",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z79_uncertainty_counterfactual/calibration_v1/summary.json"
+    },
+    {
+      "requirement": "artifact:gaussian_coverage",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z80_context_posterior_calibration/summary.json"
+    },
+    {
+      "requirement": "git_tracked:gaussian_coverage",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z80_context_posterior_calibration/summary.json"
+    },
+    {
+      "requirement": "artifact:conformal_coverage",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z81_conformal_context_calibration/summary.json"
+    },
+    {
+      "requirement": "git_tracked:conformal_coverage",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z81_conformal_context_calibration/summary.json"
+    },
+    {
+      "requirement": "artifact:structural_ablations",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z82_structural_ablations/two_seed_summary_v1/summary.json"
+    },
+    {
+      "requirement": "git_tracked:structural_ablations",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_z82_structural_ablations/two_seed_summary_v1/summary.json"
+    },
+    {
+      "requirement": "artifact:synthesis",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_final_synthesis_v1/summary.json"
+    },
+    {
+      "requirement": "git_tracked:synthesis",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_final_synthesis_v1/summary.json"
+    },
+    {
+      "requirement": "artifact:claim_table",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_final_synthesis_v1/claim_table.csv"
+    },
+    {
+      "requirement": "git_tracked:claim_table",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_final_synthesis_v1/claim_table.csv"
+    },
+    {
+      "requirement": "artifact:curve_source",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_final_synthesis_v1/budget_curves.csv"
+    },
+    {
+      "requirement": "git_tracked:curve_source",
+      "passed": true,
+      "evidence": "runs/g2_bt_dpwm_final_synthesis_v1/budget_curves.csv"
+    },
+    {
+      "requirement": "Z71 failures and Z72-Z75 trajectory retained",
+      "passed": true,
+      "evidence": "Z78 failure ledger"
+    },
+    {
+      "requirement": "five-seed development matrix complete",
+      "passed": true,
+      "evidence": "Z75"
+    },
+    {
+      "requirement": "independent confirmation matrix complete",
+      "passed": true,
+      "evidence": "Z76"
+    },
+    {
+      "requirement": "confirmation has no negative own gain",
+      "passed": true,
+      "evidence": "Z76"
+    },
+    {
+      "requirement": "confirmation aggregate budget curve monotonic",
+      "passed": true,
+      "evidence": "Z76"
+    },
+    {
+      "requirement": "confirmation constraint violation is zero",
+      "passed": true,
+      "evidence": "Z76"
+    },
+    {
+      "requirement": "K>0 has independent positive contribution",
+      "passed": true,
+      "evidence": "Z76"
+    },
+    {
+      "requirement": "paired seed CI and equivalence decision recorded",
+      "passed": true,
+      "evidence": "Z76"
+    },
+    {
+      "requirement": "six-factor robustness complete",
+      "passed": true,
+      "evidence": "Z77"
+    },
+    {
+      "requirement": "robustness safety gate passes",
+      "passed": true,
+      "evidence": "Z77"
+    },
+    {
+      "requirement": "stratified coverage-risk audit complete",
+      "passed": true,
+      "evidence": "Z79"
+    },
+    {
+      "requirement": "rollout-risk failure disclosed",
+      "passed": true,
+      "evidence": "Z79"
+    },
+    {
+      "requirement": "Gaussian context coverage recorded",
+      "passed": true,
+      "evidence": "Z80"
+    },
+    {
+      "requirement": "conformal context coverage passes",
+      "passed": true,
+      "evidence": "Z81"
+    },
+    {
+      "requirement": "all four BT structural conclusions recorded",
+      "passed": true,
+      "evidence": "Z82-Z85"
+    },
+    {
+      "requirement": "parameter comparison recorded",
+      "passed": true,
+      "evidence": "Z78"
+    },
+    {
+      "requirement": "training/adaptation wall-clock recorded",
+      "passed": true,
+      "evidence": "Z78"
+    },
+    {
+      "requirement": "unified synthesis explicitly discloses failed strong claims",
+      "passed": true,
+      "evidence": "final synthesis"
+    }
+  ],
+  "passed_count": 40,
+  "check_count": 40,
+  "passed": true
+}

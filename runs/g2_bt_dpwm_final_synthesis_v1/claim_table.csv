@@ -1,0 +1,9 @@
+claim,status,evidence
+safe nonnegative few-shot adaptation,PASS,Z76 all own gains nonnegative; max violation 0
+paired equivalence to shared at K25/K50,FAIL,Z76 K50 lower CI -1.191 pp < -1 pp
+strict robustness monotonicity,FAIL,Z77 aggregate and every-seed monotonic gates failed
+support gate rejects observed harmful proposals,PASS,Z79 3 / 0 harmful proposed/accepted
+raw posterior spread ranks rollout risk,FAIL,Z79 Spearman -0.734
+conformal physical-context coverage,PASS,Z81 dimensionwise MACE 0.0289
+analytic projection enforces topology safety,PASS,Z82 no-projection violation RMSE up to 0.14454
+block-triangular object bridge is performance-dominant,NOT SUPPORTED,Z84 max paired object-RMSE effect 1.97e-5
