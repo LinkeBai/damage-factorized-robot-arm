@@ -24,6 +24,7 @@ from src.robotarm.training.sim_protocol import DomainSpec
 from src.robotarm.envs.residual_physics import ResidualPhysicsConfig
 
 PUSH_XML = "sim/assets/arm_push.xml"
+CTRL_SCALE = np.array([1.5, 1.8, 2.4, 1.8, 3.0], dtype=np.float32)
 
 _warp_initialized = False
 _cached_base_model: mujoco.MjModel | None = None
@@ -38,16 +39,18 @@ def _ensure_warp():
 
 def _apply_residual_to_model(m: mujoco.MjModel, residual: ResidualPhysicsConfig) -> None:
     """Apply residual physics parameters to a MuJoCo model in-place."""
-    # Actuator gear (strength scaling)
-    for i, scale in enumerate(residual.actuator_scale):
-        if i < m.nu:
-            m.actuator_gear[i, 0] *= scale
-
-    # Damping
-    m.dof_damping[:] *= residual.damping_scale
-
-    # Friction (geom-level)
-    m.geom_friction[:, 0] *= residual.friction_scale
+    # arm_push.xml orders two block slide DoFs before the five arm DoFs.
+    m.dof_damping[2:7] *= residual.damping_scale
+    m.dof_frictionloss[2:7] *= residual.friction_scale
+    m.dof_armature[2:7] *= residual.armature_scale
+    if residual.payload_mass_delta_kg > 0:
+        tool_id = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "tool")
+        old_mass = float(m.body_mass[tool_id])
+        new_mass = old_mass + residual.payload_mass_delta_kg
+        m.body_mass[tool_id] = new_mass
+        if old_mass > 0:
+            m.body_inertia[tool_id] *= new_mass / old_mass
+        mujoco.mj_setConst(m, mujoco.MjData(m))
 
 
 def _active_probe_actions(step: int, nworld: int, locked_per_world: list) -> np.ndarray:
@@ -112,14 +115,14 @@ def collect_push_domains_warp(
         qpos_np = np.zeros((nworld, m_base.nq), dtype=np.float32)
         qvel_np = np.zeros((nworld, m_base.nv), dtype=np.float32)
 
-        # Set block initial position for each world
-        # block qpos indices: last 7 (3 pos + 4 quat) if freejoint
-        block_qpos_start = m_base.nq - 7  # assume block has freejoint at end
+        # Simulator order is [block_x, block_y, j1..j5].  The world-model
+        # contract is [j1..j5, v1..v5, block_xy, block_vxy].
+        block_qpos_adr = np.array([0, 1])
+        arm_qpos_adr = np.arange(2, 7)
+        arm_qvel_adr = np.arange(2, 7)
+        block_origin = m_base.body("block").pos[:2].copy()
         for w in range(nworld):
-            qpos_np[w, block_qpos_start] = block_initial_xy[0]
-            qpos_np[w, block_qpos_start + 1] = block_initial_xy[1]
-            qpos_np[w, block_qpos_start + 2] = 0.025  # block z height
-            qpos_np[w, block_qpos_start + 3] = 1.0    # quat w
+            qpos_np[w, block_qpos_adr] = block_initial_xy - block_origin
 
         wd.qpos = wp.from_numpy(qpos_np, dtype=wp.float32, device="cuda")
         wd.qvel = wp.from_numpy(qvel_np, dtype=wp.float32, device="cuda")
@@ -132,19 +135,39 @@ def collect_push_domains_warp(
         rng = np.random.default_rng(seed)
         all_states = np.zeros((nworld, steps + 1, m_base.nq + m_base.nv), dtype=np.float32)
         all_actions = np.zeros((nworld, steps, m_base.nu), dtype=np.float32)
+        all_applied_actions = np.zeros_like(all_actions)
 
-        # Capture initial states
-        qpos_init = wd.qpos.numpy().copy()
-        qvel_init = wd.qvel.numpy().copy()
-        all_states[:, 0, :m_base.nq] = qpos_init
-        all_states[:, 0, m_base.nq:] = qvel_init
+        def canonical_state(qpos, qvel):
+            return np.concatenate((
+                qpos[:, arm_qpos_adr], qvel[:, arm_qvel_adr],
+                qpos[:, block_qpos_adr] + block_origin[None, :],
+                qvel[:, block_qpos_adr]), axis=1)
 
         # Locked joint indices per world
         locked_per_world = []
+        lock_angles_per_world = []
         for domain_idx, (_, domain) in enumerate(indexed_domains):
             for traj_idx in range(trajectories_per_domain):
                 w = domain_idx * trajectories_per_domain + traj_idx
                 locked_per_world.append(list(domain.damage.locked))
+                lock_angles_per_world.append([
+                    domain.damage.lock_angle_of(j) for j in domain.damage.locked
+                ])
+
+        # Match MujocoArmEnv.reset: locked joints start exactly at lock angle.
+        for w, locked in enumerate(locked_per_world):
+            for local, joint in enumerate(locked):
+                qpos_np[w, arm_qpos_adr[joint]] = lock_angles_per_world[w][local]
+                qvel_np[w, arm_qvel_adr[joint]] = 0.0
+        wd.qpos = wp.from_numpy(qpos_np, dtype=wp.float32, device="cuda")
+        wd.qvel = wp.from_numpy(qvel_np, dtype=wp.float32, device="cuda")
+        mjw.fwd_kinematics(wm, wd)
+        all_states[:, 0, :] = canonical_state(qpos_np, qvel_np)
+
+        delay = residual.control_delay_steps
+        action_history = [np.zeros((nworld, m_base.nu), dtype=np.float32)
+                          for _ in range(delay)]
+        previous_velocity_sign = np.zeros((nworld, 5), dtype=np.int8)
 
         # Simulate
         actions = np.zeros((nworld, m_base.nu), dtype=np.float32)
@@ -160,30 +183,52 @@ def collect_push_domains_warp(
                         if j < m_base.nu:
                             actions[w, j] = 0.0
 
-            all_actions[:, step, :] = actions
+            commanded = actions.copy()
+            all_actions[:, step, :] = commanded
 
-            ctrl_wp = wp.from_numpy(actions.copy(), dtype=wp.float32, device="cuda")
+            filtered = np.where(
+                np.abs(commanded) < residual.action_deadband, 0.0, commanded)
+            action_history.append(filtered.copy())
+            applied = action_history.pop(0) if delay else action_history.pop()
+
+            # Match the CPU backlash approximation on velocity reversal.
+            if np.any(residual.backlash_array > 0):
+                qvel_full = wd.qvel.numpy().copy()
+                qvel_before = qvel_full[:, arm_qvel_adr].copy()
+                current_sign = np.where(qvel_before > 1e-4, 1,
+                                        np.where(qvel_before < -1e-4, -1, 0))
+                reversal = ((current_sign != 0) & (previous_velocity_sign != 0)
+                            & (current_sign != previous_velocity_sign))
+                applied[reversal & (residual.backlash_array[None, :] > 0)] = 0.0
+                qvel_before[reversal & (residual.backlash_array[None, :] > 0)] *= 0.5
+                qvel_full[:, arm_qvel_adr] = qvel_before
+                wd.qvel = wp.from_numpy(qvel_full, dtype=wp.float32, device="cuda")
+                previous_velocity_sign = np.where(
+                    current_sign != 0, current_sign, previous_velocity_sign)
+
+            all_applied_actions[:, step, :] = applied
+
+            ctrl = applied * CTRL_SCALE[None, :] * residual.actuator_scale_array[None, :]
+            ctrl = np.clip(ctrl, m_base.actuator_ctrlrange[:, 0],
+                           m_base.actuator_ctrlrange[:, 1]).astype(np.float32)
+            ctrl_wp = wp.from_numpy(ctrl, dtype=wp.float32, device="cuda")
             wd.ctrl = ctrl_wp
             mjw.step(wm, wd)
 
             qpos_t = wd.qpos.numpy().copy()
             qvel_t = wd.qvel.numpy().copy()
-            all_states[:, step + 1, :m_base.nq] = qpos_t
-            all_states[:, step + 1, m_base.nq:] = qvel_t
+            # A zero command is not a mechanical lock.  Re-pin after every
+            # integration step, exactly as MujocoArmEnv._apply_damage does.
+            for w, locked in enumerate(locked_per_world):
+                for local, joint in enumerate(locked):
+                    qpos_t[w, arm_qpos_adr[joint]] = lock_angles_per_world[w][local]
+                    qvel_t[w, arm_qvel_adr[joint]] = 0.0
+            wd.qpos = wp.from_numpy(qpos_t, dtype=wp.float32, device="cuda")
+            wd.qvel = wp.from_numpy(qvel_t, dtype=wp.float32, device="cuda")
+            mjw.fwd_kinematics(wm, wd)
+            all_states[:, step + 1, :] = canonical_state(qpos_t, qvel_t)
 
         wp.synchronize()
-
-        # Apply control delay post-hoc (shift actions)
-        delay = residual.control_delay_steps
-        if delay > 0:
-            delayed_actions = np.zeros_like(all_actions)
-            delayed_actions[:, delay:, :] = all_actions[:, :-delay, :]
-            all_actions = delayed_actions
-
-        # Apply deadband post-hoc
-        if residual.action_deadband > 0:
-            db = residual.action_deadband
-            all_actions = np.where(np.abs(all_actions) < db, 0.0, all_actions)
 
         # Apply observation noise post-hoc
         if residual.observation_noise_std > 0:
@@ -198,12 +243,11 @@ def collect_push_domains_warp(
                     domain_id=domain.domain_id,
                     states=torch.from_numpy(all_states[w]).float(),
                     actions=torch.from_numpy(all_actions[w]).float(),
-                    applied_actions=torch.from_numpy(all_actions[w]).float(),
+                    applied_actions=torch.from_numpy(all_applied_actions[w]).float(),
                     metadata={
                         "tool_block_contact_steps": 0,  # not tracked in warp mode
                         "block_displacement_m": float(np.linalg.norm(
-                            all_states[w, -1, block_qpos_start:block_qpos_start + 2] -
-                            all_states[w, 0, block_qpos_start:block_qpos_start + 2]
+                            all_states[w, -1, 10:12] - all_states[w, 0, 10:12]
                         )),
                         "warp_collected": True,
                     },

@@ -21,6 +21,10 @@ class SimTrajectory:
     states: torch.Tensor  # (T + 1, 10)
     actions: torch.Tensor  # commanded actions, (T, 5)
     applied_actions: torch.Tensor  # delayed/deadband-filtered actions, (T, 5)
+    contact_mask: torch.Tensor | None = None  # optional per-transition contact, (T,)
+    contact_impulses: torch.Tensor | None = None  # force integral on object, (T, 2)
+    table_impulses: torch.Tensor | None = None  # table force integral on object, (T, 2)
+    contact_records: list[list[dict[str, object]]] | None = None
     metadata: dict[str, float | int | str] = field(default_factory=dict)
 
 

@@ -1,0 +1,20 @@
+version: g2_bt_dpwm_fewshot_z48_v1
+status: active_mechanism_gate
+base_config: config/experiment/g2_bt_dpwm_meta_train_z32_v1.yaml
+seeds: [7, 17, 27]
+train_trajectories_per_domain: 6
+calibration_trajectories: 5
+outer_epochs: 240
+outer_learning_rate: 0.0003
+inner_steps: 8
+inner_learning_rate: 0.15
+inner_l2: 0.001
+adapter_rank: 8
+adapter_hidden_dim: 64
+calibration_shots: [0, 1, 2, 5]
+rollout_horizon: 5
+gate:
+  minimum_k5_improvement_pct: 10.0
+  require_every_seed_positive: true
+  maximum_domain_regressions: 0
+  require_kshot_contribution: true

@@ -75,6 +75,10 @@ def collect_push_trajectory(
     states = [obs["state"].copy()]
     commanded: list[np.ndarray] = []
     applied: list[np.ndarray] = []
+    contacts: list[bool] = []
+    contact_impulses: list[np.ndarray] = []
+    table_impulses: list[np.ndarray] = []
+    contact_records: list[list[dict[str, object]]] = []
     contact_steps = 0
     initial_block = env.block_pos().copy()
     locked = {i: domain.damage.lock_angle_of(i) for i in domain.damage.locked}
@@ -117,15 +121,30 @@ def collect_push_trajectory(
         commanded.append(action.copy())
         applied.append(env.last_applied_action)
         states.append(result["observation"]["state"].copy())
-        contact_steps += int(
-            env.has_contact("tool_geom", "block_geom")
-            or env.has_contact("pusher_geom", "block_geom")
+        contact = (
+            env.last_has_contact("tool_geom", "block_geom")
+            or env.last_has_contact("pusher_geom", "block_geom")
         )
+        contacts.append(contact)
+        contact_impulses.append(
+            env.contact_impulse_xy("tool_geom", "block_geom")
+            + env.contact_impulse_xy("pusher_geom", "block_geom")
+        )
+        table_impulses.append(env.contact_impulse_xy("table_geom", "block_geom"))
+        contact_records.append(
+            env.contact_records("tool_geom", "block_geom")
+            + env.contact_records("pusher_geom", "block_geom")
+        )
+        contact_steps += int(contact)
     return SimTrajectory(
         domain_id=domain.domain_id,
         states=torch.as_tensor(np.stack(states), dtype=torch.float32),
         actions=torch.as_tensor(np.stack(commanded), dtype=torch.float32),
         applied_actions=torch.as_tensor(np.stack(applied), dtype=torch.float32),
+        contact_mask=torch.as_tensor(contacts, dtype=torch.bool),
+        contact_impulses=torch.as_tensor(np.stack(contact_impulses), dtype=torch.float32),
+        table_impulses=torch.as_tensor(np.stack(table_impulses), dtype=torch.float32),
+        contact_records=contact_records,
         metadata={
             "tool_block_contact_steps": contact_steps,
             "block_displacement_m": float(np.linalg.norm(env.block_pos() - initial_block)),

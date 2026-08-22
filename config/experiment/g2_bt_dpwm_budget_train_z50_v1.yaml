@@ -1,0 +1,17 @@
+version: g2_bt_dpwm_budget_train_z50_v1
+status: active_seed7_gate
+base_config: config/experiment/g2_bt_dpwm_meta_train_z32_v1.yaml
+seeds: [7]
+train_trajectories_per_domain: 6
+outer_epochs: 160
+outer_learning_rate: 0.0003
+inner_steps: 8
+inner_learning_rate: 0.15
+inner_l2: 0.001
+adapter_rank: 8
+adapter_hidden_dim: 64
+training_transition_budgets: [5, 10, 25, 50]
+correction_position_limit: 0.0015
+correction_velocity_limit: 0.025
+calibration_shots: [0, 1, 2, 5]
+rollout_horizon: 5

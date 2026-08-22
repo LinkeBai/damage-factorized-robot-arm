@@ -1,0 +1,19 @@
+version: g2_bt_dpwm_centered_eval_z57_v1
+status: active_seed7_oracle_gate
+z48_config: config/experiment/g2_bt_dpwm_centered_z57_v1.yaml
+z48_run_template: runs/g2_bt_dpwm_centered_z57/seed{seed}_v1
+transition_budgets: [0, 5, 10, 25, 50]
+calibration_excitation: active
+evaluation_excitation: goal
+correction_position_limit: 0.0015
+correction_velocity_limit: 0.025
+fit_fraction: 0.6
+adaptation:
+  steps: 12
+  initial_step_size: 0.2
+  backtracking_factor: 0.5
+  backtracking_steps: 8
+  trust_radius: 0.5
+  l2: 0.001
+  validation_tolerance: 0.01
+  minimum_validation_improvement: 0.0001

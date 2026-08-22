@@ -1,11 +1,74 @@
 # Project Plan V6 — Robust Zero-Shot Structured Dynamics
 
 **项目**：低成本机械臂关节锁定后的稳健零样本结构化动力学
-**版本日期**：2026-08-21
+**版本日期**：2026-08-22
 **规划模式**：standard  
 **规划基线**：本文件是后续执行的最新基线；旧版计划和失败实验保留为审计记录  
-**当前状态**：原始 DFWM 与完整结构化 object/contact world model 均已 No-Go；ordinary ensemble 的预测收益、selective prediction 和 FT-GWM K1 的约束关节动力学仍成立。Dual-Expert Damage World Model（DE-DWM）的 Q0-A 融合保真 two-seed PASS，但核心风险机制 Q0-B 仅 3/5 seeds 达到 AURC 改善 10% 门槛，低于预注册 4/5，最终判 NO-GO；不进入 Q0-C 或 Guarded MPC。
+**当前状态**：主线已冻结为 **Stable Uncertainty-Calibrated BT-DPWM（Z69+Z70）**。已知锁定拓扑的解析投影、自由关节 residual innovation、robot→independent-object 单向因果链和 K=0 严格零旁路均保留。经过 Warp 数据语义修复、已知拓扑/held-out residual 协议校正、amortized physical-context posterior 和未训练 topology 输入列修复，seed 7/17/27 的 0/5/10/25/50-transition 公平门控全部满足 BT 自身无负迁移、总体随预算单调改善、constraint violation 为零；K10/K25 样本效率超过相同 adapter/数据/预算的 shared h136/240，K50 总体近乎持平。下一阶段为真机 D2/D3 与 object expert 风险边界。
 **证据约束**：实测结果均指向可追溯 artifact；未来时间、GPU-h、工时和阈值仍属于项目管理估计
+
+> ## 2026-08-22 Z65 三种子冻结门控（当前最新状态）
+>
+> - 核心方法为 **Uncertainty-Calibrated Block-Triangular Damage-Projected World
+>   Model**：解析投影固定已知锁定关节；residual innovation 只修正自由关节；校准后的
+>   robot transition 单向驱动 independent object expert；K=0 时 context 严格为零，
+>   不存在静态 topology/residual 旁路。
+> - Z63 oracle 在四个 held-out residual 域相对 BT 自身 K0 分别证明约
+>   `+9.78%/+19.15%/+1.55%/+11.27%` 的表达上限；Z64/Z65 将仿真训练期物理描述符
+>   蒸馏为仅使用 state/action/known-lock-mask 的可真机 amortized posterior，并加入
+>   nested-budget consistency、逐轴不确定度、support-validation rollback、后验精度融合、
+>   topology observability wait 和 replacement hysteresis。
+> - seed 7 四域平均 BT自身增益随预算为
+>   `0/3.45/4.78/5.77/5.77%`；seed 17 为
+>   `0/0/0/7.79/10.98%`；seed 27 为
+>   `0/0/0/2.03/7.70%`。全部 seed×domain×budget 无负迁移，每个 seed 最终至少
+>   3/4 域为正，constraint violation 最大值为 `0`。object RMSE 的最大绝对变化仅
+>   `0.173%`，且只能来自校准 robot rollout 链路。
+> - 权威机器汇总：
+>   `runs/g2_bt_dpwm_context_encoder_z65/three_seed_gate_v1/summary.json`；生成器：
+>   `scripts/summarize_bt_dpwm_z65_gate.py`。核心测试当前 `16 passed`。
+> - **必须诚实保留的风险**：三 seed 的 Z65 适配机制稳定，但 K0 BT 基座相对 shared
+>   h136/240 方差仍大。seed 17 overall 明显落后 shared；seed 27 free/overall 更好但
+>   object 更差。因此当前结论是“部署适配机制三 seed PASS”，不是“完整模型已全面超过
+>   shared”。下一步只在同一 BT-DPWM 主线内稳定基座 robot/object 训练与 checkpoint
+>   selection，再做同 adapter/数据/预算的公平 shared 比较。
+> - 基座稳定化诊断：Z66 直接从同 seed shared checkpoint 初始化 robot 并对 object
+>   validation-best selection，使最差 seed17 overall 劣势从 `-27.96%` 缩小到
+>   `-9.18%`，证明 scaffold 初始化是主要方差源之一；Z67 进一步移除内部
+>   topology/contact 条件后 overall 灾难性退化 `-281.36%`，明确 **NO-GO**。因此
+>   recurrent robot hidden 必须保留已知锁定拓扑，后续不得再以 damage-agnostic 为由
+>   删除 topology；只优化同一结构的初始化与验证选择。
+> - 真机接口冻结为：已知锁定关节编号/锁定角、ST3215 电流与位置/速度、眼在手上视觉
+>   object pose、0/5/10/25/50 条安全 excitation transitions；不要求力传感器。优先 D2、
+>   D3 两种锁定条件，每种至少三次安全校准与重复 rollout。
+
+> ## 2026-08-22 Z69+Z70 公平基座与 shared 门控（取代上节“基座待稳定”）
+>
+> - 根因修复：shared backbone 训练时 topology mask/angle 恒为零，旧 BT 却向对应未训练
+>   随机输入列写入真实拓扑，造成 seed-dependent robot 漂移。Z69 从同 seed shared
+>   checkpoint 完整复制 robot block，清零这两列，只由解析 state/action projection 使用
+>   已知锁定拓扑。三 seed 相对 shared 的 K0 free-arm 回退压到最多 `1.23%`。
+> - 在相同 adapter 参数、67 个训练域、context encoder、calibration transitions 和安全
+>   acceptance 预算下，Z70 三 seed×四域平均 BT自身增益随 K=0/5/10/25/50 为
+>   `0/0.21/1.38/3.53/7.24%`；shared 为 `0/0.20/0.63/2.78/6.45%`。
+>   BT 相对 shared 为 `-0.73/-0.72/+0.04/+0.03/-0.19%`：K10/K25 样本效率略优，
+>   K50 近乎持平，而 BT 锁定坐标 violation 始终严格为 `0`。
+> - 所有 BT seed×domain×budget 相对自身 K0 均无负迁移；aggregate 曲线单调；object
+>   RMSE 最大绝对变化仅 `0.113%`，只能经 calibration robot transition 单向影响。
+>   机器门控 `passed=true`：
+>   `runs/g2_bt_dpwm_z69_adapter_z70/three_seed_fair_gate_v1/summary.json`；报告：
+>   `reports/g2-bt-dpwm-z70-fair-three-seed-gate-20260822.md`。
+> - 当前可以主张：BT-DPWM 在相同 few-shot 预算下达到 shared 的预测水平、具有更好的
+>   中低预算平均适配效率，并提供 shared 不具备的解析零违例与可审计因果结构。不得主张
+>   每个单域都胜 shared，也不得掩盖 independent object expert 在 K0 的约 8%--21%
+>   相对回退；后者作为真机视觉噪声下的风险边界继续验证。
+> - 真机软件闭环已就绪：`scripts/collect_bt_dpwm_real_calibration.py` 默认 dry-run，只有
+>   显式 `--execute`、急停确认字符串和新鲜视觉 pose 才允许串口运动；实时监控 current
+>   raw、温度、锁定漂移和视觉时间戳，异常顺序 torque-off。输出 14维 state/5维 action
+>   后由 `scripts/infer_bt_dpwm_real_context.py` 使用冻结 Z69/Z70/Z65 做相同预算的安全
+>   posterior inference，不访问仿真 privileged residual label。当前相关测试 `20 passed`。
+>   真机数值结果尚未采集，必须在实体臂连接后完成 D2/D3×3 repetitions，严禁以 dry-run
+>   或 synthetic interface test 代替。
 
 > ## 2026-08-21 Q0-B 最终修订（当前最新状态）
 >
