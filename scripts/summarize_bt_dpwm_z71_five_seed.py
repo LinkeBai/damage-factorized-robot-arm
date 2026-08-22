@@ -53,9 +53,9 @@ def main():
                         "bt_own_gain_pct": 100*(bt0["overall_rmse"]-bt["overall_rmse"])/bt0["overall_rmse"],
                         "shared_own_gain_pct": 100*(shared0["overall_rmse"]-shared["overall_rmse"])/shared0["overall_rmse"],
                         "bt_relative_shared_pct": float(row["improvement_pct"]),
-                        "bt_free_rmse": bt["free_arm_rmse"], "bt_object_rmse": bt["object_rmse"],
+                        "bt_free_rmse": bt["free_rmse"], "bt_object_rmse": bt["object_rmse"],
                         "bt_overall_rmse": bt["overall_rmse"],
-                        "shared_free_rmse": shared["free_arm_rmse"],
+                        "shared_free_rmse": shared["free_rmse"],
                         "shared_object_rmse": shared["object_rmse"],
                         "shared_overall_rmse": shared["overall_rmse"],
                         "constraint_violation_rmse": bt["violation_rmse"]})

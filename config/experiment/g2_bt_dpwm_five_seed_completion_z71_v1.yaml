@@ -6,8 +6,8 @@ new_seeds: [37, 47]
 transition_budgets: [0, 5, 10, 25, 50]
 domains: [D2__mixed_composition, D3__mixed_composition, D4__mixed_composition,
           D3__mixed_unseen]
-base_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
-bt_config: config/experiment/g2_bt_dpwm_zero_topology_columns_z69_v1.yaml
+base_config: config/experiment/g2_bt_dpwm_meta_train_z32_five_seed_z71_v1.yaml
+bt_config: config/experiment/g2_bt_dpwm_zero_topology_columns_z69_five_seed_z71_v1.yaml
 adapter_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
 encoder_config: config/experiment/g2_bt_dpwm_context_encoder_z65_v1.yaml
 evaluation_config: config/experiment/g2_bt_dpwm_z69_context_eval_z70_v1.yaml
