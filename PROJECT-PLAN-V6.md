@@ -2281,3 +2281,45 @@ Z81保持Z65 encoder及posterior mean不变，用7/17/27/37/47的独立probe拟�
 conformal intervals量化物理context估计不确定性，nested support+hysteresis负责更新决策，永久
 z=0负责可逆回退，解析投影负责锁定坐标。Z79关于raw spread不能排序rollout harm的失败仍成立；
 旧`mean_std<=0.30`不得继续承担安全主张，若从可执行Z75中删除仍需新end-to-end confirmation。
+
+---
+
+## 25. Z82--Z85 BT-DPWM结构消融（2026-08-23）
+
+四项消融在结果产生前以commit `6230156`冻结，并只使用Z76独立seed57/67、相同四域和
+K=0/5/10/25/50逐行配对。去掉最终解析投影后，最大locked-coordinate violation RMSE达到
+0.14454，且seed67打印域普遍出现约1--2.5%相对退化，证明零违例来自显式硬投影而非网络偶然
+学会约束。只去掉adapter内部locked residual mask时40行部署输出与完整模型逐位一致，因为最终
+解析投影仍会删除锁定分量；该mask属于可解释的defense-in-depth，而不是独立性能来源。
+
+将残差移到object transition之后，在K>0的32个paired rows中使object RMSE最大变化
+1.97e-5、overall最大变化4.43e-6。该结果证明robot residual确实进入block-triangular object
+路径，但边际量级很小，不能宣称主要收益由此桥单独产生。K=0强制注入一个固定norm-matched
+非零context使overall RMSE最大变化0.05399，并绕过严格base recovery；这只证明exact-zero
+bypass是行为上必要的设计约束，不证明任意非零方向必然有害。
+
+至此BT特定结构证据已经补齐：K0精确回退、locked residual内部投影、最终解析投影和
+robot-to-object因果链均有对应消融。它们不改变Z76 paired-equivalence、Z77严格预算单调和
+Z79 rollout-risk排序的失败结论。下一步只做统一G2表、figure source和最终synthesis，不再新增
+架构；最终判定必须把“安全且可改善”的窄通过与“领先shared/已校准rollout-risk”的未通过分开。
+
+---
+
+## 26. G2最终统一结论（2026-08-23）
+
+统一机器表、claim CSV和budget-curve CSV已由
+`scripts/build_bt_dpwm_final_g2_synthesis.py`生成，逐项引用Z75--Z85冻结summary；G2要求的
+independent confirmation、BT结构消融、六类robustness、uncertainty calibration/
+coverage-risk、参数与wall-clock、失败ledger及统一综合均已交付。因此“G2证据材料是否补齐”
+的答案是**已补齐**，但“所有强科学门是否通过”的答案是**否**。
+
+最终允许主张：Stable Uncertainty-Calibrated BT-DPWM在冻结确认与robustness矩阵中保持
+BT-own非负、锁定坐标零违例、K0严格回退，并通过support/hysteresis/z0/projection实现可逆
+安全适配；physical-context conformal coverage MACE为0.0289。禁止主张：相对compute-matched
+shared显著领先或已通过1pp paired equivalence、每增加K必然改善、raw posterior spread已校准为
+rollout risk、block-triangular object bridge是主要性能来源。
+
+项目状态仍是**G2 broad gate NO-GO / narrow safe-adaptation evidence PASS**，尚未进入G3。
+是否进入G3是论文定位决策，而不是继续换模型：若接受窄主张，先让真机readiness全绿并执行
+intact/D3低幅smoke；若坚持性能领先主张，则需在同一模型内另开development并使用全新confirmation
+seeds，现有57/67不得再次作为未见验证集。
