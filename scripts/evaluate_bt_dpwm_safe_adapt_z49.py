@@ -26,7 +26,8 @@ from robotarm.training.safe_residual_adaptation import (
     SafeAdaptConfig, safe_adapt_residual,
 )
 from robotarm.training.g1_mechanism import residual_descriptor
-from robotarm.training.sim_protocol import load_g1_protocol
+from robotarm.envs.residual_physics import ResidualPhysicsConfig, RESIDUAL_PROFILES
+from robotarm.training.sim_protocol import DomainSpec, load_g1_protocol
 from robotarm.training.target_split import load_target_split
 from robotarm.training.topology_surgery_gate import _damage_tensors
 from scripts.run_bt_dpwm_fewshot_z48 import (
@@ -34,6 +35,29 @@ from scripts.run_bt_dpwm_fewshot_z48 import (
 )
 from scripts.run_object_preserving_projection_x1 import evaluate
 from scripts.run_push_benchmark import collect_push_domains
+
+
+def register_robustness_domains(specifications):
+    """Build evaluation-only domains from frozen inline residual profiles."""
+    domains = []
+    for item in specifications:
+        name = str(item["name"])
+        values = dict(item["physics"])
+        if "actuator_scale" in values:
+            values["actuator_scale"] = tuple(float(x) for x in values["actuator_scale"])
+        if "backlash" in values:
+            values["backlash"] = tuple(float(x) for x in values["backlash"])
+        profile = ResidualPhysicsConfig(name=name, **values)
+        incumbent = RESIDUAL_PROFILES.get(name)
+        if incumbent is not None and incumbent != profile:
+            raise ValueError(f"residual profile {name!r} already has different values")
+        RESIDUAL_PROFILES[name] = profile
+        domains.extend(DomainSpec(str(topology), name, "test")
+                       for topology in item["topologies"])
+    ids = [domain.domain_id for domain in domains]
+    if len(ids) != len(set(ids)):
+        raise ValueError("robustness domains must have unique topology/profile pairs")
+    return tuple(domains)
 
 
 def trajectory_segment(trajectory, start: int, transitions: int):
@@ -330,7 +354,9 @@ def main():
     common = dict(excitation=cfg.get("evaluation_excitation", "goal"),
         block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
         goal_exploration_std=float(q0a["goal_exploration_std"]))
-    selected_domains = [(i, d) for i, d in enumerate(protocol.test)
+    evaluation_domains = (register_robustness_domains(cfg["robustness_domains"])
+                          if cfg.get("robustness_domains") else protocol.test)
+    selected_domains = [(i, d) for i, d in enumerate(evaluation_domains)
                         if not args.domains or d.domain_id in args.domains]
     for index, domain in selected_domains:
         calibration_common = dict(common)
@@ -401,6 +427,7 @@ def main():
             base, candidate = values["shared"], values["bt_dpwm"]
             improvement = 100*(base["overall_rmse"]-candidate["overall_rmse"])/base["overall_rmse"]
             rows.append({"domain": domain.domain_id, "budget": budget,
+                         "residual_physics": domain.residual.as_dict(),
                          "oracle_context": [float(x) for x in residual_descriptor(
                              domain.residual_name, device=torch.device("cpu"),
                              dtype=torch.float32)],
