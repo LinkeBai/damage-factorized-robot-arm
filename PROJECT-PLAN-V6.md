@@ -2228,3 +2228,17 @@ D3 unseen唯一受影响，原规则因mean std 0.464拒绝的context在消融�
 把posterior spread写为诊断量，安全主张主要由paired support验证、hysteresis与可逆z=0承担。
 不得在确认seed上直接删阈值后宣称新方法通过；若改为topology/budget条件风险界，必须使用新
 development数据并另设未见confirmation seeds。
+
+Z77进一步在结果产生前冻结backlash、2-step delay、payload/armature、motor loss、
+damping/friction和held-out composition六类扰动，覆盖D2/D3/D4、seed57/67及五个nested K，
+共180个paired rollout rows。所有seed/domain/budget的BT-own gain非负且constraint violation
+为0；K50 BT-own均值在seed57/67分别为+9.04%/+1.51%。按因素聚合，backlash/delay/payload/
+motor/friction的K50两seed均值分别为+6.55/+2.46/+8.05/+6.78/+7.80%，held-out composition
+全程回退z=0、增益0%，因此证明安全回退而非最难组合上的有效适配。
+
+robustness严格预算单调门未通过：总均值K25 +5.316%到K50 +5.276%，下降0.041个百分点；
+seed67 D2 payload在K50接受replacement后own gain由+8.19%降到+6.20%，D2 friction在K25
+由+7.88%降到+6.66%。前者四个nested support窗口全部改善且均值改善6.42%，仍不能外推到
+独立goal rollout；后者仅以2.038%略过2% hysteresis。故当前剩余问题是单条active-probing
+校准轨迹到任务轨迹的risk-generalization gap，不是投影违例或发散。论文可主张robustness下
+不跌破K0，不能主张每增加transition都不降，也不能宣称held-out composition适配成功。
