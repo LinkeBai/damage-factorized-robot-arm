@@ -425,6 +425,18 @@ def main():
                 topology_aware_methods=("shared", "bt_dpwm"))
             values = {x["method"]: x for x in result}
             base, candidate = values["shared"], values["bt_dpwm"]
+            bt_candidate_counterfactual = None
+            if (cfg.get("record_candidate_counterfactuals", False) and
+                    bt_diag.get("candidate_context") is not None):
+                counterfactual_z = torch.as_tensor(
+                    bt_diag["candidate_context"], device=device,
+                    dtype=next(bt_adapter.parameters()).dtype)
+                bt_model.set_residual_context(counterfactual_z)
+                bt_candidate_counterfactual = evaluate(
+                    {"bt_candidate": bt_model}, domain, evaluation_trajectories,
+                    device, int(q0a["rollout_horizon"]),
+                    topology_aware_methods=("bt_candidate",))[0]
+                bt_model.set_residual_context(bt_z)
             improvement = 100*(base["overall_rmse"]-candidate["overall_rmse"])/base["overall_rmse"]
             rows.append({"domain": domain.domain_id, "budget": budget,
                          "residual_physics": domain.residual.as_dict(),
@@ -433,7 +445,8 @@ def main():
                              dtype=torch.float32)],
                          "improvement_pct": improvement, "shared": base,
                          "bt_dpwm": candidate, "shared_adaptation": shared_diag,
-                         "bt_adaptation": bt_diag})
+                         "bt_adaptation": bt_diag,
+                         "bt_candidate_counterfactual": bt_candidate_counterfactual})
             print(f"[Z49] {domain.domain_id} n={budget} imp={improvement:+.2f}% "
                   f"rollback(shared/bt)={shared_diag['rolled_back']}/{bt_diag['rolled_back']}",
                   flush=True)

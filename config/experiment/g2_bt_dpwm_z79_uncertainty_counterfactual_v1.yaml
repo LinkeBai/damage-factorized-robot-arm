@@ -1,0 +1,36 @@
+version: g2_bt_dpwm_z79_uncertainty_counterfactual_v1
+status: diagnostic_no_decision_change
+z48_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
+base_run_template: runs/g2_bt_dpwm_meta_train_z32/seed{seed}_v1
+bt_run_template: runs/g2_bt_dpwm_zero_topology_columns_z69/seed{seed}_v1
+z48_run_template: runs/g2_bt_dpwm_z69_adapter_z70/seed{seed}_v1
+context_encoder_run_template: runs/g2_bt_dpwm_context_encoder_z65/seed{seed}_v1
+context_encoder_hidden_dim: 96
+context_encoder_uncertainty: true
+record_candidate_counterfactuals: true
+transition_budgets: [0, 5, 10, 25, 50]
+calibration_excitation: active
+evaluation_excitation: goal
+correction_position_limit: 0.0015
+correction_velocity_limit: 0.025
+fit_fraction: 0.6
+encoder_shrink_factors: [1.0, 0.25, 0.1]
+encoder_prefix_counts: []
+minimum_fit_transitions_by_topology: {"2": 15, "3": 15}
+replacement_minimum_validation_improvement: 0.02
+replacement_minimum_by_topology: {"2": 0.02, "3": 0.02}
+maximum_context_mean_std: 0.30
+nested_support_validation: true
+support_validation_prefix_budgets: [5, 10, 25, 50]
+maximum_support_window_regression: 0.01
+calibration_seeds: [7, 17, 27, 37, 47, 57, 67]
+coverage_levels: [0.25, 0.50, 0.75, 1.00]
+adaptation:
+  steps: 12
+  initial_step_size: 0.2
+  backtracking_factor: 0.5
+  backtracking_steps: 8
+  trust_radius: 0.5
+  l2: 0.001
+  validation_tolerance: 0.01
+  minimum_validation_improvement: 0.0001
