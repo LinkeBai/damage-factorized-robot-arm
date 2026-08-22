@@ -13,7 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np
 import yaml
 
-from robotarm.deployment.vision_pose import object_in_reference, planar_pose, VelocityFilter
+from robotarm.deployment.vision_pose import (
+    object_in_reference, planar_pose, validate_camera_calibration, VelocityFilter)
 
 
 def atomic_json(path: Path, payload):
@@ -37,11 +38,13 @@ def main():
     parser.add_argument("--show", action="store_true")
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
-    marker_size = float(required(config, "marker_size_m"))
-    matrix = np.asarray(required(config, "camera_matrix"), dtype=float)
-    distortion = np.asarray(required(config, "distortion_coefficients"), dtype=float)
-    if matrix.shape != (3, 3) or marker_size <= 0 or not np.isfinite(matrix).all():
-        raise SystemExit("invalid camera calibration or marker_size_m")
+    try:
+        matrix, distortion, marker_size = validate_camera_calibration(
+            required(config, "camera_matrix"),
+            required(config, "distortion_coefficients"),
+            required(config, "marker_size_m"))
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     try:
         import cv2
     except ImportError as exc:

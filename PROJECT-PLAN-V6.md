@@ -2150,3 +2150,9 @@ Z69 已修正旧 BT checkpoint 将 shared 训练中从未激活的 topology 输�
 虚拟环境未安装 OpenCV，仓库也没有相机标定，因此目前只有 dry-run 与接口测试，尚无 D2/D3
 真机证据。下一不可跳过步骤是连接机械臂与相机、完成相机标定并实测 marker 尺寸，然后先做
 无运动视觉 smoke，再做单个 D2 K5 低幅安全 smoke；通过后才能展开预注册矩阵并生成最终报告。
+
+相机内参标定与 readiness gate 已实现：标定要求不少于10张不同视角、相同分辨率的棋盘格
+图像，并冻结重投影 RMS ≤1.0 px；未达标不生成 calibrated 配置。只读 readiness 审计同时
+检查硬件安全配置、舵机串口、OpenCV ArUco、合格内参与实时视觉流，并将是否允许低幅 smoke
+写成机器可读 JSON。2026-08-22 当前审计为 NO-GO（仅硬件配置通过；串口、OpenCV、标定、
+实时流未通过），且确认未执行运动。该 gate 必须先转为全绿，不能用 synthetic pose 绕过。

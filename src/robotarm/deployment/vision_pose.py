@@ -4,6 +4,20 @@ from __future__ import annotations
 import numpy as np
 
 
+def validate_camera_calibration(camera_matrix, distortion_coefficients,
+                                marker_size_m):
+    matrix = np.asarray(camera_matrix, dtype=float)
+    distortion = np.asarray(distortion_coefficients, dtype=float).reshape(-1)
+    size = float(marker_size_m)
+    if matrix.shape != (3, 3) or distortion.size < 4:
+        raise ValueError("camera matrix must be 3x3 and distortion must have >=4 values")
+    if not np.isfinite(matrix).all() or not np.isfinite(distortion).all() or size <= 0:
+        raise ValueError("camera calibration and marker size must be finite and positive")
+    if matrix[0, 0] <= 0 or matrix[1, 1] <= 0 or abs(matrix[2, 2]-1.0) > 1e-6:
+        raise ValueError("camera intrinsic matrix is not physically valid")
+    return matrix, distortion, size
+
+
 def object_in_reference(r_reference_camera, t_reference_camera,
                         t_object_camera) -> np.ndarray:
     """Return object-marker origin in the reference-marker coordinate frame."""
