@@ -4,8 +4,8 @@ method: stable_uncertainty_calibrated_bt_dpwm_z69_z70
 seeds: [7, 17, 27, 37, 47]
 new_seeds: [37, 47]
 transition_budgets: [0, 5, 10, 25, 50]
-domains: [D2__friction_motor, D3__mixed_composition, D4__delay_deadband,
-          D3__unseen_residual]
+domains: [D2__mixed_composition, D3__mixed_composition, D4__mixed_composition,
+          D3__mixed_unseen]
 base_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
 bt_config: config/experiment/g2_bt_dpwm_zero_topology_columns_z69_v1.yaml
 adapter_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
