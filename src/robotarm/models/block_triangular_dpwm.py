@@ -40,6 +40,7 @@ class BlockTriangularDPWM(nn.Module):
         robot_position_delta_scale: float = 1.0,
         robot_velocity_delta_scale: float = 1.0,
         reaction_relative_clip: float | None = None,
+        compact_bridge_object_head: bool = False,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -64,6 +65,9 @@ class BlockTriangularDPWM(nn.Module):
         self.robot_position_delta_scale = robot_position_delta_scale
         self.robot_velocity_delta_scale = robot_velocity_delta_scale
         self.reaction_relative_clip = reaction_relative_clip
+        self.compact_bridge_object_head = compact_bridge_object_head
+        if compact_bridge_object_head and independent_object_encoder:
+            raise ValueError("compact bridge and independent object encoder are exclusive")
         if reaction_relative_clip is not None and reaction_relative_clip < 0:
             raise ValueError("reaction_relative_clip must be non-negative")
         if robot_expert_count < 1:
@@ -118,6 +122,11 @@ class BlockTriangularDPWM(nn.Module):
             nn.Linear(c.hidden_dim, c.hidden_dim), nn.SiLU(),
             nn.Linear(c.hidden_dim, c.object_dim),
         )
+        if compact_bridge_object_head:
+            self.object_head = nn.Sequential(
+                nn.Linear(c.hidden_dim + c.object_dim, c.hidden_dim), nn.SiLU(),
+                nn.Linear(c.hidden_dim, c.object_dim),
+            )
         if independent_object_encoder:
             oh = self.object_hidden_dim
             # projected q/qvel, action, locked, lock angle, depth, object state
@@ -404,7 +413,9 @@ class BlockTriangularDPWM(nn.Module):
                 else (robot_hidden, next_object_hidden)
             )
         else:
-            bridge = torch.cat((robot_hidden.mean(1), projected_robot), -1).detach()
+            bridge = robot_hidden.mean(1).detach()
+            if not self.compact_bridge_object_head:
+                bridge = torch.cat((bridge, projected_robot.detach()), -1)
             next_obj = obj + self.object_head(torch.cat((bridge, obj), -1))
             returned_hidden = robot_hidden
         prediction = torch.cat((projected_robot, next_obj), -1)

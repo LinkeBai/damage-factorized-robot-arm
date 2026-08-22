@@ -51,7 +51,10 @@ def main():
         baseline.load_state_dict(torch.load(str(cfg["baseline_model_template"]).format(seed=seed), map_location=device))
         candidate = BlockTriangularDPWM(
             TopologyGraphConfig(hidden_dim=int(cfg["robot_hidden_dim"])),
-            contact_conditioned_robot=True, independent_object_encoder=True,
+            contact_conditioned_robot=True,
+            independent_object_encoder=bool(
+                cfg.get("independent_object_encoder", True)
+            ),
             object_hidden_dim=int(cfg["object_hidden_dim"]),
             reaction_rank=int(cfg.get("reaction_rank", 0)),
             reaction_geometry_gate=bool(cfg.get("reaction_geometry_gate", False)),
@@ -82,6 +85,9 @@ def main():
             reaction_relative_clip=(
                 args.reaction_relative_clip if args.reaction_relative_clip is not None
                 else cfg.get("reaction_relative_clip")
+            ),
+            compact_bridge_object_head=bool(
+                cfg.get("compact_bridge_object_head", False)
             )).to(device)
         if int(cfg.get("shadow_object_rank", 0)):
             candidate = BlockTriangularDPWM(

@@ -1944,6 +1944,30 @@ adapter的错误方向。
 一项都会扩展当前固定协议，须由项目负责人明确授权后另立gate；不得把现有结果
 表述为已达到+5%。
 
+Z32 协议扩展与公平重基线（2026-08-22）：经负责人授权，在不改变四个冻结测试域的
+前提下，训练split新增互不重合的D1（joint-0锁定）与D5（joint-4锁定），D3仍严格
+test-only；shared h136与topology h136均用相同扩展数据、240 epochs/h5重训。
+seed7 topology scaffold的primary为free +4.46%、object -10.97%、overall +4.08%；
+接回independent object32后的四域为free +0.21%、object -36.44%、overall -0.64%。
+第三、第五锁定域提供了一定robot元训练信号，但更强公平baseline同时显著提高object，
+旧object32已不再占优。
+
+Z33 精确参数匹配 compact bridge（2026-08-22）：保留Z32 topology robot，在同一
+BT-DPWM内用`stop-gradient(mean(robot hidden)) + object state`驱动两层object head；
+总参数338,102，与扩展shared baseline完全相同，object loss仍不能更新robot block。
+seed7 primary达到free +5.11%、object -0.93%、overall +4.96%，但四域仅free
++1.07%、object -1.58%、overall +1.00%、1/4退化。逐域中D2 mixed为+12.56%，
+D3 composition为+4.96%，D3 unseen为+0.23%，唯一主要失败是D4 mixed -13.74%。
+因此compact bridge解决了容量公平与大部分object差距，但尚未形成跨拓扑+5%优势。
+
+Z34 同结构低学习率校准反证（2026-08-22）：从Z32已选scaffold出发，仅在原训练split
+以lr=1e-4追加40轮robot rollout校准，再以lr=1e-3重训同一compact object head。
+robot训练loss由0.007286降至0.006260，但primary变为free -19.28%、object -0.23%、
+overall -18.88%。这再次确认当前瓶颈不是欠优化；继续降低训练loss会破坏held-out
+拓扑泛化。Z34冻结为NO-GO，seed17/27不启动。当前可继续的唯一机制方向是在训练域
+内部预注册的拓扑稳健目标（如leave-one-topology-out worst-group selection），而非
+增加epoch、按测试域调权或更换BT-DPWM。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner

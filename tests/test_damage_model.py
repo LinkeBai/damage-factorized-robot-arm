@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from robotarm.envs.damage import D2, D3, D4, DamageConfig, make_damage
+from robotarm.envs.damage import D2, D3, D4, D5, DamageConfig, make_damage
 from robotarm.envs.protocol import DamageConfig as DamageProtocol
 
 
@@ -71,6 +71,7 @@ def test_make_damage_styles():
     assert make_damage("intact").n_locked == 0
     assert make_damage("D2") == D2()
     assert make_damage("D3") == D3()
+    assert make_damage("D5") == D5()
     with pytest.raises(KeyError):
         make_damage("D99")
 
@@ -80,3 +81,4 @@ def test_canonical_damages():
     assert D2().locked == [1]
     assert D3().locked == [2]
     assert D4().locked == [3]
+    assert D5().locked == [4]

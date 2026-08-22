@@ -210,7 +210,8 @@ def main():
     if args.seed not in cfg["seeds"]:
         raise ValueError("seed not in frozen Y0 list")
     v0 = yaml.safe_load(Path(cfg["v0_config"]).read_text(encoding="utf-8"))
-    q0a = yaml.safe_load(Path(v0["q0a_config"]).read_text(encoding="utf-8"))
+    q0a_path = Path(cfg.get("q0a_config", v0["q0a_config"]))
+    q0a = yaml.safe_load(q0a_path.read_text(encoding="utf-8"))
     torch.manual_seed(args.seed); np.random.seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     protocol = load_g1_protocol(Path(q0a["protocol"]))
@@ -303,7 +304,18 @@ def main():
         shadow_object_rank=int(cfg.get("shadow_object_rank", 0)),
         robot_expert_count=int(cfg.get("robot_expert_count", 1)),
         contact_gated_object_context=bool(cfg.get("contact_gated_object_context", False)),
+        compact_bridge_object_head=bool(cfg.get("compact_bridge_object_head", False)),
     ).to(device)
+    if "initialize_candidate_model_template" in cfg:
+        source_path = Path(str(cfg["initialize_candidate_model_template"]).format(seed=args.seed))
+        source = torch.load(source_path, map_location=device)
+        current = candidate.state_dict()
+        compatible = {name: value for name, value in source.items()
+                      if (name.startswith("robot_") or name.startswith("additional_robot_experts."))
+                      and name in current and current[name].shape == value.shape}
+        candidate.load_state_dict({**current, **compatible})
+        print(f"[initialize] loaded {sum(x.numel() for x in compatible.values()):,} compatible "
+              f"parameters from {source_path}", flush=True)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = scaffold_source.state_dict(); target = candidate.state_dict()
         prefixes = {
@@ -387,7 +399,7 @@ def main():
         print("[block object] object on frozen robot/shadow rollouts", flush=True)
         object_history = train_model(
             candidate, batch, component="object", epochs=int(cfg["object_epochs"]),
-            learning_rate=float(cfg["learning_rate"]),
+            learning_rate=float(cfg.get("object_learning_rate", cfg["learning_rate"])),
             rollout_horizon=int(cfg["object_rollout_training_horizon"]),
             use_topology=use_topology,
         )

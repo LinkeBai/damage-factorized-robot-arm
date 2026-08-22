@@ -287,3 +287,18 @@ def test_relative_reaction_clip_has_zero_path_and_bounds_each_joint():
     clipped.reaction_relative_clip = 0.0
     recovered, _, _, _, _ = clipped.step_robot(*inputs, None)
     torch.testing.assert_close(recovered, base)
+
+
+def test_compact_bridge_matches_h136_budget_and_blocks_object_gradient():
+    from robotarm.models.topology_graph_world_model import TopologyGraphConfig
+    model = BlockTriangularDPWM(
+        TopologyGraphConfig(hidden_dim=136), contact_conditioned_robot=True,
+        compact_bridge_object_head=True,
+    )
+    assert sum(p.numel() for p in model.parameters()) == 338102
+    prediction, _ = model.step(*_inputs(), None)
+    prediction[:, 10:].pow(2).mean().backward()
+    robot = [parameter for name, parameter in model.named_parameters()
+             if name.startswith("robot_")]
+    assert all(p.grad is None or torch.count_nonzero(p.grad) == 0 for p in robot)
+    assert any(p.grad is not None for p in model.object_head.parameters())
