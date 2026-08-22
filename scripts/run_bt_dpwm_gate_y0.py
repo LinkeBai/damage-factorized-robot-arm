@@ -37,15 +37,18 @@ def cached_collect(cache_dir, cache_key, collector):
     return trajectories
 
 
-def robot_losses(model, batch, horizon, use_topology=False):
+def robot_losses_per_trajectory(model, batch, horizon, use_topology=False):
     states, actions, mask, angle = batch
     zeros = torch.zeros_like(mask)
     model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
+    free_mask = torch.cat((1.0 - mask, 1.0 - mask), dim=-1)
+    free_count = free_mask.sum(-1).clamp_min(1.0)
     one_step, hidden = [], None
     for step in range(actions.shape[1]):
         robot, hidden, _, _, _ = model.step_robot(
             states[:, step], actions[:, step], model_mask, model_angle, hidden)
-        one_step.append((robot - states[:, step + 1, :10]).pow(2).mean())
+        error = (robot - states[:, step + 1, :10]).pow(2)
+        one_step.append((error * free_mask).sum(-1) / free_count)
     rollout = []
     horizon = min(horizon, actions.shape[1])
     for start in range(0, actions.shape[1] - horizon + 1, horizon):
@@ -53,9 +56,14 @@ def robot_losses(model, batch, horizon, use_topology=False):
         for offset in range(horizon):
             robot, hidden, obj, _, _ = model.step_robot(
                 prediction, actions[:, start + offset], model_mask, model_angle, hidden)
-            rollout.append((robot - states[:, start + offset + 1, :10]).pow(2).mean())
+            error = (robot - states[:, start + offset + 1, :10]).pow(2)
+            rollout.append((error * free_mask).sum(-1) / free_count)
             prediction = torch.cat((robot, obj), -1)
-    return torch.stack(one_step).mean() + 0.5 * torch.stack(rollout).mean()
+    return torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
+
+
+def robot_losses(model, batch, horizon, use_topology=False):
+    return robot_losses_per_trajectory(model, batch, horizon, use_topology).mean()
 
 
 def train_robot_only(model, batch, *, epochs, learning_rate, horizon, use_topology=False):
@@ -71,6 +79,69 @@ def train_robot_only(model, batch, *, epochs, learning_rate, horizon, use_topolo
         if epoch == 0 or (epoch + 1) % 10 == 0:
             print(f"  epoch={epoch+1:03d} loss={loss.item():.6f} grad={gradient:.3f}", flush=True)
     return history
+
+
+def train_robot_only_with_selection(
+    model, batch, validation_batch, *, epochs, learning_rate, horizon,
+    validation_every, train_group_indices, validation_group_indices,
+    group_robust_weight, use_topology=False,
+):
+    """Robot-only group-robust training selected without consulting test domains."""
+    parameters = [p for name, p in model.named_parameters()
+                  if name.startswith("robot_") or name.startswith("additional_robot_experts.")]
+    optimizer = torch.optim.Adam(parameters, lr=learning_rate)
+    history, validation_history = [], []
+
+    @torch.no_grad()
+    def validation_value():
+        losses = robot_losses_per_trajectory(
+            model, validation_batch, horizon, use_topology
+        )
+        value, groups = aggregate_topology_losses(
+            losses, validation_group_indices, group_robust_weight
+        )
+        return float(value), {name: float(loss) for name, loss in groups.items()}
+
+    best_value, best_groups = validation_value()
+    best_epoch = 0
+    best_state = {name: value.detach().clone() for name, value in model.state_dict().items()}
+    validation_history.append({
+        "epoch": 0, "loss": best_value, "topology_losses": best_groups,
+    })
+    for epoch in range(1, epochs + 1):
+        losses = robot_losses_per_trajectory(model, batch, horizon, use_topology)
+        loss, _ = aggregate_topology_losses(
+            losses, train_group_indices, group_robust_weight
+        )
+        optimizer.zero_grad(); loss.backward()
+        gradient = float(torch.nn.utils.clip_grad_norm_(parameters, 5.0))
+        optimizer.step(); history.append(float(loss.detach()))
+        suffix = ""
+        if epoch % validation_every == 0 or epoch == epochs:
+            value, groups = validation_value()
+            validation_history.append({
+                "epoch": epoch, "loss": value, "topology_losses": groups,
+            })
+            if value < best_value:
+                best_value, best_groups, best_epoch = value, groups, epoch
+                best_state = {
+                    name: value.detach().clone()
+                    for name, value in model.state_dict().items()
+                }
+            suffix = f" val={value:.6f}"
+        if epoch == 1 or epoch % 10 == 0:
+            print(f"  robot-select epoch={epoch:03d} loss={loss.item():.6f}{suffix} "
+                  f"grad={gradient:.3f}", flush=True)
+    model.load_state_dict(best_state)
+    diagnostics = {
+        "selected_epoch": best_epoch,
+        "selected_validation_loss": best_value,
+        "selected_topology_losses": best_groups,
+        "validation_history": validation_history,
+        "group_robust_weight": group_robust_weight,
+    }
+    print(f"[robot] selected epoch={best_epoch} validation_loss={best_value:.6f}", flush=True)
+    return history, diagnostics
 
 
 def train_blockwise_horizons(model, batch, *, epochs, learning_rate,
@@ -91,9 +162,8 @@ def train_blockwise_horizons(model, batch, *, epochs, learning_rate,
     return history
 
 
-@torch.no_grad()
-def shared_loss(model, batch, horizon, use_topology=False):
-    """Deterministic shared rollout objective used for frozen validation selection."""
+def shared_losses_per_trajectory(model, batch, horizon, use_topology=False):
+    """Return the shared rollout objective separately for every trajectory."""
     states, actions, mask, angle = batch
     zeros = torch.zeros_like(mask)
     model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
@@ -102,7 +172,11 @@ def shared_loss(model, batch, horizon, use_topology=False):
         prediction, hidden = model.step(
             states[:, step], actions[:, step], model_mask, model_angle, hidden
         )
-        one_step.append(_component_loss(prediction, states[:, step + 1], "shared"))
+        target = states[:, step + 1]
+        one_step.append(
+            (prediction[:, :10] - target[:, :10]).pow(2).mean(-1)
+            + (prediction[:, 10:] - target[:, 10:]).pow(2).mean(-1)
+        )
     rollout = []
     rollout_horizon = min(horizon, actions.shape[1])
     for start in range(0, actions.shape[1] - rollout_horizon + 1, rollout_horizon):
@@ -111,15 +185,61 @@ def shared_loss(model, batch, horizon, use_topology=False):
             prediction, hidden = model.step(
                 prediction, actions[:, start + offset], model_mask, model_angle, hidden
             )
-            rollout.append(_component_loss(
-                prediction, states[:, start + offset + 1], "shared"
-            ))
-    return torch.stack(one_step).mean() + 0.5 * torch.stack(rollout).mean()
+            target = states[:, start + offset + 1]
+            rollout.append(
+                (prediction[:, :10] - target[:, :10]).pow(2).mean(-1)
+                + (prediction[:, 10:] - target[:, 10:]).pow(2).mean(-1)
+            )
+    return torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
+
+
+def topology_group_indices(trajectories, device):
+    """Group trajectory rows by damage topology, never by residual/test label."""
+    topologies = [item.domain_id.split("__", 1)[0] for item in trajectories]
+    return {
+        topology: torch.tensor(
+            [index for index, value in enumerate(topologies) if value == topology],
+            device=device, dtype=torch.long,
+        )
+        for topology in sorted(set(topologies))
+    }
+
+
+def aggregate_topology_losses(per_trajectory, group_indices, robust_weight):
+    """Convex average/worst-topology objective and auditable group losses."""
+    if not 0.0 <= robust_weight <= 1.0:
+        raise ValueError("group robust weight must be in [0, 1]")
+    group_losses = {
+        name: per_trajectory.index_select(0, indices).mean()
+        for name, indices in group_indices.items()
+    }
+    stacked = torch.stack(list(group_losses.values()))
+    objective = (1.0 - robust_weight) * stacked.mean() + robust_weight * stacked.max()
+    return objective, group_losses
+
+
+@torch.no_grad()
+def shared_loss(model, batch, horizon, use_topology=False):
+    """Deterministic mean rollout objective used by legacy frozen selections."""
+    return shared_losses_per_trajectory(model, batch, horizon, use_topology).mean()
+
+
+@torch.no_grad()
+def robust_validation_loss(model, batch, group_indices, horizon, use_topology,
+                           robust_weight):
+    per_trajectory = shared_losses_per_trajectory(model, batch, horizon, use_topology)
+    value, groups = aggregate_topology_losses(
+        per_trajectory, group_indices, robust_weight
+    )
+    return float(value), {name: float(loss) for name, loss in groups.items()}
 
 
 def train_shared_with_selection(model, batch, validation_batch, *, epochs,
                                 learning_rate, horizon, validation_every,
-                                ema_decay, use_topology=False):
+                                ema_decay, use_topology=False,
+                                train_group_indices=None,
+                                validation_group_indices=None,
+                                group_robust_weight=0.0):
     """Train once and select final/EMA/checkpoint only on the frozen validation split."""
     states, actions, mask, angle = batch
     zeros = torch.zeros_like(mask)
@@ -129,24 +249,15 @@ def train_shared_with_selection(model, batch, validation_batch, *, epochs,
     ema = None
     best_state, best_value, best_epoch = None, float("inf"), None
     for epoch in range(1, epochs + 1):
-        hidden, one_step = None, []
-        for step in range(actions.shape[1]):
-            prediction, hidden = model.step(
-                states[:, step], actions[:, step], model_mask, model_angle, hidden
+        per_trajectory = shared_losses_per_trajectory(
+            model, (states, actions, model_mask, model_angle), horizon, use_topology=True
+        )
+        if train_group_indices is None:
+            loss = per_trajectory.mean()
+        else:
+            loss, _ = aggregate_topology_losses(
+                per_trajectory, train_group_indices, group_robust_weight
             )
-            one_step.append(_component_loss(prediction, states[:, step + 1], "shared"))
-        rollout = []
-        rollout_horizon = min(horizon, actions.shape[1])
-        for start in range(0, actions.shape[1] - rollout_horizon + 1, rollout_horizon):
-            prediction, hidden = states[:, start], None
-            for offset in range(rollout_horizon):
-                prediction, hidden = model.step(
-                    prediction, actions[:, start + offset], model_mask, model_angle, hidden
-                )
-                rollout.append(_component_loss(
-                    prediction, states[:, start + offset + 1], "shared"
-                ))
-        loss = torch.stack(one_step).mean() + 0.5 * torch.stack(rollout).mean()
         optimizer.zero_grad(); loss.backward()
         gradient = float(torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0))
         optimizer.step(); history.append(float(loss.detach()))
@@ -157,10 +268,19 @@ def train_shared_with_selection(model, batch, validation_batch, *, epochs,
             for name, value in state.items():
                 ema[name].mul_(ema_decay).add_(value.detach(), alpha=1.0 - ema_decay)
         if epoch % validation_every == 0 or epoch == epochs:
-            value = float(shared_loss(
-                model, validation_batch, horizon, use_topology=use_topology
-            ))
-            validation_history.append({"epoch": epoch, "loss": value})
+            if validation_group_indices is None:
+                value = float(shared_loss(
+                    model, validation_batch, horizon, use_topology=use_topology
+                )); group_values = None
+            else:
+                value, group_values = robust_validation_loss(
+                    model, validation_batch, validation_group_indices, horizon,
+                    use_topology, group_robust_weight,
+                )
+            record = {"epoch": epoch, "loss": value}
+            if group_values is not None:
+                record["topology_losses"] = group_values
+            validation_history.append(record)
             if value < best_value:
                 best_state = {name: tensor.detach().clone() for name, tensor in state.items()}
                 best_value, best_epoch = value, epoch
@@ -169,13 +289,15 @@ def train_shared_with_selection(model, batch, validation_batch, *, epochs,
             print(f"  select epoch={epoch:03d} loss={loss.item():.6f}{suffix} "
                   f"grad={gradient:.3f}", flush=True)
     final_state = {name: tensor.detach().clone() for name, tensor in model.state_dict().items()}
-    final_value = float(shared_loss(
-        model, validation_batch, horizon, use_topology=use_topology
-    ))
+    validation_fn = lambda: (
+        robust_validation_loss(model, validation_batch, validation_group_indices,
+                               horizon, use_topology, group_robust_weight)[0]
+        if validation_group_indices is not None else
+        float(shared_loss(model, validation_batch, horizon, use_topology=use_topology))
+    )
+    final_value = validation_fn()
     model.load_state_dict(ema)
-    ema_value = float(shared_loss(
-        model, validation_batch, horizon, use_topology=use_topology
-    ))
+    ema_value = validation_fn()
     candidates = {
         "final": (final_value, final_state, epochs),
         "ema": (ema_value, ema, epochs),
@@ -192,6 +314,7 @@ def train_shared_with_selection(model, batch, validation_batch, *, epochs,
         "selected_epoch": selected_epoch,
         "selected_validation_loss": selected_value,
         "ema_decay": ema_decay,
+        "group_robust_weight": group_robust_weight,
     }
     print(f"[scaffold] selected={selected_name} epoch={selected_epoch} "
           f"validation_loss={selected_value:.6f}", flush=True)
@@ -253,6 +376,7 @@ def main():
         baseline.load_state_dict(torch.load(args.v0_run_dir / "models.pt", map_location=device)["shared_compute_matched"])
         baseline_history = None
     scaffold_source = baseline
+    validation_data = None
     swa_history, swa_count, scaffold_selection = None, 0, None
     if int(cfg.get("selection_scaffold_epochs", 0)):
         validation_key = json.dumps({"kind": "push_validation", "seed": args.seed,
@@ -265,6 +389,16 @@ def main():
         torch.manual_seed(args.seed)
         scaffold_source = TopologyGraphWorldModel(scaffold_cfg).to(device)
         print("[scaffold] train shared selection source", flush=True)
+        robust_weight = float(cfg.get("selection_group_robust_weight", 0.0))
+        train_groups = (
+            topology_group_indices(train_data, device) if robust_weight > 0.0 else None
+        )
+        validation_groups = (
+            topology_group_indices(validation_data, device) if robust_weight > 0.0 else None
+        )
+        if train_groups is not None:
+            print(f"[scaffold] topology robust weight={robust_weight:.2f} "
+                  f"groups={list(train_groups)}", flush=True)
         swa_history, scaffold_selection = train_shared_with_selection(
             scaffold_source, _batch(train_data, device), _batch(validation_data, device),
             epochs=int(cfg["selection_scaffold_epochs"]),
@@ -273,6 +407,9 @@ def main():
             validation_every=int(cfg.get("selection_validation_every", 10)),
             ema_decay=float(cfg.get("selection_ema_decay", 0.99)),
             use_topology=bool(cfg.get("selection_use_topology", False)),
+            train_group_indices=train_groups,
+            validation_group_indices=validation_groups,
+            group_robust_weight=robust_weight,
         )
     if int(cfg.get("swa_scaffold_epochs", 0)):
         torch.manual_seed(args.seed)
@@ -306,6 +443,7 @@ def main():
         contact_gated_object_context=bool(cfg.get("contact_gated_object_context", False)),
         compact_bridge_object_head=bool(cfg.get("compact_bridge_object_head", False)),
     ).to(device)
+    candidate_template_robot = None
     if "initialize_candidate_model_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_model_template"]).format(seed=args.seed))
         source = torch.load(source_path, map_location=device)
@@ -314,6 +452,9 @@ def main():
                       if (name.startswith("robot_") or name.startswith("additional_robot_experts."))
                       and name in current and current[name].shape == value.shape}
         candidate.load_state_dict({**current, **compatible})
+        candidate_template_robot = {
+            name: value.detach().clone() for name, value in compatible.items()
+        }
         print(f"[initialize] loaded {sum(x.numel() for x in compatible.values()):,} compatible "
               f"parameters from {source_path}", flush=True)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
@@ -334,6 +475,85 @@ def main():
                         target[destination] = value.detach().clone(); copied += value.numel()
         candidate.load_state_dict(target)
         print(f"[initialize] copied {copied:,} robot parameters from baseline", flush=True)
+    if bool(cfg.get("zero_topology_input_weights", False)):
+        with torch.no_grad():
+            candidate.robot_encoder[0].weight[:, 3:5].zero_()
+        print("[initialize] zeroed untrained topology input columns; projection remains active",
+              flush=True)
+    if bool(cfg.get("initialize_object_from_baseline", False)):
+        source = baseline.state_dict(); target = candidate.state_dict()
+        copied = 0
+        for name, value in source.items():
+            if (name.startswith("object_head.") and name in target
+                    and target[name].shape == value.shape):
+                target[name] = value.detach().clone(); copied += value.numel()
+        candidate.load_state_dict(target)
+        print(f"[initialize] copied {copied:,} object parameters from baseline", flush=True)
+    blend_selection = None
+    if bool(cfg.get("select_robot_weight_blend", False)):
+        if candidate_template_robot is None:
+            raise ValueError("robot weight blend requires initialize_candidate_model_template")
+        if validation_data is None:
+            validation_key = json.dumps({"kind": "push_validation", "seed": args.seed,
+                "domains": [x.domain_id for x in protocol.validation], "q0a": q0a},
+                sort_keys=True)
+            validation_data = cached_collect(
+                args.cache_dir, validation_key, lambda: collect_push_domains(
+                    protocol.validation,
+                    trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
+                    seed=args.seed * 10_000 + 750,
+                    targets=tuple(x.as_array() for x in targets.validation), **common,
+                )
+            )
+        baseline_state = baseline.state_dict()
+        current = candidate.state_dict()
+        prefixes = {
+            "node_encoder.": "robot_encoder.", "message.": "robot_message.",
+            "update.": "robot_update.", "temporal.": "robot_temporal.",
+            "joint_head.": "robot_head.",
+        }
+        projected_shared = {}
+        for source_prefix, target_prefix in prefixes.items():
+            for name, value in baseline_state.items():
+                if name.startswith(source_prefix):
+                    destination = target_prefix + name[len(source_prefix):]
+                    if destination in current and current[destination].shape == value.shape:
+                        projected_shared[destination] = value.detach().clone()
+        projected_shared["robot_encoder.0.weight"][:, 3:5].zero_()
+        validation_batch = _batch(validation_data, device)
+        validation_groups = topology_group_indices(validation_data, device)
+        robust_weight = float(cfg.get("robot_blend_group_robust_weight", 0.5))
+        candidates = []
+        for alpha in [float(value) for value in cfg["robot_blend_alphas"]]:
+            mixed = {
+                name: projected_shared[name].lerp(candidate_template_robot[name], alpha)
+                for name in projected_shared
+            }
+            candidate.load_state_dict({**current, **mixed})
+            with torch.no_grad():
+                losses = robot_losses_per_trajectory(
+                    candidate, validation_batch,
+                    int(cfg["robot_rollout_training_horizon"]), True,
+                )
+                value, groups = aggregate_topology_losses(
+                    losses, validation_groups, robust_weight
+                )
+            candidates.append({
+                "alpha": alpha, "loss": float(value),
+                "topology_losses": {name: float(loss) for name, loss in groups.items()},
+                "state": mixed,
+            })
+        selected = min(candidates, key=lambda item: item["loss"])
+        candidate.load_state_dict({**current, **selected["state"]})
+        blend_selection = {
+            "selected_alpha": selected["alpha"],
+            "selected_validation_loss": selected["loss"],
+            "group_robust_weight": robust_weight,
+            "candidates": [{key: value for key, value in item.items() if key != "state"}
+                           for item in candidates],
+        }
+        print(f"[initialize] selected robot weight blend alpha={selected['alpha']:.2f} "
+              f"validation_loss={selected['loss']:.6f}", flush=True)
     topology_hook = None
     if bool(cfg.get("topology_input_only_training", False)):
         if not bool(cfg.get("internal_topology_conditioning", False)):
@@ -356,6 +576,7 @@ def main():
         print(f"[initialize] robot-head adaptation trains {trainable:,} existing weights", flush=True)
     batch = _batch(train_data, device)
     use_topology = bool(cfg.get("internal_topology_conditioning", False))
+    robot_selection = None
     refinement_epochs = int(cfg.get("joint_refinement_epochs", 0))
     shared_epochs = int(cfg["epochs"]) - refinement_epochs
     if bool(cfg.get("block_coordinate_training", False)):
@@ -367,12 +588,37 @@ def main():
             robot_history = []
             print("[block 1/2] frozen pretrained robot; no additional updates", flush=True)
         elif bool(cfg.get("robot_only_forward", False)):
-            robot_history = train_robot_only(
-                candidate, batch, epochs=int(cfg["robot_epochs"]),
-                learning_rate=float(cfg.get("robot_learning_rate", cfg["learning_rate"])),
-                horizon=int(cfg["robot_rollout_training_horizon"]),
-                use_topology=use_topology,
-            )
+            if bool(cfg.get("robot_validation_selection", False)):
+                if validation_data is None:
+                    validation_key = json.dumps({"kind": "push_validation", "seed": args.seed,
+                        "domains": [x.domain_id for x in protocol.validation], "q0a": q0a},
+                        sort_keys=True)
+                    validation_data = cached_collect(
+                        args.cache_dir, validation_key, lambda: collect_push_domains(
+                            protocol.validation,
+                            trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
+                            seed=args.seed * 10_000 + 750,
+                            targets=tuple(x.as_array() for x in targets.validation), **common,
+                        )
+                    )
+                robust_weight = float(cfg.get("robot_group_robust_weight", 0.5))
+                robot_history, robot_selection = train_robot_only_with_selection(
+                    candidate, batch, _batch(validation_data, device),
+                    epochs=int(cfg["robot_epochs"]),
+                    learning_rate=float(cfg.get("robot_learning_rate", cfg["learning_rate"])),
+                    horizon=int(cfg["robot_rollout_training_horizon"]),
+                    validation_every=int(cfg.get("robot_validation_every", 5)),
+                    train_group_indices=topology_group_indices(train_data, device),
+                    validation_group_indices=topology_group_indices(validation_data, device),
+                    group_robust_weight=robust_weight, use_topology=use_topology,
+                )
+            else:
+                robot_history = train_robot_only(
+                    candidate, batch, epochs=int(cfg["robot_epochs"]),
+                    learning_rate=float(cfg.get("robot_learning_rate", cfg["learning_rate"])),
+                    horizon=int(cfg["robot_rollout_training_horizon"]),
+                    use_topology=use_topology,
+                )
         else:
             robot_history = train_model(
                 candidate, batch, component="joint", epochs=int(cfg["robot_epochs"]),
@@ -465,6 +711,8 @@ def main():
                "baseline_history": baseline_history,
                "swa_scaffold_history": swa_history, "swa_scaffold_count": swa_count,
                "scaffold_selection": scaffold_selection,
+               "robot_selection": robot_selection,
+               "robot_blend_selection": blend_selection,
                "object_improvement_pct": obj, "free_arm_improvement_pct": free,
                "overall_improvement_pct": overall, "gate_passed": passed,
                "rows": rows, "history": history}

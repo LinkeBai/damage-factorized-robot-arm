@@ -1968,6 +1968,27 @@ overall -18.88%。这再次确认当前瓶颈不是欠优化；继续降低训�
 内部预注册的拓扑稳健目标（如leave-one-topology-out worst-group selection），而非
 增加epoch、按测试域调权或更换BT-DPWM。
 
+Z35--Z37 拓扑稳健训练与正确robot-only校准（2026-08-22）：Z35以每轨迹loss按
+topology聚合，固定优化`0.5*group mean+0.5*worst group`，validation使用同一准则；
+尽管worst-group validation降至0.00855，primary仍free -21.53%、overall -21.07%。
+审计随后发现Z34完整step校准时compact object head尚为随机初值，错误object rollout
+污染下一步robot输入。Z36改用严格`step_robot`路径后，overall退化从-18.88%缩至
+-4.43%，证明该实现错配真实存在；但40轮仍不泛化。Z37把初始checkpoint纳入候选，
+每5轮按validation free-joint worst-topology选择，最终仍选epoch40且primary overall
+-2.79%。因此修正训练路径和稳健早停能降低伤害，但已见拓扑validation仍不能选择
+对未见D3有利的权重更新。
+
+Z38--Z40 单模型安全路径与权重插值（2026-08-22）：Z38直接复制扩展公平baseline的
+robot权重，将baseline训练中从未激活的mask/angle输入列显式清零，仅保留解析状态/
+动作投影，再训练参数完全匹配的compact bridge。primary三项同时约+0.86%，但四域
+free +0.23%、object -3.28%、overall +0.18%、2/4退化。Z39在相同318,378个robot
+参数内，对projected-shared与Z32 topology权重预注册扫描alpha=[0,.25,.5,.75,1]，
+只按validation free-joint worst-group选择；选择alpha=0，明确拒绝topology权重方向，
+结果与Z38一致。Z40进一步直接复制并冻结baseline object head，得到primary及四域各项
+约0.00%，验证参数映射、bridge形状和评估无隐藏偏差。解析投影是严格安全约束而不是
+free-arm收益来源；达到+5%仍需要新的可迁移robot dynamics信息，不能由object容量、
+更多epoch、已见拓扑group-DRO或权重插值产生。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner
