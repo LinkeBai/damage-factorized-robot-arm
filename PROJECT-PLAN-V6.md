@@ -2250,3 +2250,14 @@ BT少0.298%，因此参数比较公平。RTX4060 Laptop/Warp1.16/CUDA12.9上的�
 goal queries及双adapter约24--25min，是主要瓶颈；单纯租更强GPU不能消除串行CPU goal
 optimization。ledger机器引用Z71、Z75、Z76、Z77及57/67的V0/Z32/Z69共10个未过总门run，
 同时区分其安全子门，避免只保留成功终点或把所有`passed:false`误解为相同失败。
+
+Z79在不改变Z75决策的前提下，对七seed所有可观测context proposal额外计算独立goal-rollout
+counterfactual，得到24个非退化proposal，其中3个有害。nested support+hysteresis拒绝全部3个，
+11个被接受proposal无一有害，说明经验安全性来自support gate。posterior mean std与候选伤害
+Spearman为-0.734（p=4.47e-5，方向相反）；K50为+0.119（p=0.779，不显著），D2/D3/D4
+分层为-0.429/-0.750/-0.550。按最低std保留25/50/75/100%时，有害比例为16.7/25.0/
+16.7/12.5%，coverage-risk不单调且低std筛选会删掉大量最有益proposal。故Z65 spread目前
+可能表征domain shift或context ambiguity，但不是task-rollout risk的校准概率/排序器；当前
+`uncertainty-calibrated safe adaptation`强主张不成立，G2仍不能完成。允许的下一改善仅限同一
+posterior在新development风险标签上的校准，并需另设未见confirmation seeds；57/67不可复用
+为修改后规则的确认集。
