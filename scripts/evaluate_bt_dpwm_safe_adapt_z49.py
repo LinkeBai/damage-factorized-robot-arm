@@ -138,11 +138,43 @@ def encode_context(model, adapter, encoder, trajectory, domain, budget, device,
                 mean = encoder(*encoder_args)
                 estimates.append((int(prefix_count), mean[0], None))
     horizon = min(5, fit_count, validation_count)
-    validation_fn = lambda z: rollout_loss(
-        model, adapter, [validation], domain, device, z, horizon, topology_aware)
+    validations = [(budget, validation, horizon)]
+    if cfg.get("nested_support_validation", False):
+        validations = []
+        prefixes = sorted(set(int(x) for x in
+            cfg.get("support_validation_prefix_budgets", [5, 10, 25, 50])
+            if int(x) <= budget))
+        if budget not in prefixes:
+            prefixes.append(budget)
+        for prefix_budget in prefixes:
+            prefix_fit = max(2, int(np.floor(
+                prefix_budget*float(cfg["fit_fraction"]))))
+            prefix_validation = prefix_budget-prefix_fit
+            if prefix_validation < 2:
+                prefix_validation = 2; prefix_fit = prefix_budget-2
+            if prefix_fit < max(2, minimum_fit):
+                continue
+            segment = trajectory_segment(
+                trajectory, prefix_fit, prefix_validation)
+            validations.append((prefix_budget, segment,
+                min(5, prefix_fit, prefix_validation)))
+        if not validations:
+            validations = [(budget, validation, horizon)]
+    validation_losses = lambda z: [float(rollout_loss(
+        model, adapter, [segment], domain, device, z, window_horizon,
+        topology_aware)) for _, segment, window_horizon in validations]
     incumbent = zero if incumbent is None else incumbent.detach().clone()
     with torch.no_grad():
-        incumbent_loss = float(validation_fn(incumbent))
+        incumbent_losses = validation_losses(incumbent)
+        incumbent_loss = float(np.mean(incumbent_losses))
+        denominators = np.maximum(np.asarray(incumbent_losses), 1e-12)
+        maximum_window_regression = float(cfg.get(
+            "maximum_support_window_regression", float("inf")))
+        def candidate_score(z):
+            losses = validation_losses(z)
+            ratios = np.asarray(losses)/denominators
+            eligible = bool(np.max(ratios-1.0) <= maximum_window_regression)
+            return float(np.mean(ratios)), losses, eligible
         candidates = []
         for prefix_count, estimate, log_variance in estimates:
             for shrink in cfg.get("encoder_shrink_factors", [1.0, 0.5, 0.25, 0.1]):
@@ -156,27 +188,35 @@ def encode_context(model, adapter, encoder, trajectory, domain, budget, device,
                     z = ((old_precision*incumbent + new_precision*scaled) /
                          (old_precision+new_precision))
                     fused_log_variance = -torch.log(old_precision+new_precision)
-                candidates.append((float(validation_fn(z)), int(prefix_count),
-                                   float(shrink), z, fused_log_variance))
+                score, losses, eligible = candidate_score(z)
+                candidates.append((score, int(prefix_count), float(shrink),
+                                   z, fused_log_variance, losses, eligible))
         # A previously accepted context is never irreversible: z=0 remains a
         # deployment-safe candidate at every larger budget.
         if float(incumbent.norm()) > 0.0:
-            candidates.append((float(validation_fn(zero)), 0, 0.0, zero, None))
-    best_loss, best_prefix, best_shrink, best_z, best_log_variance = min(
-        candidates, key=lambda x: x[0])
+            score, losses, eligible = candidate_score(zero)
+            candidates.append((score, 0, 0.0, zero, None, losses, eligible))
+    eligible_candidates = [item for item in candidates if item[6]]
+    if eligible_candidates:
+        selected_candidate = min(eligible_candidates, key=lambda x: x[0])
+    else:
+        selected_candidate = (float("inf"), 0, 0.0, incumbent,
+                              None, incumbent_losses, False)
+    (best_score, best_prefix, best_shrink, best_z, best_log_variance,
+     best_window_losses, candidate_eligible) = selected_candidate
+    best_loss = float(np.mean(best_window_losses))
     if isinstance(encoder, UncertainPhysicalContextEncoder):
         minimum = float(cfg.get("replacement_minimum_validation_improvement", 0.0))
         minimum = float(cfg.get(
             "replacement_minimum_by_topology", {}).get(topology_key, minimum))
     else:
         minimum = float(cfg["adaptation"]["minimum_validation_improvement"])
-    relative_improvement = ((incumbent_loss - best_loss) /
-                            max(incumbent_loss, 1e-12))
+    relative_improvement = 1.0-best_score
     mean_std = (float(torch.exp(0.5*best_log_variance).mean())
                 if best_log_variance is not None else 0.0)
     uncertainty_ok = mean_std <= float(cfg.get(
         "maximum_context_mean_std", float("inf")))
-    accepted = relative_improvement >= minimum and uncertainty_ok
+    accepted = candidate_eligible and relative_improvement >= minimum and uncertainty_ok
     selected = best_z if accepted else incumbent
     zero_recovery = accepted and best_prefix == 0 and best_shrink == 0.0
     return selected, {
@@ -186,6 +226,10 @@ def encode_context(model, adapter, encoder, trajectory, domain, budget, device,
         "fit_count": fit_count, "validation_count": validation_count,
         "initial_validation_loss": incumbent_loss,
         "best_validation_loss": best_loss,
+        "support_validation_budgets": [x[0] for x in validations],
+        "initial_support_window_losses": incumbent_losses,
+        "best_support_window_losses": best_window_losses,
+        "maximum_support_window_regression": maximum_window_regression,
         "validation_improvement": relative_improvement,
         "required_validation_improvement": minimum,
         "prefix_count": best_prefix if accepted else 0,
@@ -202,8 +246,9 @@ def encode_context(model, adapter, encoder, trajectory, domain, budget, device,
             [float(x) for x in best_log_variance.detach().cpu()] if accepted
             and best_log_variance is not None else incumbent_log_variance),
         "candidate_validation_losses": {
-            f"p{prefix}/s{shrink}": loss
-            for loss, prefix, shrink, _, _ in candidates},
+            f"p{prefix}/s{shrink}": {"relative_score": score,
+                "window_losses": losses, "eligible": eligible}
+            for score, prefix, shrink, _, _, losses, eligible in candidates},
     }
 
 

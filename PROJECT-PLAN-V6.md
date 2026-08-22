@@ -2166,3 +2166,29 @@ K50轨迹，而不是24条相互独立的预算轨迹。
 棋盘格采图工具（仅检测成功时保存，至少10张，建议20张且覆盖不同位置、倾角、距离和画面
 边缘）。当前主机已安装 OpenCV Contrib 5.0.0，ArUco API 通过，并检测到 camera index 0；
 readiness 中视觉软件项已转绿，尚需实体棋盘格图像与标记实测尺寸才能生成真实标定。
+
+---
+
+## 23. Z71--Z75 五 seed G2 补证据与安全机制审计（2026-08-23）
+
+为满足原G2五seed要求，在查看新结果前预注册 seed37/47，与7/17/27组成固定集合；V0、
+Z32、Z69、shared/BT adapter、Z65 encoder和Z70 evaluation均使用相同数据、初始化规则与
+优化预算。旧双专家 V0 在37/47均NO-GO；旧Z32的free回归分别为-18.31%/-52.59%。Z69
+只清零shared训练中从未激活的topology输入列并保留解析投影，将其恢复为+0.09%/-1.33%，
+再次复现根因修复。
+
+原Z70扩到五seed后，K50 BT-own均值+5.72%，seed-bootstrap 95% CI [+3.55%,+8.06%]，
+但seed47的D3 composition/unseen出现-9.96%/-5.46% evaluation负迁移。审计发现三处实现与
+安全主张不一致：uncertainty proposal第一次接受绕过统一hysteresis；接受后不再保留z=0
+候选；单个最新support-validation窗口会遗忘先前预算的验证证据。Z72--Z75在同一BT-DPWM
+机制内依次修复为首次/替换统一门槛、永久z=0候选、D3/D4至少15个fit transitions、
+`context_mean_std<=0.30`及K25/K50嵌套support窗口的1%非回归约束。
+
+Z75五seed development结果为：BT-own K=0/5/10/25/50均值
+`0/0.504/0.504/3.357/3.357%`，全部seed/domain/budget非负、均值严格不降、constraint
+violation为0；K25/K50 seed-bootstrap 95% CI约为[+1.36%,+5.61%]。公平shared曲线为
+`0/0.548/0.548/3.377/3.377%`，故BT在K25低0.020个百分点，预注册“严格大于shared”
+符号门未通过；K50 BT相对shared为-0.778%，仍在预设-1%工程容忍内，但不得宣称性能领先。
+Z71失败结果及Z72--Z74开发轨迹全部保留，不能用Z75覆盖。由于Z75由五seed安全审计产生，
+论文级确认还需要未参与改动的独立confirmation seed；在此之前将其标为development pass on
+safety/monotonicity，而不是最终G2 Go。

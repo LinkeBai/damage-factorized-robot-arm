@@ -79,6 +79,16 @@ def main():
                     "seed_values": dict(zip(map(str, seeds), seed_values)),
                     "seed_bootstrap_95ci": bootstrap_ci(seed_values,
                         int(config["bootstrap_resamples"]), float(config["confidence_level"]), rng)}
+            efficiency_delta = [
+                entry["bt_own_gain_pct"]["seed_values"][str(seed)]-
+                entry["shared_own_gain_pct"]["seed_values"][str(seed)]
+                for seed in seeds]
+            entry["bt_minus_shared_own_gain_pct_points"] = {
+                "mean": float(np.mean(efficiency_delta)),
+                "seed_values": dict(zip(map(str, seeds), efficiency_delta)),
+                "seed_bootstrap_95ci": bootstrap_ci(efficiency_delta,
+                    int(config["bootstrap_resamples"]),
+                    float(config["confidence_level"]), rng)}
             curves.append(entry)
     gate = {"complete_five_seed_matrix": complete,
             "failures_recorded": failures,
