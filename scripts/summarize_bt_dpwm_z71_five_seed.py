@@ -27,7 +27,10 @@ def main():
         "runs/g2_bt_dpwm_z71_five_seed/five_seed_gate_v1/summary.json"))
     args = parser.parse_args()
     config = yaml.safe_load(args.config.read_text(encoding="utf-8"))
-    seeds, expected_domains = config["seeds"], set(config["domains"])
+    seeds = config.get("seeds", config.get("confirmation_seeds"))
+    if not seeds:
+        raise ValueError("config must define seeds or confirmation_seeds")
+    expected_domains = set(config["domains"])
     budgets = list(config["transition_budgets"])
     records, failures = [], []
     for seed in seeds:
@@ -106,9 +109,36 @@ def main():
             maximum_constraint_violation_rmse=float(max(
                 row["constraint_violation_rmse"] for row in records)))
         criteria = config["gate"]
+        if "equivalence_margin_pct_points" in config:
+            margin = float(config["equivalence_margin_pct_points"])
+            comparison_budgets = (25, 50)
+            comparison_curves = {x["budget"]: x for x in curves}
+            lower_bounds = {
+                str(budget): comparison_curves[budget]
+                ["bt_minus_shared_own_gain_pct_points"]["seed_bootstrap_95ci"][0]
+                for budget in comparison_budgets
+            }
+            gate["paired_equivalence_margin_pct_points"] = margin
+            gate["paired_delta_ci_lower_bounds"] = lower_bounds
+            gate["k25_k50_sample_efficiency_equivalent"] = bool(
+                all(value >= -margin for value in lower_bounds.values()))
+            sample_efficiency_passed = gate[
+                "k25_k50_sample_efficiency_equivalent"]
+        else:
+            sample_efficiency_passed = gate[
+                "k10_k25_sample_efficiency_exceeds_shared"]
+        budget_to_index = {budget: index for index, budget in enumerate(budgets)}
+        k25_gain = bt_curve[budget_to_index[25]]
+        k50_gain = bt_curve[budget_to_index[50]]
+        gate["minimum_k25_bt_own_gain_passed"] = bool(
+            k25_gain >= float(criteria.get("minimum_k25_bt_own_gain_pct", -np.inf)))
+        gate["minimum_k50_bt_own_gain_passed"] = bool(
+            k50_gain >= float(criteria.get("minimum_k50_bt_own_gain_pct", -np.inf)))
         gate["passed"] = (gate["all_bt_own_gains_nonnegative"] and
             gate["aggregate_bt_curve_monotonic"] and
-            gate["k10_k25_sample_efficiency_exceeds_shared"] and
+            sample_efficiency_passed and
+            gate["minimum_k25_bt_own_gain_passed"] and
+            gate["minimum_k50_bt_own_gain_passed"] and
             gate["final_mean_relative_shared_pct"] >=
                 float(criteria["minimum_k50_relative_shared_pct"]) and
             gate["maximum_constraint_violation_rmse"] <=
