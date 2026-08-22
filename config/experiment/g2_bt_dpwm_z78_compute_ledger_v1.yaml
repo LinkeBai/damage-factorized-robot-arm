@@ -1,0 +1,31 @@
+version: g2_bt_dpwm_z78_compute_ledger_v1
+status: observed_confirmation_session_wall_clock
+measurement_note: >-
+  Wall-clock boundaries are reconstructed from captured process start times and
+  adjacent artifact timestamps in the uninterrupted 2026-08-23 confirmation
+  session. Treat values as engineering measurements with about one minute
+  boundary uncertainty, not isolated hardware benchmarks.
+hardware:
+  gpu: NVIDIA GeForce RTX 4060 Laptop GPU 8 GiB
+  cpu: Intel Family 6 Model 183
+  warp: 1.16.0
+  cuda_toolkit: "12.9"
+stages:
+  seed57:
+    v0_fair_baselines: {wall_clock_s: 655, source: captured_process_start_to_summary}
+    z32_base_and_scaffold: {wall_clock_s: 1625, source: adjacent_summary_boundaries}
+    z69_topology_column_recovery: {wall_clock_s: 424, source: adjacent_summary_boundaries}
+    z70_goal_queries_and_adapters: {wall_clock_s: 1467, source: captured_process_start_to_artifact}
+    z65_uncertain_encoder: {wall_clock_s: 48, source: adjacent_artifact_boundaries}
+    z75_evaluation: {wall_clock_s: 67, source: adjacent_artifact_boundaries}
+  seed67:
+    v0_fair_baselines: {wall_clock_s: 775, source: adjacent_summary_boundaries}
+    z32_base_and_scaffold: {wall_clock_s: 1648, source: adjacent_summary_boundaries}
+    z69_topology_column_recovery: {wall_clock_s: 424, source: adjacent_summary_boundaries}
+    z70_goal_queries_and_adapters: {wall_clock_s: 1512, source: adjacent_summary_boundaries}
+    z65_uncertain_encoder: {wall_clock_s: 53, source: adjacent_artifact_boundaries}
+    z75_evaluation: {wall_clock_s: 75, source: adjacent_artifact_boundaries}
+known_bottleneck:
+  stage: z70_goal_queries_and_adapters
+  observation: 67 domains x 4 CPU goal queries dominate before GPU adapter epochs
+  mitigation_already_active: MuJoCo Warp CUDA batch stepping and trajectory caches

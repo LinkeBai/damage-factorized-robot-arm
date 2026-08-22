@@ -2242,3 +2242,11 @@ seed67 D2 payload在K50接受replacement后own gain由+8.19%降到+6.20%，D2 fr
 独立goal rollout；后者仅以2.038%略过2% hysteresis。故当前剩余问题是单条active-probing
 校准轨迹到任务轨迹的risk-generalization gap，不是投影违例或发散。论文可主张robustness下
 不跌破K0，不能主张每增加transition都不降，也不能宣称held-out composition适配成功。
+
+Z78 compute/failure ledger按冻结类精确计数：shared h136 base 338,102参数，BT base
+336,910，adapter 10,224，uncertain encoder 51,664；部署总量shared 399,990、BT 398,798，
+BT少0.298%，因此参数比较公平。RTX4060 Laptop/Warp1.16/CUDA12.9上的连续确认wall-clock
+约为seed57 71.4min、seed67 74.8min，其中Z32 base+scaffold约27min，Z70的67域×4 CPU
+goal queries及双adapter约24--25min，是主要瓶颈；单纯租更强GPU不能消除串行CPU goal
+optimization。ledger机器引用Z71、Z75、Z76、Z77及57/67的V0/Z32/Z69共10个未过总门run，
+同时区分其安全子门，避免只保留成功终点或把所有`passed:false`误解为相同失败。
