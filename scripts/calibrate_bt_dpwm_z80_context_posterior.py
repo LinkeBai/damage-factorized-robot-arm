@@ -77,7 +77,7 @@ def collect_seed(seed, cfg, domains, q0a, device):
                 actions = torch.stack([item.actions[:budget] for item in selected]).to(device)
                 mean, log_variance = encoder(
                     states, actions, masks, return_uncertainty=True)
-                errors = ((mean-target)/scale).cpu().numpy()
+                errors = ((mean-targets)/scale).cpu().numpy()
                 variances = torch.exp(log_variance).cpu().numpy()
                 for index, domain in enumerate(domains):
                     records.append({"seed": seed, "repeat": repeat,
