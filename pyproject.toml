@@ -22,6 +22,9 @@ dev = [
 plot = [
     "Pillow>=10",
 ]
+real = [
+    "opencv-contrib-python>=4.8,<6",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
