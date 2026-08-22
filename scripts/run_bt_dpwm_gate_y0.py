@@ -144,6 +144,78 @@ def train_robot_only_with_selection(
     return history, diagnostics
 
 
+def object_losses_per_trajectory(model, batch, horizon, use_topology=False):
+    states, actions, mask, angle = batch
+    zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
+    one_step, hidden = [], None
+    for step in range(actions.shape[1]):
+        prediction, hidden = model.step(
+            states[:, step], actions[:, step], model_mask, model_angle, hidden
+        )
+        one_step.append(
+            (prediction[:, 10:] - states[:, step + 1, 10:]).pow(2).mean(-1)
+        )
+    rollout = []
+    horizon = min(horizon, actions.shape[1])
+    for start in range(0, actions.shape[1] - horizon + 1, horizon):
+        prediction, hidden = states[:, start], None
+        for offset in range(horizon):
+            prediction, hidden = model.step(
+                prediction, actions[:, start + offset], model_mask, model_angle, hidden
+            )
+            rollout.append(
+                (prediction[:, 10:] - states[:, start + offset + 1, 10:]).pow(2).mean(-1)
+            )
+    return torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
+
+
+def train_object_with_selection(
+    model, batch, validation_batch, *, epochs, learning_rate, horizon,
+    validation_every, train_group_indices, validation_group_indices,
+    group_robust_weight, use_topology=False,
+):
+    parameters = [p for name, p in model.named_parameters() if name.startswith("object_")]
+    optimizer = torch.optim.Adam(parameters, lr=learning_rate)
+    history, validation_history = [], []
+    best_value, best_epoch, best_state = float("inf"), None, None
+    for epoch in range(1, epochs + 1):
+        losses = object_losses_per_trajectory(model, batch, horizon, use_topology)
+        loss, _ = aggregate_topology_losses(
+            losses, train_group_indices, group_robust_weight
+        )
+        optimizer.zero_grad(); loss.backward()
+        gradient = float(torch.nn.utils.clip_grad_norm_(parameters, 5.0))
+        optimizer.step(); history.append(float(loss.detach()))
+        suffix = ""
+        if epoch % validation_every == 0 or epoch == epochs:
+            with torch.no_grad():
+                values = object_losses_per_trajectory(
+                    model, validation_batch, horizon, use_topology
+                )
+                value, groups = aggregate_topology_losses(
+                    values, validation_group_indices, group_robust_weight
+                )
+            value_float = float(value)
+            group_values = {name: float(item) for name, item in groups.items()}
+            validation_history.append({"epoch": epoch, "loss": value_float,
+                                       "topology_losses": group_values})
+            if value_float < best_value:
+                best_value, best_epoch = value_float, epoch
+                best_state = {name: tensor.detach().clone()
+                              for name, tensor in model.state_dict().items()}
+            suffix = f" val={value_float:.6f}"
+        if epoch == 1 or epoch % 10 == 0:
+            print(f"  object-select epoch={epoch:03d} loss={loss.item():.6f}{suffix} "
+                  f"grad={gradient:.3f}", flush=True)
+    model.load_state_dict(best_state)
+    diagnostics = {"selected_epoch": best_epoch, "selected_validation_loss": best_value,
+                   "validation_history": validation_history,
+                   "group_robust_weight": group_robust_weight}
+    print(f"[object] selected epoch={best_epoch} validation_loss={best_value:.6f}", flush=True)
+    return history, diagnostics
+
+
 def train_blockwise_horizons(model, batch, *, epochs, learning_rate,
                              robot_horizon, object_horizon):
     """Optimize each directed block at its empirically identified time scale."""
@@ -577,6 +649,7 @@ def main():
     batch = _batch(train_data, device)
     use_topology = bool(cfg.get("internal_topology_conditioning", False))
     robot_selection = None
+    object_selection = None
     refinement_epochs = int(cfg.get("joint_refinement_epochs", 0))
     shared_epochs = int(cfg["epochs"]) - refinement_epochs
     if bool(cfg.get("block_coordinate_training", False)):
@@ -643,12 +716,37 @@ def main():
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(name.startswith("object_"))
         print("[block object] object on frozen robot/shadow rollouts", flush=True)
-        object_history = train_model(
-            candidate, batch, component="object", epochs=int(cfg["object_epochs"]),
-            learning_rate=float(cfg.get("object_learning_rate", cfg["learning_rate"])),
-            rollout_horizon=int(cfg["object_rollout_training_horizon"]),
-            use_topology=use_topology,
-        )
+        if bool(cfg.get("object_validation_selection", False)):
+            if validation_data is None:
+                validation_key = json.dumps({"kind": "push_validation", "seed": args.seed,
+                    "domains": [x.domain_id for x in protocol.validation], "q0a": q0a},
+                    sort_keys=True)
+                validation_data = cached_collect(
+                    args.cache_dir, validation_key, lambda: collect_push_domains(
+                        protocol.validation,
+                        trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
+                        seed=args.seed * 10_000 + 750,
+                        targets=tuple(x.as_array() for x in targets.validation), **common,
+                    )
+                )
+            object_history, object_selection = train_object_with_selection(
+                candidate, batch, _batch(validation_data, device),
+                epochs=int(cfg["object_epochs"]),
+                learning_rate=float(cfg.get("object_learning_rate", cfg["learning_rate"])),
+                horizon=int(cfg["object_rollout_training_horizon"]),
+                validation_every=int(cfg.get("object_validation_every", 5)),
+                train_group_indices=topology_group_indices(train_data, device),
+                validation_group_indices=topology_group_indices(validation_data, device),
+                group_robust_weight=float(cfg.get("object_group_robust_weight", 0.5)),
+                use_topology=use_topology,
+            )
+        else:
+            object_history = train_model(
+                candidate, batch, component="object", epochs=int(cfg["object_epochs"]),
+                learning_rate=float(cfg.get("object_learning_rate", cfg["learning_rate"])),
+                rollout_horizon=int(cfg["object_rollout_training_horizon"]),
+                use_topology=use_topology,
+            )
         history = robot_history + shadow_history + object_history
         reaction_epochs = int(cfg.get("reaction_epochs", 0))
         if reaction_epochs:
@@ -712,6 +810,7 @@ def main():
                "swa_scaffold_history": swa_history, "swa_scaffold_count": swa_count,
                "scaffold_selection": scaffold_selection,
                "robot_selection": robot_selection,
+               "object_selection": object_selection,
                "robot_blend_selection": blend_selection,
                "object_improvement_pct": obj, "free_arm_improvement_pct": free,
                "overall_improvement_pct": overall, "gate_passed": passed,

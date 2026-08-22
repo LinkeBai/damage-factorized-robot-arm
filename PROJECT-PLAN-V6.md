@@ -1989,6 +1989,25 @@ free +0.23%、object -3.28%、overall +0.18%、2/4退化。Z39在相同318,378�
 free-arm收益来源；达到+5%仍需要新的可迁移robot dynamics信息，不能由object容量、
 更多epoch、已见拓扑group-DRO或权重插值产生。
 
+Z41--Z44 公平短时system-ID（2026-08-22）：对每个冻结测试域另采与evaluation目标/
+seed不重合的1条60-step calibration轨迹，shared与BT-DPWM均只估计同维输出校准量，
+并用轨迹后半段从固定shrink集合选择。常数bias（Z41）四域free +2.02%、object
+-2.66%、overall +1.92%、1/4退化，三个域均选择zero correction。逐状态delta
+gain+bias（Z42，每模型同为28个部署系数）达到free +5.16%、overall +5.00%、
+1/4退化，但object -4.33%，未过严格gate。robot/object分别选择shrink的Z43为free
++4.67%、object -1.92%、overall +4.53%。Z44将topology robot与baseline object head
+直接组合，因hidden表示不兼容，零校准primary object -34.01%；block-affine后四域仍
+仅free +4.71%、object -2.74%、overall +4.54%。公平few-shot产生robot信号，但未能
+同时保持object正收益。
+
+Z45--Z46 object选择与更多校准观测（2026-08-22）：Z45冻结Z32 robot，仅对compact
+object head使用`0.5*group mean+0.5*worst topology`训练并按validation object rollout
+选择；validation降至0.000829，但四域object -15.71%、overall +1.03%，再次证明weak
+validation residual不能选择mixed test object泛化。Z46将公平block-affine预算提高到
+3条×60-step（并修正cache key纳入trajectory count），结果反降至free +2.44%、object
+-3.68%、overall +2.29%。因此当前one-step bias/affine system-ID与10-step rollout目标
+不一致；不得以Z42 seed7接近+5%的单次结果升级主张，短时affine通道冻结为NO-GO。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner
