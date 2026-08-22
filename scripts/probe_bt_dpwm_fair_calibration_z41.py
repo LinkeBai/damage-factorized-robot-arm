@@ -15,6 +15,7 @@ from torch import nn
 
 from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
+from robotarm.models.topology_surgery import TopologySurgery
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
 from robotarm.training.topology_surgery_gate import _damage_tensors
@@ -152,6 +153,80 @@ def fit_affine(model, trajectories, domain, device, topology_aware, shrinkages,
     }
 
 
+def rollout_affine_loss(model, trajectories, domain, device, topology_aware,
+                        gain, bias, horizon):
+    states = torch.stack([item.states for item in trajectories]).to(device)
+    actions = torch.stack([item.actions for item in trajectories]).to(device)
+    true_mask, true_angle = _damage_tensors(
+        [domain.damage] * len(trajectories), device
+    )
+    zeros = torch.zeros_like(true_mask)
+    model_mask, model_angle = ((true_mask, true_angle) if topology_aware
+                               else (zeros, zeros))
+    surgery = TopologySurgery()
+    free_mask = torch.cat((1.0 - true_mask, 1.0 - true_mask), -1)
+    free_count = free_mask.sum(-1).clamp_min(1.0)
+    endpoint_losses = []
+    horizon = min(horizon, actions.shape[1])
+    for start in range(0, actions.shape[1] - horizon + 1, horizon):
+        prediction, hidden = states[:, start], None
+        for offset in range(horizon):
+            raw, hidden = model.step(
+                prediction, actions[:, start + offset],
+                model_mask, model_angle, hidden,
+            )
+            prediction = prediction + gain * (raw - prediction) + bias
+            prediction = surgery.project_state(prediction, true_mask, true_angle)
+        target = states[:, start + horizon]
+        error = (prediction - target).pow(2)
+        joint = (error[:, :10] * free_mask).sum(-1) / free_count
+        obj = error[:, 10:].mean(-1)
+        endpoint_losses.append(joint + obj)
+    return torch.stack(endpoint_losses).mean()
+
+
+def fit_rollout_affine(model, trajectories, domain, device, topology_aware, *,
+                       horizon, steps, learning_rate, l2, validation_every):
+    if len(trajectories) < 2:
+        raise ValueError("rollout affine calibration needs at least two trajectories")
+    train, validation = trajectories[:-1], trajectories[-1:]
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
+    gain = nn.Parameter(torch.ones(14, device=device))
+    bias = nn.Parameter(torch.zeros(14, device=device))
+    optimizer = torch.optim.Adam((gain, bias), lr=learning_rate)
+    with torch.no_grad():
+        best_value = float(rollout_affine_loss(
+            model, validation, domain, device, topology_aware,
+            gain, bias, horizon,
+        ))
+    best_step, best_gain, best_bias = 0, gain.detach().clone(), bias.detach().clone()
+    history = [{"step": 0, "validation_loss": best_value}]
+    for step in range(1, steps + 1):
+        loss = rollout_affine_loss(
+            model, train, domain, device, topology_aware, gain, bias, horizon
+        ) + l2 * ((gain - 1.0).pow(2).mean() + bias.pow(2).mean())
+        optimizer.zero_grad(); loss.backward(); optimizer.step()
+        with torch.no_grad():
+            gain.clamp_(0.25, 2.0); bias.clamp_(-0.1, 0.1)
+        if step % validation_every == 0 or step == steps:
+            with torch.no_grad():
+                value = float(rollout_affine_loss(
+                    model, validation, domain, device, topology_aware,
+                    gain, bias, horizon,
+                ))
+            history.append({"step": step, "validation_loss": value})
+            if value < best_value:
+                best_value, best_step = value, step
+                best_gain, best_bias = gain.detach().clone(), bias.detach().clone()
+    return best_gain, best_bias, {
+        "selected_step": best_step, "validation_loss": best_value,
+        "gain_deviation_norm": float(torch.linalg.vector_norm(best_gain - 1.0)),
+        "bias_norm": float(torch.linalg.vector_norm(best_bias)),
+        "history": history,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
@@ -193,7 +268,23 @@ def main():
             steps=int(cfg["calibration_steps"]), seed=calibration_seed,
             targets=tuple(item.as_array() for item in targets.calibration), **common,
         ))
-        if cfg.get("calibration_type", "bias") in ("affine", "block_affine"):
+        if cfg.get("calibration_type", "bias") == "rollout_affine":
+            fit_kwargs = dict(
+                horizon=int(cfg["calibration_rollout_horizon"]),
+                steps=int(cfg["calibration_optimization_steps"]),
+                learning_rate=float(cfg["calibration_learning_rate"]),
+                l2=float(cfg["calibration_l2"]),
+                validation_every=int(cfg["calibration_validation_every"]),
+            )
+            base_gain, base_bias, base_diag = fit_rollout_affine(
+                baseline, calibration_data, domain, device, False, **fit_kwargs
+            )
+            candidate_gain, candidate_bias, candidate_diag = fit_rollout_affine(
+                candidate, calibration_data, domain, device, True, **fit_kwargs
+            )
+            calibrated_baseline = AffineCalibratedModel(baseline, base_gain, base_bias)
+            calibrated_candidate = AffineCalibratedModel(candidate, candidate_gain, candidate_bias)
+        elif cfg.get("calibration_type", "bias") in ("affine", "block_affine"):
             blockwise = cfg["calibration_type"] == "block_affine"
             base_gain, base_bias, base_diag = fit_affine(
                 baseline, calibration_data, domain, device, False, cfg["shrinkages"],

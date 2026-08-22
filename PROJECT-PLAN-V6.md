@@ -2008,6 +2008,22 @@ validation residual不能选择mixed test object泛化。Z46将公平block-affin
 -3.68%、overall +2.29%。因此当前one-step bias/affine system-ID与10-step rollout目标
 不一致；不得以Z42 seed7接近+5%的单次结果升级主张，短时affine通道冻结为NO-GO。
 
+Z47 rollout-aware公平system-ID（2026-08-22）：为排除one-step目标错配，shared与
+BT-DPWM均冻结全部网络，只优化相同14 gain+14 bias；3条×60-step calibration中前2条
+拟合、第3条每5步选择checkpoint，目标严格改为正式评估使用的10-step rollout终点，
+并包含相同identity正则与系数边界。seed7四域结果为free -11.27%、object -6.20%、
+overall -11.01%、3/4退化；D3 composition与unseen分别overall -16.48%和-23.06%。
+validation在多个域持续选择最终step，但不能外推到disjoint evaluation trajectories，说明
+阻塞不再是one-step/rollout目标差异，而是当前calibration激励缺少deployment代表性。
+
+**恢复后的固定目标再次阻塞**：Z32--Z47依次加入额外锁定拓扑元训练、公平强baseline、
+精确参数匹配bridge、group-DRO、正确robot-only rollout、validation早停、projected-shared
+安全路径、权重插值、1/3-shot公平bias/affine与rollout-aware system-ID。连续证据均指向同一
+条件：当前train/validation/calibration观测不能确定held-out mixed损伤上的robot correction
+方向。继续在冻结四测试域上选择结构、步数或系数将构成test tuning。解除阻塞必须由项目
+负责人批准一种新信息源（独立development mixed域、与部署相同的校准激励/传感观测，或
+重新定义few-shot协议并重训同预算baseline）；在此之前不得宣称达到三seed×四域+5% gate。
+
 ---
 
 ## 20. 当前 Gate 决策与下一 owner
