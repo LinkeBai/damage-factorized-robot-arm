@@ -529,14 +529,26 @@ def main():
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
-        missing, unexpected = candidate.load_state_dict(
-            torch.load(source_path, map_location=device), strict=False)
-        allowed_missing = {name for name in candidate.state_dict()
-                           if name.startswith("geometric_object_head.")}
-        if set(missing) != allowed_missing or unexpected:
-            raise ValueError(f"incompatible full template: missing={missing}, unexpected={unexpected}")
+        source = torch.load(source_path, map_location=device)
+        target = candidate.state_dict()
+        compatible = {name: value for name, value in source.items()
+                      if name in target and value.shape == target[name].shape}
+        target.update(compatible)
+        if bool(cfg.get("drop_object_to_robot_feedback", False)):
+            name = "robot_encoder.0.weight"
+            if source[name].shape[1] <= target[name].shape[1]:
+                raise ValueError("source robot encoder has no removable object context")
+            target[name] = source[name][:, :target[name].shape[1]].detach().clone()
+        incompatible = {name for name, value in source.items()
+                        if name in target and value.shape != target[name].shape}
+        allowed_incompatible = ({"robot_encoder.0.weight"}
+                                if cfg.get("drop_object_to_robot_feedback", False) else set())
+        if incompatible != allowed_incompatible:
+            raise ValueError(f"incompatible full template tensors: {sorted(incompatible)}")
+        candidate.load_state_dict(target)
+        new_names = [name for name in target if name not in source]
         print(f"[initialize] loaded frozen BT template {source_path}; "
-              f"new geometry parameters={sum(candidate.state_dict()[x].numel() for x in missing):,}",
+              f"new parameters={sum(target[x].numel() for x in new_names):,}",
               flush=True)
     candidate_template_robot = None
     if "initialize_candidate_model_template" in cfg:
