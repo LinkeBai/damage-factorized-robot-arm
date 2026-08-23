@@ -1,0 +1,11 @@
+version: g2_r0_object_integrator_eval_seed7_v1
+status: frozen_after_validation_selection_before_integrator_test
+selection_artifact: runs/g2_r0_strict_object_recalibration/seed7_v1/integrator_selection.json
+q0a_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
+hidden_dim: 136
+baseline_hidden_dim: 136
+object_hidden_dim: 32
+geometric_object_rank: 16
+external_baseline_model_template: runs/g2_bt_dpwm_meta_train_z32/seed{seed}_v1/baseline_model.pt
+object_integration_dt: 0.005
+object_position_blend: 0.5
