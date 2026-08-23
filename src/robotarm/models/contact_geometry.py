@@ -18,6 +18,24 @@ def _axis_rotation(axis: torch.Tensor, angle: torch.Tensor) -> torch.Tensor:
             + torch.sin(angle)[..., None, None] * skew)
 
 
+def pusher_reference_point(q: torch.Tensor) -> torch.Tensor:
+    """Return the differentiable world-frame tip used by contact geometry."""
+    batch = q.shape[0]
+    axes = q.new_tensor([[0., 0., 1.], [0., 1., 0.], [0., 1., 0.],
+                         [0., 1., 0.], [0., 0., 1.]])
+    origins = q.new_tensor([[0., 0., .120], [0., 0., 0.], [0., 0., .110],
+                            [0., 0., .120], [0., 0., .060]])
+    rotation = torch.eye(3, device=q.device, dtype=q.dtype).expand(batch, 3, 3).clone()
+    position = torch.zeros(batch, 3, device=q.device, dtype=q.dtype)
+    for joint in range(q.shape[1]):
+        origin = origins[joint].view(1, 3, 1).expand(batch, -1, -1)
+        position = position + torch.bmm(rotation, origin).squeeze(-1)
+        rotation = torch.bmm(rotation, _axis_rotation(axes[joint], q[:, joint]))
+    return position + torch.bmm(
+        rotation, q.new_tensor([0.0537, -0.0342, 0.131]).view(1, 3, 1).expand(batch, -1, -1)
+    ).squeeze(-1)
+
+
 def pusher_box_contact_gate(q: torch.Tensor, block_xy: torch.Tensor, *,
                             threshold: float = -0.005,
                             temperature: float = 0.002) -> torch.Tensor:

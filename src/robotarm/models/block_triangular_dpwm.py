@@ -12,7 +12,7 @@ from torch import nn
 
 from .topology_graph_world_model import TopologyGraphConfig
 from .topology_surgery import TopologySurgery
-from .contact_geometry import pusher_box_contact_gate
+from .contact_geometry import pusher_box_contact_gate, pusher_reference_point
 
 
 class BlockTriangularDPWM(nn.Module):
@@ -41,6 +41,7 @@ class BlockTriangularDPWM(nn.Module):
         robot_velocity_delta_scale: float = 1.0,
         reaction_relative_clip: float | None = None,
         compact_bridge_object_head: bool = False,
+        geometric_object_rank: int = 0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -66,12 +67,15 @@ class BlockTriangularDPWM(nn.Module):
         self.robot_velocity_delta_scale = robot_velocity_delta_scale
         self.reaction_relative_clip = reaction_relative_clip
         self.compact_bridge_object_head = compact_bridge_object_head
+        self.geometric_object_rank = int(geometric_object_rank)
         if compact_bridge_object_head and independent_object_encoder:
             raise ValueError("compact bridge and independent object encoder are exclusive")
         if reaction_relative_clip is not None and reaction_relative_clip < 0:
             raise ValueError("reaction_relative_clip must be non-negative")
         if robot_expert_count < 1:
             raise ValueError("robot_expert_count must be positive")
+        if geometric_object_rank < 0:
+            raise ValueError("geometric_object_rank must be non-negative")
         if robot_expert_count > 1 and (reaction_rank > 0 or shadow_object_rank > 0):
             raise ValueError("robot ensembles cannot combine with reaction or shadow in this gate")
         if shadow_object_rank > 0 and reaction_event_decay is not None:
@@ -178,6 +182,15 @@ class BlockTriangularDPWM(nn.Module):
             )
             nn.init.zeros_(self.shadow_context_head[-1].weight)
             nn.init.zeros_(self.shadow_context_head[-1].bias)
+        if geometric_object_rank > 0:
+            # Previous/next pusher xy, pusher displacement, relative pusher-box
+            # xy, object velocity, and previous/next analytic contact gates.
+            self.geometric_object_head = nn.Sequential(
+                nn.Linear(12, geometric_object_rank), nn.Tanh(),
+                nn.Linear(geometric_object_rank, c.object_dim),
+            )
+            nn.init.zeros_(self.geometric_object_head[-1].weight)
+            nn.init.zeros_(self.geometric_object_head[-1].bias)
 
     @staticmethod
     def _neighbor_sum(nodes: torch.Tensor) -> torch.Tensor:
@@ -260,7 +273,7 @@ class BlockTriangularDPWM(nn.Module):
             next_hidden, reaction_trace = next_hidden
         prediction, returned_hidden = self.step_object(
             projected_robot, obj, action, mask, lock_angle, depth, next_hidden,
-            object_hidden,
+            object_hidden, previous_robot=state[:, :2 * self.cfg.dof],
         )
         if shadow_obj is not None:
             next_shadow = shadow_obj + self.shadow_context_head(torch.cat(
@@ -380,7 +393,7 @@ class BlockTriangularDPWM(nn.Module):
 
     def step_object(
         self, projected_robot, obj, action, mask, lock_angle, depth, robot_hidden,
-        object_hidden=None,
+        object_hidden=None, previous_robot=None,
     ):
         """Advance the object block from a projected robot transition."""
         c = self.cfg
@@ -418,5 +431,24 @@ class BlockTriangularDPWM(nn.Module):
                 bridge = torch.cat((bridge, projected_robot.detach()), -1)
             next_obj = obj + self.object_head(torch.cat((bridge, obj), -1))
             returned_hidden = robot_hidden
+        if self.geometric_object_rank > 0:
+            if previous_robot is None:
+                raise ValueError("geometric object propagation requires previous_robot")
+            previous_q = previous_robot[:, :c.dof]
+            projected_q = projected_robot[:, :c.dof]
+            previous_tip = pusher_reference_point(previous_q)[..., :2]
+            projected_tip = pusher_reference_point(projected_q)[..., :2]
+            previous_gate = pusher_box_contact_gate(
+                previous_q, obj[:, :2], threshold=self.reaction_gate_threshold,
+                temperature=self.reaction_gate_temperature)
+            projected_gate = pusher_box_contact_gate(
+                projected_q, obj[:, :2], threshold=self.reaction_gate_threshold,
+                temperature=self.reaction_gate_temperature)
+            geometry = torch.cat((
+                previous_tip, projected_tip, projected_tip - previous_tip,
+                projected_tip - obj[:, :2], obj[:, 2:4],
+                previous_gate[:, None], projected_gate[:, None],
+            ), -1).detach()
+            next_obj = next_obj + self.geometric_object_head(geometry)
         prediction = torch.cat((projected_robot, next_obj), -1)
         return self.surgery.project_state(prediction, mask, lock_angle), returned_hidden

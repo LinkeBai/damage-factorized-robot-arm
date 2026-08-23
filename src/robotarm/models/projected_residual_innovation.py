@@ -237,6 +237,7 @@ class FewShotProjectedModel(nn.Module):
             prediction, next_hidden = self.base_model.step_object(
                 combined[:, :2 * self.adapter.dof], obj, projected_action,
                 base_mask, base_angle, depth, robot_hidden, object_hidden,
+                previous_robot=state[:, :2 * self.adapter.dof],
             )
             # step_object returns its input robot block as the robot prediction.
             prediction = torch.cat((combined[:, :2 * self.adapter.dof],

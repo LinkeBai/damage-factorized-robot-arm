@@ -175,10 +175,22 @@ def train_object_with_selection(
     validation_every, train_group_indices, validation_group_indices,
     group_robust_weight, use_topology=False,
 ):
-    parameters = [p for name, p in model.named_parameters() if name.startswith("object_")]
+    parameters = [p for name, p in model.named_parameters()
+                  if name.startswith("object_") and p.requires_grad]
     optimizer = torch.optim.Adam(parameters, lr=learning_rate)
     history, validation_history = [], []
-    best_value, best_epoch, best_state = float("inf"), None, None
+    with torch.no_grad():
+        initial_values = object_losses_per_trajectory(
+            model, validation_batch, horizon, use_topology)
+        initial_value, initial_groups = aggregate_topology_losses(
+            initial_values, validation_group_indices, group_robust_weight)
+    best_value, best_epoch = float(initial_value), 0
+    best_state = {name: tensor.detach().clone()
+                  for name, tensor in model.state_dict().items()}
+    validation_history.append({
+        "epoch": 0, "loss": best_value,
+        "topology_losses": {name: float(item) for name, item in initial_groups.items()},
+    })
     for epoch in range(1, epochs + 1):
         losses = object_losses_per_trajectory(model, batch, horizon, use_topology)
         loss, _ = aggregate_topology_losses(
@@ -514,7 +526,19 @@ def main():
         robot_expert_count=int(cfg.get("robot_expert_count", 1)),
         contact_gated_object_context=bool(cfg.get("contact_gated_object_context", False)),
         compact_bridge_object_head=bool(cfg.get("compact_bridge_object_head", False)),
+        geometric_object_rank=int(cfg.get("geometric_object_rank", 0)),
     ).to(device)
+    if "initialize_candidate_full_template" in cfg:
+        source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
+        missing, unexpected = candidate.load_state_dict(
+            torch.load(source_path, map_location=device), strict=False)
+        allowed_missing = {name for name in candidate.state_dict()
+                           if name.startswith("geometric_object_head.")}
+        if set(missing) != allowed_missing or unexpected:
+            raise ValueError(f"incompatible full template: missing={missing}, unexpected={unexpected}")
+        print(f"[initialize] loaded frozen BT template {source_path}; "
+              f"new geometry parameters={sum(candidate.state_dict()[x].numel() for x in missing):,}",
+              flush=True)
     candidate_template_robot = None
     if "initialize_candidate_model_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_model_template"]).format(seed=args.seed))
@@ -713,8 +737,11 @@ def main():
                 rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
                 use_topology=use_topology,
             )
+        geometric_only = bool(cfg.get("geometric_object_only_training", False))
         for name, parameter in candidate.named_parameters():
-            parameter.requires_grad_(name.startswith("object_"))
+            parameter.requires_grad_(
+                name.startswith("geometric_object_head.") if geometric_only
+                else name.startswith("object_"))
         print("[block object] object on frozen robot/shadow rollouts", flush=True)
         if bool(cfg.get("object_validation_selection", False)):
             if validation_data is None:

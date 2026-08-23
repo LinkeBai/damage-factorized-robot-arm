@@ -302,3 +302,20 @@ def test_compact_bridge_matches_h136_budget_and_blocks_object_gradient():
              if name.startswith("robot_")]
     assert all(p.grad is None or torch.count_nonzero(p.grad) == 0 for p in robot)
     assert any(p.grad is not None for p in model.object_head.parameters())
+
+
+def test_zero_initialized_geometric_object_residual_preserves_checkpoint_forward():
+    torch.manual_seed(53)
+    plain = BlockTriangularDPWM(contact_conditioned_robot=True,
+                               independent_object_encoder=True)
+    torch.manual_seed(53)
+    geometric = BlockTriangularDPWM(contact_conditioned_robot=True,
+                                   independent_object_encoder=True,
+                                   geometric_object_rank=16)
+    geometric.load_state_dict(plain.state_dict(), strict=False)
+    inputs = _inputs()
+    expected, _ = plain.step(*inputs, None)
+    actual, _ = geometric.step(*inputs, None)
+    torch.testing.assert_close(actual, expected)
+    actual[:, 10:].pow(2).mean().backward()
+    assert any(p.grad is not None for p in geometric.geometric_object_head.parameters())
