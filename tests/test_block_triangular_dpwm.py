@@ -410,3 +410,34 @@ def test_zero_initialized_object_bridge_alignment_preserves_forward_and_trains()
     actual[:, 10:].pow(2).mean().backward()
     assert any(p.grad is not None
                for p in aligned.object_bridge_alignment_head.parameters())
+
+
+def test_intervention_residual_decay_is_carried_in_hidden_state():
+    model = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_residual_support_joints=(0, 1, 3, 4),
+        intervention_residual_meta_train=True, intervention_residual_decay=0.5)
+    inputs = _inputs(batch=2)
+    prediction, hidden = model.step(*inputs, None)
+    assert isinstance(hidden, tuple)
+    torch.testing.assert_close(hidden[1], torch.full((2,), 0.5))
+    _, hidden = model.step(prediction, inputs[1], inputs[2], inputs[3], hidden)
+    torch.testing.assert_close(hidden[1], torch.full((2,), 0.25))
+
+
+def test_zero_relative_clip_exactly_recovers_frozen_object_base():
+    torch.manual_seed(73)
+    base = BlockTriangularDPWM(compact_bridge_object_head=True)
+    torch.manual_seed(73)
+    clipped = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_residual_support_joints=(0, 1, 3, 4),
+        intervention_residual_relative_clip=0.0)
+    clipped.load_state_dict(base.state_dict(), strict=False)
+    with torch.no_grad():
+        clipped.intervention_object_head[-1].bias.fill_(1.0)
+    state, action, _, angle = _inputs(batch=1)
+    unseen = torch.tensor([[0., 0., 1., 0., 0.]])
+    expected, _ = base.step(state, action, unseen, angle, None)
+    actual, _ = clipped.step(state, action, unseen, angle, None)
+    torch.testing.assert_close(actual, expected)

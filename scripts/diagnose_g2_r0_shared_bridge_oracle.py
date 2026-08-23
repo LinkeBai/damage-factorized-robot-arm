@@ -78,7 +78,13 @@ def main():
             cfg.get("intervention_residual_meta_train", False)),
         intervention_object_rank=int(cfg.get("intervention_object_rank", 0)),
         object_bridge_alignment_rank=int(
-            cfg.get("object_bridge_alignment_rank", 0))).to(device)
+            cfg.get("object_bridge_alignment_rank", 0)),
+        intervention_residual_scale=float(
+            cfg.get("intervention_residual_scale", 1.0)),
+        intervention_residual_relative_clip=cfg.get(
+            "intervention_residual_relative_clip"),
+        intervention_residual_decay=cfg.get(
+            "intervention_residual_decay")).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
     models = {"shared_projected": shared.eval(), "strict_bt": strict.eval(),
               "shared_bridge_oracle": SharedBridgeOracle(strict, shared).eval()}

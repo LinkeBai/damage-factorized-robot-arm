@@ -240,7 +240,10 @@ def train_object_with_selection(
     group_robust_weight, use_topology=False, teacher=None, teacher_weight=0.0,
 ):
     parameters = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.Adam(parameters, lr=learning_rate)
+    if epochs > 0 and not parameters:
+        raise ValueError("object training requested with no trainable parameters")
+    optimizer = (torch.optim.Adam(parameters, lr=learning_rate)
+                 if parameters else None)
     history, validation_history = [], []
     with torch.no_grad():
         initial_values = object_losses_per_trajectory(
@@ -688,6 +691,11 @@ def main():
         intervention_object_rank=int(cfg.get("intervention_object_rank", 0)),
         object_bridge_alignment_rank=int(
             cfg.get("object_bridge_alignment_rank", 0)),
+        intervention_residual_scale=float(
+            cfg.get("intervention_residual_scale", 1.0)),
+        intervention_residual_relative_clip=cfg.get(
+            "intervention_residual_relative_clip"),
+        intervention_residual_decay=cfg.get("intervention_residual_decay"),
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
@@ -860,6 +868,16 @@ def main():
         topology_hook = first_weight.register_hook(lambda gradient: gradient * gradient_mask)
         print(f"[initialize] topology-input adapter trains {gradient_mask.sum().item():.0f} existing weights",
               flush=True)
+    elif bool(cfg.get("freeze_topology_input_weights", False)):
+        first_weight = candidate.robot_encoder[0].weight
+        with torch.no_grad():
+            first_weight[:, 3:5].zero_()
+        gradient_mask = torch.ones_like(first_weight)
+        gradient_mask[:, 3:5] = 0.0
+        topology_hook = first_weight.register_hook(
+            lambda gradient: gradient * gradient_mask)
+        print("[initialize] froze mask/lock-angle encoder columns; damage enters via "
+              "analytic intervention only", flush=True)
     if bool(cfg.get("robot_head_only_training", False)):
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(name.startswith("robot_head."))

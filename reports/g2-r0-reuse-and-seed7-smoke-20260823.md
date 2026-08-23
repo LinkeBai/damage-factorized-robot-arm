@@ -139,3 +139,30 @@ Seed17 is now development evidence, not untouched confirmation, and seed27 was
 not opened. The object mechanism remains frozen; subsequent work is restricted
 to leave-one-joint-out intervention-equivariant robot selection, followed by
 new untouched confirmation seeds only after development stability.
+
+## Contact-aware base and long-horizon residual audit
+
+The strict-forward robot assumption, rather than object capacity, caused the
+cross-seed robot failure. Removing topology inputs worsened seed17 D3 H10 free
+gain to -13.71%; analytic contact gating without/with recalibration reached
+-10.92%/-6.99%. In contrast, the frozen contact-aware Z69 robot is stable at
+-0.13/-0.42/-1.23% on seeds 7/17/27. Contact reaction is therefore physically
+necessary in pushing. The method remains block-coordinate and projected, but a
+strict forward-block-triangular claim is not supported.
+
+Combining that stable robot with the frozen shared object base and the new
+support-aware residual produced the strongest v5 result. Seed7 D2/D4 are
+numerically identical to shared at every horizon, while D3 composition object
+gains are +9.34/+9.73/+30.88% and mixed-unseen gains are
++17.20/+44.85/+30.31%. Seed17 confirms H10/H25 gains but fails at H50
+(-129.05/-108.64%), so seed27 remains untouched.
+
+Fixed scaling, relative clipping, geometry-only rank expansion, and H50-only
+training did not remove the seed17 mixed-unseen failure. A depth-decayed
+residual (0.85) made all six seed17 D3 cells positive after post-hoc application,
+but the same value missed the 2% seed7 H50 threshold. Training with the decay
+made seed17 composition H50 +2.03% while mixed-unseen H50 remained -8.55%.
+The remaining target is now isolated to held-out topology plus held-out physics
+at H50. Future work must condition the bounded residual coefficient on the
+already available physical-context/K posterior; further unconditional scale or
+clip tuning is not justified.

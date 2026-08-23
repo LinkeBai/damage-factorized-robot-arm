@@ -2400,3 +2400,28 @@ free为-10.91%，40轮改善至-6.58%仍未过5%门；再续40轮选出的模型
 因此seed17 object训练被门控停止，seed27未开启。下一步保持v3 object机制不变，只把robot训练
 原则改为intervention-equivariant leave-one-joint-out validation/selection；在seed17/27 development
 稳定后另用未触碰seed做confirmation，不得把已观察seed17重新称为独立确认。
+
+---
+
+## 30. G2-R0 contact-aware base与长时残差稳定性（2026-08-23）
+
+seed17进一步证明strict forward triangle是robot不稳定的主要来源：冻结topology输入列使D3 H10 free
+退化13.71%，解析contact-gated context零训练为-10.92%、重训后仍-6.99%。相反，未改动Z69
+contact-aware robot在seed7/17/27的D3 H10 free仅-0.13/-0.42/-1.23%，说明pushing中的接触
+反作用不能由单向robot block删除。最终候选因此保留contact-aware robot base，但object loss仍经
+stop-gradient边界，新增object correction仍只沿显式robot/pusher geometry传播；论文不得再称其为
+严格前向block triangle，应称contact-aware block-coordinate/intervention-projected model。
+
+v5冻结Z69 robot和shared object base，仅训练support-aware rank32 latent与rank16 geometry residual。
+seed7 D2/D4在H10/H25/H50的free/object/overall/pusher逐位等价shared；D3 composition object为
++9.34/+9.73/+30.88%，mixed-unseen为+17.20/+44.85/+30.31%，且free/overall/pusher不退化。
+seed17同样在H10/H25得到composition +7.32/+29.16%、mixed-unseen +9.87/+19.68%，D2/D4仍
+等价；但H50分别变为-129.05/-108.64%，故confirmation失败并停止seed27。
+
+post-hoc scale、relative trust-region clip、geometry-only rank64与H50训练均不能统一六个D3格。
+exponential residual decay提供首个稳定交点：在seed17上decay0.85使composition H10/H25/H50为
++2.07/+8.35/+5.19%，mixed-unseen为+4.87/+10.93/+2.34%；但同一post-hoc值在seed7 H50仅
++0.95/+1.04%，不能作为统一规则。将decay0.85纳入H50训练后，seed17 composition H50为+2.03%，
+mixed-unseen H50仍-8.55%。因此剩余唯一机制缺口收敛为**held-out topology × held-out physical
+composition × H50**。下一步冻结contact-aware base、support routing、geometry与decay接口，只将
+已有8维physical-context/K posterior接入residual coefficient；不得继续无条件scale/clip搜索。

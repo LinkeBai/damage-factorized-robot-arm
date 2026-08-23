@@ -77,6 +77,10 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--cache-dir", type=Path, default=Path("runs/trajectory_cache"))
     parser.add_argument("--horizons", nargs="+", type=int, default=[1, 5, 10, 25, 50])
+    parser.add_argument("--domains", nargs="*")
+    parser.add_argument("--residual-scale", type=float)
+    parser.add_argument("--residual-relative-clip", type=float)
+    parser.add_argument("--residual-decay", type=float)
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     q0a = yaml.safe_load(Path(cfg["q0a_config"]).read_text(encoding="utf-8"))
@@ -90,7 +94,9 @@ def main():
         map_location=device))
     strict = BlockTriangularDPWM(
         TopologyGraphConfig(hidden_dim=int(cfg["hidden_dim"])),
-        contact_conditioned_robot=False,
+        contact_conditioned_robot=bool(cfg.get("contact_conditioned_robot", False)),
+        contact_gated_object_context=bool(
+            cfg.get("contact_gated_object_context", False)),
         independent_object_encoder=bool(cfg.get("independent_object_encoder", True)),
         object_hidden_dim=int(cfg.get("object_hidden_dim", cfg["hidden_dim"])),
         compact_bridge_object_head=bool(cfg.get("compact_bridge_object_head", False)),
@@ -105,12 +111,26 @@ def main():
             cfg.get("intervention_residual_meta_train", False)),
         intervention_object_rank=int(cfg.get("intervention_object_rank", 0)),
         object_bridge_alignment_rank=int(
-            cfg.get("object_bridge_alignment_rank", 0))).to(device)
+            cfg.get("object_bridge_alignment_rank", 0)),
+        intervention_residual_scale=float(
+            cfg.get("intervention_residual_scale", 1.0)),
+        intervention_residual_relative_clip=cfg.get(
+            "intervention_residual_relative_clip"),
+        intervention_residual_decay=cfg.get(
+            "intervention_residual_decay")).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
+    if args.residual_scale is not None:
+        strict.intervention_residual_scale = float(args.residual_scale)
+    if args.residual_relative_clip is not None:
+        strict.intervention_residual_relative_clip = float(
+            args.residual_relative_clip)
+    if args.residual_decay is not None:
+        strict.intervention_residual_decay = float(args.residual_decay)
     ablated = copy.deepcopy(strict)
     with torch.no_grad():
-        for parameter in ablated.geometric_object_head.parameters():
-            parameter.zero_()
+        if hasattr(ablated, "geometric_object_head"):
+            for parameter in ablated.geometric_object_head.parameters():
+                parameter.zero_()
         if hasattr(ablated, "intervention_object_head"):
             for parameter in ablated.intervention_object_head.parameters():
                 parameter.zero_()
@@ -121,6 +141,8 @@ def main():
                   goal_exploration_std=float(q0a["goal_exploration_std"]))
     rows = []
     for index, domain in enumerate(protocol.test):
+        if args.domains and domain.domain_id not in args.domains:
+            continue
         test_seed = args.seed * 100_000 + index * 1000 + 500
         key = json.dumps({"kind": "push_test", "seed": test_seed,
                           "domain": domain.domain_id, "q0a": q0a}, sort_keys=True)
@@ -129,6 +151,9 @@ def main():
             seed=test_seed, targets=tuple(x.as_array() for x in targets.evaluation), **common))
         rows.extend(evaluate(models, trajectories, domain, args.horizons, device))
     output = {"version": "g2_r0_core_metrics_v1", "seed": args.seed,
+              "residual_scale": strict.intervention_residual_scale,
+              "residual_relative_clip": strict.intervention_residual_relative_clip,
+              "residual_decay": strict.intervention_residual_decay,
               "horizons": args.horizons, "rows": rows}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, indent=2), encoding="utf-8")

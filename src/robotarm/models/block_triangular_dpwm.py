@@ -49,6 +49,9 @@ class BlockTriangularDPWM(nn.Module):
         intervention_residual_meta_train: bool = False,
         intervention_object_rank: int = 0,
         object_bridge_alignment_rank: int = 0,
+        intervention_residual_scale: float = 1.0,
+        intervention_residual_relative_clip: float | None = None,
+        intervention_residual_decay: float | None = None,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -81,6 +84,18 @@ class BlockTriangularDPWM(nn.Module):
         self.intervention_residual_meta_train = bool(intervention_residual_meta_train)
         self.intervention_object_rank = int(intervention_object_rank)
         self.object_bridge_alignment_rank = int(object_bridge_alignment_rank)
+        self.intervention_residual_scale = float(intervention_residual_scale)
+        self.intervention_residual_relative_clip = intervention_residual_relative_clip
+        self.intervention_residual_decay = intervention_residual_decay
+        if self.intervention_residual_scale < 0.0:
+            raise ValueError("intervention residual scale must be non-negative")
+        if (intervention_residual_relative_clip is not None
+                and intervention_residual_relative_clip < 0.0):
+            raise ValueError("intervention residual relative clip must be non-negative")
+        if intervention_residual_decay is not None and not 0.0 <= intervention_residual_decay <= 1.0:
+            raise ValueError("intervention residual decay must be in [0, 1]")
+        if intervention_residual_decay is not None and independent_object_encoder:
+            raise ValueError("intervention residual decay currently requires compact bridge")
         support = torch.zeros(len(intervention_residual_support_joints), c.dof)
         for row, joint in enumerate(intervention_residual_support_joints):
             if not 0 <= joint < c.dof:
@@ -320,6 +335,13 @@ class BlockTriangularDPWM(nn.Module):
                              / self.reaction_gate_temperature)
 
     def step(self, state, action, mask, lock_angle, hidden):
+        intervention_trace = None
+        if self.intervention_residual_decay is not None:
+            if hidden is None:
+                intervention_trace = state.new_ones(state.shape[0])
+                hidden = None
+            else:
+                hidden, intervention_trace = hidden
         object_hidden = None
         if self.independent_object_encoder and hidden is not None:
             object_hidden = hidden[1] if isinstance(hidden, tuple) else hidden[:, self.cfg.dof:]
@@ -336,6 +358,7 @@ class BlockTriangularDPWM(nn.Module):
         prediction, returned_hidden = self.step_object(
             projected_robot, obj, action, mask, lock_angle, depth, next_hidden,
             object_hidden, previous_robot=state[:, :2 * self.cfg.dof],
+            intervention_trace=intervention_trace,
         )
         if shadow_obj is not None:
             next_shadow = shadow_obj + self.shadow_context_head(torch.cat(
@@ -350,6 +373,11 @@ class BlockTriangularDPWM(nn.Module):
                 returned_hidden = (*returned_hidden, reaction_trace)
             else:
                 returned_hidden = (returned_hidden, reaction_trace)
+        if intervention_trace is not None:
+            returned_hidden = (
+                returned_hidden,
+                intervention_trace * self.intervention_residual_decay,
+            )
         return prediction, returned_hidden
 
     def step_robot(self, state, action, mask, lock_angle, hidden, robot_context=None):
@@ -455,10 +483,11 @@ class BlockTriangularDPWM(nn.Module):
 
     def step_object(
         self, projected_robot, obj, action, mask, lock_angle, depth, robot_hidden,
-        object_hidden=None, previous_robot=None,
+        object_hidden=None, previous_robot=None, intervention_trace=None,
     ):
         """Advance the object block from a projected robot transition."""
         c = self.cfg
+        intervention_correction = None
         if self.independent_object_encoder:
             projected_q = projected_robot[:, :c.dof]
             projected_qvel = projected_robot[:, c.dof:]
@@ -496,8 +525,10 @@ class BlockTriangularDPWM(nn.Module):
             if self.intervention_object_rank > 0:
                 residual = self.intervention_object_head(
                     torch.cat((bridge, obj), -1).detach())
-                next_obj = next_obj + residual * self._intervention_novelty(mask)[:, None]
+                intervention_correction = self.intervention_residual_scale * residual * \
+                    self._intervention_novelty(mask)[:, None]
             returned_hidden = robot_hidden
+        base_object_delta = next_obj - obj
         if self.geometric_object_rank > 0:
             if previous_robot is None:
                 raise ValueError("geometric object propagation requires previous_robot")
@@ -523,10 +554,30 @@ class BlockTriangularDPWM(nn.Module):
                 # the frozen training support.  No test-domain label enters routing.
                 novelty = self._intervention_novelty(mask).to(geometric_correction.dtype)
                 geometric_correction = geometric_correction * novelty[:, None]
+                geometric_correction = (self.intervention_residual_scale
+                                        * geometric_correction)
             if self.geometric_object_contact_gate:
                 geometric_correction = geometric_correction * torch.maximum(
                     previous_gate, projected_gate)[:, None]
-            next_obj = next_obj + geometric_correction
+            if self.intervention_residual_support.numel() > 0:
+                intervention_correction = (geometric_correction
+                    if intervention_correction is None
+                    else intervention_correction + geometric_correction)
+            else:
+                next_obj = next_obj + geometric_correction
+        if intervention_correction is not None:
+            if intervention_trace is not None:
+                intervention_correction = (intervention_correction
+                                           * intervention_trace[:, None])
+            if self.intervention_residual_relative_clip is not None:
+                base_norm = torch.linalg.vector_norm(
+                    base_object_delta, dim=-1, keepdim=True)
+                correction_norm = torch.linalg.vector_norm(
+                    intervention_correction, dim=-1, keepdim=True)
+                limit = self.intervention_residual_relative_clip * base_norm
+                intervention_correction = intervention_correction * torch.clamp(
+                    limit / correction_norm.clamp_min(1e-12), max=1.0)
+            next_obj = next_obj + intervention_correction
         if self.object_integration_dt is not None and self.object_position_blend > 0.0:
             integrated_position = obj[:, :2] + self.object_integration_dt * next_obj[:, 2:4]
             blend = self.object_position_blend

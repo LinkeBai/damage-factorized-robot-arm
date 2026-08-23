@@ -363,7 +363,13 @@ def main():
         intervention_object_rank=int(
             bt_model_cfg.get("intervention_object_rank", 0)),
         object_bridge_alignment_rank=int(
-            bt_model_cfg.get("object_bridge_alignment_rank", 0))).to(device)
+            bt_model_cfg.get("object_bridge_alignment_rank", 0)),
+        intervention_residual_scale=float(
+            bt_model_cfg.get("intervention_residual_scale", 1.0)),
+        intervention_residual_relative_clip=bt_model_cfg.get(
+            "intervention_residual_relative_clip"),
+        intervention_residual_decay=bt_model_cfg.get(
+            "intervention_residual_decay")).to(device)
     bt_run = Path(str(cfg.get("bt_run_template",
         str(base_run))).format(seed=args.seed))
     bt.load_state_dict(torch.load(bt_run/"model.pt", map_location=device))
