@@ -5,6 +5,7 @@ from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
 from robotarm.models.topology_graph_world_model import TopologyGraphWorldModel
 from scripts.run_bt_dpwm_gate_y0 import (
     aggregate_topology_losses, object_teacher_losses_per_trajectory,
+    robot_pusher_losses_per_trajectory,
 )
 
 
@@ -46,3 +47,16 @@ def test_object_teacher_loss_updates_student_but_not_frozen_teacher():
     loss.backward()
     assert any(parameter.grad is not None for parameter in student.object_head.parameters())
     assert all(parameter.grad is None for parameter in teacher.parameters())
+
+
+def test_robot_pusher_loss_is_finite_and_updates_robot_block():
+    model = BlockTriangularDPWM()
+    states = torch.randn(2, 4, 14)
+    actions = torch.randn(2, 3, 5)
+    mask = torch.zeros(2, 5)
+    angle = torch.zeros(2, 5)
+    loss = robot_pusher_losses_per_trajectory(
+        model, (states, actions, mask, angle), horizon=3).mean()
+    assert torch.isfinite(loss)
+    loss.backward()
+    assert any(parameter.grad is not None for parameter in model.robot_head.parameters())

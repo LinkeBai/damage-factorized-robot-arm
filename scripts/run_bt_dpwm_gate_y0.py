@@ -14,6 +14,7 @@ import torch
 import yaml
 
 from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
+from robotarm.models.contact_geometry import pusher_reference_point
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
@@ -66,6 +67,33 @@ def robot_losses(model, batch, horizon, use_topology=False):
     return robot_losses_per_trajectory(model, batch, horizon, use_topology).mean()
 
 
+def robot_pusher_losses_per_trajectory(model, batch, horizon, use_topology=False):
+    """Kinematic task-space loss aligned with the downstream object bridge."""
+    states, actions, mask, angle = batch
+    zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
+    one_step, hidden = [], None
+    for step in range(actions.shape[1]):
+        robot, hidden, _, _, _ = model.step_robot(
+            states[:, step], actions[:, step], model_mask, model_angle, hidden)
+        error = (pusher_reference_point(robot[:, :5])[..., :2]
+                 - pusher_reference_point(states[:, step + 1, :5])[..., :2]).pow(2).mean(-1)
+        one_step.append(error)
+    rollout = []
+    horizon = min(horizon, actions.shape[1])
+    for start in range(0, actions.shape[1] - horizon + 1, horizon):
+        prediction, hidden = states[:, start], None
+        for offset in range(horizon):
+            robot, hidden, obj, _, _ = model.step_robot(
+                prediction, actions[:, start + offset], model_mask, model_angle, hidden)
+            error = (pusher_reference_point(robot[:, :5])[..., :2]
+                     - pusher_reference_point(
+                         states[:, start + offset + 1, :5])[..., :2]).pow(2).mean(-1)
+            rollout.append(error)
+            prediction = torch.cat((robot, obj), -1)
+    return torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
+
+
 def train_robot_only(model, batch, *, epochs, learning_rate, horizon, use_topology=False):
     parameters = [p for name, p in model.named_parameters()
                   if name.startswith("robot_") or name.startswith("additional_robot_experts.")]
@@ -84,7 +112,7 @@ def train_robot_only(model, batch, *, epochs, learning_rate, horizon, use_topolo
 def train_robot_only_with_selection(
     model, batch, validation_batch, *, epochs, learning_rate, horizon,
     validation_every, train_group_indices, validation_group_indices,
-    group_robust_weight, use_topology=False,
+    group_robust_weight, use_topology=False, pusher_weight=0.0,
 ):
     """Robot-only group-robust training selected without consulting test domains."""
     parameters = [p for name, p in model.named_parameters()
@@ -97,6 +125,9 @@ def train_robot_only_with_selection(
         losses = robot_losses_per_trajectory(
             model, validation_batch, horizon, use_topology
         )
+        if pusher_weight > 0.0:
+            losses = losses + pusher_weight * robot_pusher_losses_per_trajectory(
+                model, validation_batch, horizon, use_topology)
         value, groups = aggregate_topology_losses(
             losses, validation_group_indices, group_robust_weight
         )
@@ -110,6 +141,9 @@ def train_robot_only_with_selection(
     })
     for epoch in range(1, epochs + 1):
         losses = robot_losses_per_trajectory(model, batch, horizon, use_topology)
+        if pusher_weight > 0.0:
+            losses = losses + pusher_weight * robot_pusher_losses_per_trajectory(
+                model, batch, horizon, use_topology)
         loss, _ = aggregate_topology_losses(
             losses, train_group_indices, group_robust_weight
         )
@@ -759,6 +793,7 @@ def main():
                     train_group_indices=topology_group_indices(train_data, device),
                     validation_group_indices=topology_group_indices(validation_data, device),
                     group_robust_weight=robust_weight, use_topology=use_topology,
+                    pusher_weight=float(cfg.get("robot_pusher_weight", 0.0)),
                 )
             else:
                 robot_history = train_robot_only(
