@@ -600,6 +600,11 @@ def main():
         object_position_blend=float(cfg.get("object_position_blend", 0.0)),
         geometric_object_contact_gate=bool(
             cfg.get("geometric_object_contact_gate", False)),
+        intervention_residual_support_joints=tuple(
+            int(x) for x in cfg.get("intervention_residual_support_joints", [])),
+        intervention_residual_meta_train=bool(
+            cfg.get("intervention_residual_meta_train", False)),
+        intervention_object_rank=int(cfg.get("intervention_object_rank", 0)),
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
@@ -827,7 +832,10 @@ def main():
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(
                 name.startswith("geometric_object_head.") if geometric_only
-                else name.startswith(("object_", "geometric_object_head.")))
+                else name.startswith(("object_", "geometric_object_head.",
+                                      "intervention_object_head.")))
+            if geometric_only and name.startswith("intervention_object_head."):
+                parameter.requires_grad_(True)
         print("[block object] object on frozen robot/shadow rollouts", flush=True)
         if bool(cfg.get("object_validation_selection", False)):
             if validation_data is None:

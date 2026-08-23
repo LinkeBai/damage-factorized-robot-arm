@@ -2348,3 +2348,26 @@ shared的free/overall改善+6.97%/+6.80%，object仅-0.12%、constraint violatio
 因此不得扩seed或宣称方法成功。几何消融在多个域长horizon带来15--74% matched-object改善，证明
 显式路径有作用但不足以追上shared。下一步固定严格robot与全部旧artifact，只改善object block的
 increment/velocity consistency和多horizon稳定性；通过seed7决定性门后才启动development多seed。
+
+---
+
+## 28. G2-R0支持感知干预残差（2026-08-23）
+
+后续审计发现冻结shared object head在strict pusher robot latent上H10近似等价，但H25--50发生
+累计漂移；直接微调整个compact head可提高held-out D3，却同时损害D2/D4。为避免再次覆盖通用
+动力学，R0在同一BT-DPWM内将object transition分解为冻结shared base与零初始化intervention
+residual。路由只比较解析damage mask与冻结训练支持集D1/D2/D4/D5，不读取domain/test标签：
+meta-train时每个seen intervention都作为伪held-out监督共享残差，eval时仅支持集外mask启用残差。
+
+仅276参数的geometry-only v1在D3 H10获得object +1.24%，未过预注册+2%门；但D3
+mixed-unseen H10/H25为+8.33/+11.23%，说明方向有效、容量不足。v2保留同一几何路径，并增加
+4,644参数的compact latent residual；冻结19,724参数shared object base及全部robot参数。seed7
+选择epoch34，D3 composition object在H10/H25/H50相对shared分别+3.93/+13.56/+28.02%，
+D3 mixed-unseen为+14.09/+43.26/+31.68%，H10 free/overall为+2.39/+2.42%，零约束违例。
+去掉两个residual后D3 object收益最多下降50.80%，构成直接机制消融。
+
+支持路由在D2/D4的residual contribution逐格精确为0，证明未污染seen topology；但冻结base
+与strict robot latent的OOD physics不完全匹配，D2/D4 H50 object相对shared仍为-22.42/-36.56%。
+因此当前判定是**held-out D3 core mechanism PASS / unified R0 gate still pending**。不得立即扩
+seed17/27；下一步只补physics-mismatch/K-adaptation路由或base-latent alignment，并要求D2/D4
+核心object控制域恢复等价，不回退到覆盖整个object head，也不重跑MuJoCo数据或既有shared/robot。

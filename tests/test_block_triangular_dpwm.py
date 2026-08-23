@@ -344,3 +344,53 @@ def test_contact_selective_geometry_suppresses_far_object_correction():
     ungated, _ = plain.step(state, action, mask, angle, None)
     selected, _ = gated.step(state, action, mask, angle, None)
     assert torch.linalg.vector_norm(selected[:, 10:] - ungated[:, 10:], dim=-1).min() > 1.0
+
+
+def test_intervention_residual_meta_trains_seen_and_routes_only_unseen_at_eval():
+    torch.manual_seed(61)
+    base = BlockTriangularDPWM(geometric_object_rank=8)
+    torch.manual_seed(61)
+    routed = BlockTriangularDPWM(
+        geometric_object_rank=8,
+        intervention_residual_support_joints=(0, 1, 3, 4),
+        intervention_residual_meta_train=True,
+    )
+    routed.load_state_dict(base.state_dict(), strict=False)
+    with torch.no_grad():
+        base.geometric_object_head[-1].bias.fill_(1.0)
+        routed.geometric_object_head[-1].bias.fill_(1.0)
+    state, action, mask, angle = _inputs(batch=1)
+    seen_mask = torch.tensor([[0., 1., 0., 0., 0.]])
+    unseen_mask = torch.tensor([[0., 0., 1., 0., 0.]])
+
+    routed.train()
+    meta_seen, _ = routed.step(state, action, seen_mask, angle, None)
+    plain_seen, _ = base.step(state, action, seen_mask, angle, None)
+    torch.testing.assert_close(meta_seen[:, 10:], plain_seen[:, 10:])
+
+    routed.eval()
+    frozen_seen, _ = routed.step(state, action, seen_mask, angle, None)
+    unseen, _ = routed.step(state, action, unseen_mask, angle, None)
+    base.eval()
+    base_seen, _ = base.step(state, action, seen_mask, angle, None)
+    base_unseen, _ = base.step(state, action, unseen_mask, angle, None)
+    torch.testing.assert_close(frozen_seen[:, 10:], base_seen[:, 10:] - 1.0)
+    torch.testing.assert_close(unseen[:, 10:], base_unseen[:, 10:])
+
+
+def test_zero_initialized_latent_intervention_residual_is_trainable():
+    torch.manual_seed(67)
+    base = BlockTriangularDPWM(compact_bridge_object_head=True)
+    torch.manual_seed(67)
+    residual = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=16,
+        intervention_residual_support_joints=(0, 1, 3, 4),
+        intervention_residual_meta_train=True,
+    )
+    residual.load_state_dict(base.state_dict(), strict=False)
+    inputs = _inputs()
+    expected, _ = base.step(*inputs, None)
+    actual, _ = residual.step(*inputs, None)
+    torch.testing.assert_close(actual, expected)
+    actual[:, 10:].pow(2).mean().backward()
+    assert any(p.grad is not None for p in residual.intervention_object_head.parameters())

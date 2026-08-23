@@ -98,12 +98,20 @@ def main():
         object_integration_dt=cfg.get("object_integration_dt"),
         object_position_blend=float(cfg.get("object_position_blend", 0.0)),
         geometric_object_contact_gate=bool(
-            cfg.get("geometric_object_contact_gate", False))).to(device)
+            cfg.get("geometric_object_contact_gate", False)),
+        intervention_residual_support_joints=tuple(
+            int(x) for x in cfg.get("intervention_residual_support_joints", [])),
+        intervention_residual_meta_train=bool(
+            cfg.get("intervention_residual_meta_train", False)),
+        intervention_object_rank=int(cfg.get("intervention_object_rank", 0))).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
     ablated = copy.deepcopy(strict)
     with torch.no_grad():
         for parameter in ablated.geometric_object_head.parameters():
             parameter.zero_()
+        if hasattr(ablated, "intervention_object_head"):
+            for parameter in ablated.intervention_object_head.parameters():
+                parameter.zero_()
     models = {"shared_projected": shared.eval(), "strict_bt": strict.eval(),
               "strict_bt_no_geometry": ablated.eval()}
     common = dict(steps=int(q0a["steps"]), excitation="goal",

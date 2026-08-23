@@ -80,3 +80,35 @@ increment/velocity-consistent geometric transition with multi-horizon stability
 and selection on held-out validation physics. Shared, trajectory caches, strict
 robot checkpoint, projection, and the new evaluator remain reusable. Only the
 object block and its matched ablation need rerunning before seed expansion.
+
+## Support-aware intervention residual continuation
+
+The frozen-head diagnostic showed that the shared object head can be reused at
+short horizon, but strict-robot latent drift accumulates at H25--H50. Updating
+the whole compact head improved D3 while damaging D2/D4, so the reusable shared
+head is now frozen and correction is isolated in a zero-initialized residual.
+Routing is label-free: the analytic damage mask is compared with the frozen
+D1/D2/D4/D5 training support. Seen masks use the base at evaluation; unseen D3
+uses the meta-trained residual.
+
+The 276-parameter geometry-only v1 missed the primary threshold (D3 H10 object
++1.24%), although it improved D3 mixed-unseen by +8.33%/+11.23% at H10/H25.
+The frozen v2 adds a rank-32 latent residual (4,644 parameters) while retaining
+the geometry branch and freezing the 19,724-parameter shared object head. It
+selected epoch 34 using only the validation split and passed the primary seed7
+gate: object +3.93%, free +2.39%, overall +2.42%, violation 0.
+
+| test domain | H10 object | H25 object | H50 object |
+|---|---:|---:|---:|
+| D3 mixed composition | +3.93% | +13.56% | +28.02% |
+| D3 mixed unseen | +14.09% | +43.26% | +31.68% |
+| D2 mixed composition | -2.21% | -4.34% | -22.42% |
+| D4 mixed composition | -2.89% | -4.67% | -36.56% |
+
+Residual ablation removes up to 50.80% matched object improvement on D3, while
+its contribution is exactly zero on every D2/D4 row. Thus the core held-out
+topology mechanism has a decisive seed7 signal without contaminating supported
+topologies. The unified gate is nevertheless not passed: the frozen base still
+receives a shifted strict-robot latent and loses long-horizon object accuracy on
+seen-topology/OOD-physics controls. Seed17/27 remain unopened until a reusable
+base-alignment or K-conditioned physics-mismatch route closes that control gap.

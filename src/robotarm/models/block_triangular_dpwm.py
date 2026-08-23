@@ -45,6 +45,9 @@ class BlockTriangularDPWM(nn.Module):
         object_integration_dt: float | None = None,
         object_position_blend: float = 0.0,
         geometric_object_contact_gate: bool = False,
+        intervention_residual_support_joints: tuple[int, ...] = (),
+        intervention_residual_meta_train: bool = False,
+        intervention_object_rank: int = 0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -74,6 +77,14 @@ class BlockTriangularDPWM(nn.Module):
         self.object_integration_dt = object_integration_dt
         self.object_position_blend = float(object_position_blend)
         self.geometric_object_contact_gate = bool(geometric_object_contact_gate)
+        self.intervention_residual_meta_train = bool(intervention_residual_meta_train)
+        self.intervention_object_rank = int(intervention_object_rank)
+        support = torch.zeros(len(intervention_residual_support_joints), c.dof)
+        for row, joint in enumerate(intervention_residual_support_joints):
+            if not 0 <= joint < c.dof:
+                raise ValueError("intervention residual support joint is out of range")
+            support[row, joint] = 1.0
+        self.register_buffer("intervention_residual_support", support, persistent=False)
         if compact_bridge_object_head and independent_object_encoder:
             raise ValueError("compact bridge and independent object encoder are exclusive")
         if reaction_relative_clip is not None and reaction_relative_clip < 0:
@@ -82,6 +93,10 @@ class BlockTriangularDPWM(nn.Module):
             raise ValueError("robot_expert_count must be positive")
         if geometric_object_rank < 0:
             raise ValueError("geometric_object_rank must be non-negative")
+        if intervention_object_rank < 0:
+            raise ValueError("intervention_object_rank must be non-negative")
+        if intervention_object_rank > 0 and not compact_bridge_object_head:
+            raise ValueError("intervention object residual requires compact bridge")
         if not 0.0 <= object_position_blend <= 1.0:
             raise ValueError("object_position_blend must be in [0, 1]")
         if object_position_blend > 0.0 and object_integration_dt is None:
@@ -201,6 +216,23 @@ class BlockTriangularDPWM(nn.Module):
             )
             nn.init.zeros_(self.geometric_object_head[-1].weight)
             nn.init.zeros_(self.geometric_object_head[-1].bias)
+        if intervention_object_rank > 0:
+            self.intervention_object_head = nn.Sequential(
+                nn.Linear(c.hidden_dim + c.object_dim, intervention_object_rank), nn.Tanh(),
+                nn.Linear(intervention_object_rank, c.object_dim),
+            )
+            nn.init.zeros_(self.intervention_object_head[-1].weight)
+            nn.init.zeros_(self.intervention_object_head[-1].bias)
+
+    def _intervention_novelty(self, mask: torch.Tensor) -> torch.Tensor:
+        """Route a shared meta-residual without consulting domain/test labels."""
+        if self.intervention_residual_support.numel() == 0:
+            return torch.ones(mask.shape[0], device=mask.device, dtype=mask.dtype)
+        if self.training and self.intervention_residual_meta_train:
+            return torch.ones(mask.shape[0], device=mask.device, dtype=mask.dtype)
+        distance = (mask[:, None, :] - self.intervention_residual_support[None]) \
+            .abs().sum(-1).min(-1).values
+        return (distance > 0.5).to(mask.dtype)
 
     @staticmethod
     def _neighbor_sum(nodes: torch.Tensor) -> torch.Tensor:
@@ -440,6 +472,10 @@ class BlockTriangularDPWM(nn.Module):
             if not self.compact_bridge_object_head:
                 bridge = torch.cat((bridge, projected_robot.detach()), -1)
             next_obj = obj + self.object_head(torch.cat((bridge, obj), -1))
+            if self.intervention_object_rank > 0:
+                residual = self.intervention_object_head(
+                    torch.cat((bridge, obj), -1).detach())
+                next_obj = next_obj + residual * self._intervention_novelty(mask)[:, None]
             returned_hidden = robot_hidden
         if self.geometric_object_rank > 0:
             if previous_robot is None:
@@ -460,6 +496,12 @@ class BlockTriangularDPWM(nn.Module):
                 previous_gate[:, None], projected_gate[:, None],
             ), -1).detach()
             geometric_correction = self.geometric_object_head(geometry)
+            if self.intervention_residual_support.numel() > 0:
+                # Meta-train one shared correction on every observed intervention,
+                # then deploy it only when the analytic intervention mask is outside
+                # the frozen training support.  No test-domain label enters routing.
+                novelty = self._intervention_novelty(mask).to(geometric_correction.dtype)
+                geometric_correction = geometric_correction * novelty[:, None]
             if self.geometric_object_contact_gate:
                 geometric_correction = geometric_correction * torch.maximum(
                     previous_gate, projected_gate)[:, None]
