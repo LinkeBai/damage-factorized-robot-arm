@@ -52,6 +52,11 @@ class BlockTriangularDPWM(nn.Module):
         intervention_residual_scale: float = 1.0,
         intervention_residual_relative_clip: float | None = None,
         intervention_residual_decay: float | None = None,
+        intervention_context_dim: int = 0,
+        intervention_context_rank: int = 0,
+        intervention_context_strength: float = 1.0,
+        intervention_context_ramp: float = 0.0,
+        intervention_context_ramp_start: int = 0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -87,6 +92,10 @@ class BlockTriangularDPWM(nn.Module):
         self.intervention_residual_scale = float(intervention_residual_scale)
         self.intervention_residual_relative_clip = intervention_residual_relative_clip
         self.intervention_residual_decay = intervention_residual_decay
+        self.intervention_context_dim = int(intervention_context_dim)
+        self.intervention_context_strength = float(intervention_context_strength)
+        self.intervention_context_ramp = float(intervention_context_ramp)
+        self.intervention_context_ramp_start = int(intervention_context_ramp_start)
         if self.intervention_residual_scale < 0.0:
             raise ValueError("intervention residual scale must be non-negative")
         if (intervention_residual_relative_clip is not None
@@ -96,6 +105,19 @@ class BlockTriangularDPWM(nn.Module):
             raise ValueError("intervention residual decay must be in [0, 1]")
         if intervention_residual_decay is not None and independent_object_encoder:
             raise ValueError("intervention residual decay currently requires compact bridge")
+        if self.intervention_context_dim < 0 or intervention_context_rank < 0:
+            raise ValueError("intervention context dimensions must be non-negative")
+        if self.intervention_context_strength < 0.0:
+            raise ValueError("intervention context strength must be non-negative")
+        if self.intervention_context_ramp < 0.0:
+            raise ValueError("intervention context ramp must be non-negative")
+        if self.intervention_context_ramp_start < 0:
+            raise ValueError("intervention context ramp start must be non-negative")
+        if intervention_residual_decay is not None and self.intervention_context_ramp > 0.0:
+            raise ValueError("residual decay and context ramp cannot share rollout state")
+        if (self.intervention_context_dim == 0) != (intervention_context_rank == 0):
+            raise ValueError("intervention context dim and rank must both be zero or positive")
+        self._intervention_context = None
         support = torch.zeros(len(intervention_residual_support_joints), c.dof)
         for row, joint in enumerate(intervention_residual_support_joints):
             if not 0 <= joint < c.dof:
@@ -252,6 +274,39 @@ class BlockTriangularDPWM(nn.Module):
             )
             nn.init.zeros_(self.object_bridge_alignment_head[-1].weight)
             nn.init.zeros_(self.object_bridge_alignment_head[-1].bias)
+        if self.intervention_context_dim > 0:
+            self.intervention_context_head = nn.Sequential(
+                nn.Linear(self.intervention_context_dim, intervention_context_rank),
+                nn.Tanh(), nn.Linear(intervention_context_rank, c.object_dim),
+            )
+            nn.init.zeros_(self.intervention_context_head[-1].weight)
+            nn.init.zeros_(self.intervention_context_head[-1].bias)
+
+    def set_intervention_context(self, context: torch.Tensor | None) -> None:
+        """Set an oracle or K-inferred physical context for the next rollout."""
+        if context is not None and context.shape[-1] != self.intervention_context_dim:
+            raise ValueError(
+                f"intervention context must end in {self.intervention_context_dim} values")
+        self._intervention_context = context
+
+    def _intervention_context_gain(
+        self, reference: torch.Tensor, rollout_step: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Return a bounded per-object-coordinate residual coefficient."""
+        if self.intervention_context_dim == 0 or self._intervention_context is None:
+            return torch.ones_like(reference)
+        context = self._intervention_context.to(reference)
+        if context.dim() == 1:
+            context = context.unsqueeze(0)
+        if context.shape[0] == 1 and reference.shape[0] != 1:
+            context = context.expand(reference.shape[0], -1)
+        if context.shape[0] != reference.shape[0]:
+            raise ValueError("intervention context batch does not match rollout batch")
+        strength = self.intervention_context_strength
+        if rollout_step is not None:
+            risk_depth = (rollout_step - self.intervention_context_ramp_start).clamp_min(0.0)
+            strength = strength + self.intervention_context_ramp * risk_depth[:, None]
+        return 1.0 + torch.tanh(strength * self.intervention_context_head(context))
 
     def _intervention_novelty(self, mask: torch.Tensor) -> torch.Tensor:
         """Route a shared meta-residual without consulting domain/test labels."""
@@ -336,12 +391,18 @@ class BlockTriangularDPWM(nn.Module):
 
     def step(self, state, action, mask, lock_angle, hidden):
         intervention_trace = None
+        intervention_step = None
         if self.intervention_residual_decay is not None:
             if hidden is None:
                 intervention_trace = state.new_ones(state.shape[0])
                 hidden = None
             else:
                 hidden, intervention_trace = hidden
+        elif self.intervention_context_ramp > 0.0:
+            if hidden is None:
+                intervention_step = state.new_zeros(state.shape[0])
+            else:
+                hidden, intervention_step = hidden
         object_hidden = None
         if self.independent_object_encoder and hidden is not None:
             object_hidden = hidden[1] if isinstance(hidden, tuple) else hidden[:, self.cfg.dof:]
@@ -359,6 +420,7 @@ class BlockTriangularDPWM(nn.Module):
             projected_robot, obj, action, mask, lock_angle, depth, next_hidden,
             object_hidden, previous_robot=state[:, :2 * self.cfg.dof],
             intervention_trace=intervention_trace,
+            intervention_step=intervention_step,
         )
         if shadow_obj is not None:
             next_shadow = shadow_obj + self.shadow_context_head(torch.cat(
@@ -378,6 +440,8 @@ class BlockTriangularDPWM(nn.Module):
                 returned_hidden,
                 intervention_trace * self.intervention_residual_decay,
             )
+        elif intervention_step is not None:
+            returned_hidden = (returned_hidden, intervention_step + 1.0)
         return prediction, returned_hidden
 
     def step_robot(self, state, action, mask, lock_angle, hidden, robot_context=None):
@@ -484,6 +548,7 @@ class BlockTriangularDPWM(nn.Module):
     def step_object(
         self, projected_robot, obj, action, mask, lock_angle, depth, robot_hidden,
         object_hidden=None, previous_robot=None, intervention_trace=None,
+        intervention_step=None,
     ):
         """Advance the object block from a projected robot transition."""
         c = self.cfg
@@ -566,6 +631,10 @@ class BlockTriangularDPWM(nn.Module):
             else:
                 next_obj = next_obj + geometric_correction
         if intervention_correction is not None:
+            intervention_correction = (intervention_correction
+                                       * self._intervention_context_gain(
+                                           intervention_correction,
+                                           intervention_step))
             if intervention_trace is not None:
                 intervention_correction = (intervention_correction
                                            * intervention_trace[:, None])

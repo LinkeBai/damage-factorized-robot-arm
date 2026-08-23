@@ -441,3 +441,54 @@ def test_zero_relative_clip_exactly_recovers_frozen_object_base():
     expected, _ = base.step(state, action, unseen, angle, None)
     actual, _ = clipped.step(state, action, unseen, angle, None)
     torch.testing.assert_close(actual, expected)
+
+
+def test_zero_physical_context_preserves_intervention_residual_exactly():
+    torch.manual_seed(83)
+    plain = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8)
+    torch.manual_seed(83)
+    conditioned = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_context_dim=8, intervention_context_rank=4)
+    conditioned.load_state_dict(plain.state_dict(), strict=False)
+    conditioned.set_intervention_context(torch.zeros(3, 8))
+    inputs = _inputs(batch=3)
+    expected, _ = plain.step(*inputs, None)
+    actual, _ = conditioned.step(*inputs, None)
+    torch.testing.assert_close(actual, expected, rtol=0.0, atol=0.0)
+
+
+def test_physical_context_gain_is_bounded_and_checks_batch():
+    model = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_context_dim=8, intervention_context_rank=4)
+    model.set_intervention_context(torch.randn(2, 8))
+    gain = model._intervention_context_gain(torch.ones(2, 4))
+    assert torch.all(gain >= 0.0) and torch.all(gain <= 2.0)
+    model.set_intervention_context(torch.randn(3, 8))
+    try:
+        model._intervention_context_gain(torch.ones(2, 4))
+    except ValueError as error:
+        assert "batch" in str(error)
+    else:
+        raise AssertionError("mismatched context batch must be rejected")
+
+
+def test_context_ramp_has_grace_period_and_carries_rollout_depth():
+    model = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_context_dim=8, intervention_context_rank=4,
+        intervention_context_ramp=0.1, intervention_context_ramp_start=10)
+    model.set_intervention_context(torch.ones(2, 8))
+    with torch.no_grad():
+        model.intervention_context_head[-1].bias.fill_(0.2)
+    reference = torch.ones(2, 4)
+    at_zero = model._intervention_context_gain(reference, torch.zeros(2))
+    at_ten = model._intervention_context_gain(reference, torch.full((2,), 10.0))
+    at_twenty = model._intervention_context_gain(reference, torch.full((2,), 20.0))
+    torch.testing.assert_close(at_zero, at_ten)
+    assert torch.all(at_twenty > at_ten)
+    prediction, hidden = model.step(*_inputs(batch=2), None)
+    assert isinstance(hidden, tuple)
+    torch.testing.assert_close(hidden[1], torch.ones(2))

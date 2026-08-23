@@ -166,3 +166,16 @@ The remaining target is now isolated to held-out topology plus held-out physics
 at H50. Future work must condition the bounded residual coefficient on the
 already available physical-context/K posterior; further unconditional scale or
 clip tuning is not justified.
+## Physical-context terminal-risk development (seed17)
+
+The remaining H50 failure was localized to an unconditional intervention
+residual.  A new 212-parameter bounded FiLM gate consumes the existing 8D
+physical context without changing the frozen robot/shared/geometry blocks.
+Training the gate with an explicit terminal-H50 risk term, followed by a uniform
+ten-step grace and depth-risk ramp, produced oracle-context D3 object gains of
+`+2.80/+13.29/+10.85%` (mixed composition) and
+`+2.42/+8.15/+2.03%` (mixed unseen) at H10/H25/H50 on development seed17.
+
+This establishes a mechanism upper bound only.  It does not authorize seed27:
+the next required evidence is replacement of the oracle descriptor by the
+already frozen Z65 K-transition posterior plus seed7 non-regression.

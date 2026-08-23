@@ -2425,3 +2425,21 @@ exponential residual decay提供首个稳定交点：在seed17上decay0.85使com
 mixed-unseen H50仍-8.55%。因此剩余唯一机制缺口收敛为**held-out topology × held-out physical
 composition × H50**。下一步冻结contact-aware base、support routing、geometry与decay接口，只将
 已有8维physical-context/K posterior接入residual coefficient；不得继续无条件scale/clip搜索。
+### 31. G2-R0 physical-context residual stability development (2026-08-23)
+
+- Added a bounded 8D physical-context FiLM gate only on the intervention object
+  residual.  The frozen contact-aware robot, shared object head, analytic damage
+  projection, and explicit pusher geometry are unchanged; `z=0` is exactly the
+  prior v5 forward map.
+- A plain oracle-context gate did not close H50 because the mean-over-depth loss
+  diluted terminal divergence.  Adding a validation-selected H50 terminal-risk
+  term and training only 212 gate parameters closed the compositional H50 gap.
+- A topology/domain-label-free depth policy keeps a ten-step grace interval and
+  then increases the bounded context coefficient with accumulated rollout risk.
+  On development seed17, oracle physical context gives D3 object improvements
+  over matched shared+projection of `+2.80/+13.29/+10.85%` for compositional and
+  `+2.42/+8.15/+2.03%` for mixed-unseen at H10/H25/H50.
+- This is an **oracle-context upper bound**, not frozen K-shot confirmation.
+  Next: substitute the already trained Z65 observable posterior, check seed7
+  regression, and only then unlock untouched seed27.  No shared/Z69 retraining or
+  MuJoCo recollection is justified.

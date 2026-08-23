@@ -17,6 +17,7 @@ from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
 from robotarm.models.contact_geometry import pusher_reference_point
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
 from robotarm.training.sim_protocol import load_g1_protocol
+from robotarm.training.g1_mechanism import residual_descriptor
 from robotarm.training.target_split import load_target_split
 from scripts.run_dual_expert_fair_gate_v0 import _component_loss, train_model
 from scripts.run_dual_expert_gate_q0a import _batch
@@ -178,7 +179,9 @@ def train_robot_only_with_selection(
     return history, diagnostics
 
 
-def object_losses_per_trajectory(model, batch, horizon, use_topology=False):
+def object_losses_per_trajectory(
+    model, batch, horizon, use_topology=False, terminal_weight=0.0,
+):
     states, actions, mask, angle = batch
     zeros = torch.zeros_like(mask)
     model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
@@ -190,7 +193,7 @@ def object_losses_per_trajectory(model, batch, horizon, use_topology=False):
         one_step.append(
             (prediction[:, 10:] - states[:, step + 1, 10:]).pow(2).mean(-1)
         )
-    rollout = []
+    rollout, terminals = [], []
     horizon = min(horizon, actions.shape[1])
     for start in range(0, actions.shape[1] - horizon + 1, horizon):
         prediction, hidden = states[:, start], None
@@ -201,7 +204,11 @@ def object_losses_per_trajectory(model, batch, horizon, use_topology=False):
             rollout.append(
                 (prediction[:, 10:] - states[:, start + offset + 1, 10:]).pow(2).mean(-1)
             )
-    return torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
+        terminals.append(rollout[-1])
+    result = torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
+    if terminal_weight > 0.0:
+        result = result + terminal_weight * torch.stack(terminals).mean(0)
+    return result
 
 
 def object_teacher_losses_per_trajectory(
@@ -238,6 +245,7 @@ def train_object_with_selection(
     model, batch, validation_batch, *, epochs, learning_rate, horizon,
     validation_every, train_group_indices, validation_group_indices,
     group_robust_weight, use_topology=False, teacher=None, teacher_weight=0.0,
+    train_context=None, validation_context=None, terminal_weight=0.0,
 ):
     parameters = [p for p in model.parameters() if p.requires_grad]
     if epochs > 0 and not parameters:
@@ -246,8 +254,9 @@ def train_object_with_selection(
                  if parameters else None)
     history, validation_history = [], []
     with torch.no_grad():
+        model.set_intervention_context(validation_context)
         initial_values = object_losses_per_trajectory(
-            model, validation_batch, horizon, use_topology)
+            model, validation_batch, horizon, use_topology, terminal_weight)
         initial_value, initial_groups = aggregate_topology_losses(
             initial_values, validation_group_indices, group_robust_weight)
     best_value, best_epoch = float(initial_value), 0
@@ -258,7 +267,9 @@ def train_object_with_selection(
         "topology_losses": {name: float(item) for name, item in initial_groups.items()},
     })
     for epoch in range(1, epochs + 1):
-        losses = object_losses_per_trajectory(model, batch, horizon, use_topology)
+        model.set_intervention_context(train_context)
+        losses = object_losses_per_trajectory(
+            model, batch, horizon, use_topology, terminal_weight)
         loss, _ = aggregate_topology_losses(
             losses, train_group_indices, group_robust_weight
         )
@@ -274,8 +285,9 @@ def train_object_with_selection(
         suffix = ""
         if epoch % validation_every == 0 or epoch == epochs:
             with torch.no_grad():
+                model.set_intervention_context(validation_context)
                 values = object_losses_per_trajectory(
-                    model, validation_batch, horizon, use_topology
+                    model, validation_batch, horizon, use_topology, terminal_weight
                 )
                 value, groups = aggregate_topology_losses(
                     values, validation_group_indices, group_robust_weight
@@ -293,6 +305,7 @@ def train_object_with_selection(
             print(f"  object-select epoch={epoch:03d} loss={loss.item():.6f}{suffix} "
                   f"grad={gradient:.3f}", flush=True)
     model.load_state_dict(best_state)
+    model.set_intervention_context(None)
     diagnostics = {"selected_epoch": best_epoch, "selected_validation_loss": best_value,
                    "validation_history": validation_history,
                    "group_robust_weight": group_robust_weight}
@@ -440,6 +453,15 @@ def topology_group_indices(trajectories, device):
         )
         for topology in sorted(set(topologies))
     }
+
+
+def physical_contexts_for_trajectories(trajectories, device, dtype):
+    """Align simulator-supervised 8D contexts with the unshuffled batch rows."""
+    return torch.stack([
+        residual_descriptor(item.domain_id.split("__", 1)[1],
+                            device=device, dtype=dtype)
+        for item in trajectories
+    ])
 
 
 def aggregate_topology_losses(per_trajectory, group_indices, robust_weight):
@@ -696,6 +718,11 @@ def main():
         intervention_residual_relative_clip=cfg.get(
             "intervention_residual_relative_clip"),
         intervention_residual_decay=cfg.get("intervention_residual_decay"),
+        intervention_context_dim=int(cfg.get("intervention_context_dim", 0)),
+        intervention_context_rank=int(cfg.get("intervention_context_rank", 0)),
+        intervention_context_strength=float(cfg.get("intervention_context_strength", 1.0)),
+        intervention_context_ramp=float(cfg.get("intervention_context_ramp", 0.0)),
+        intervention_context_ramp_start=int(cfg.get("intervention_context_ramp_start", 0)),
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
@@ -986,12 +1013,17 @@ def main():
                 object_weight=float(cfg.get("bridge_alignment_object_weight", 0.0)),
             )
         geometric_only = bool(cfg.get("geometric_object_only_training", False))
+        context_only = bool(cfg.get("intervention_context_only_training", False))
         for name, parameter in candidate.named_parameters():
-            parameter.requires_grad_(
-                name.startswith("geometric_object_head.") if geometric_only
-                else name.startswith(("object_", "geometric_object_head.",
-                                      "intervention_object_head.")))
-            if geometric_only and name.startswith("intervention_object_head."):
+            parameter.requires_grad_(name.startswith("intervention_context_head.")
+                if context_only else (
+                    name.startswith("geometric_object_head.") if geometric_only
+                    else name.startswith(("object_", "geometric_object_head.",
+                                          "intervention_object_head."))))
+            if geometric_only and not context_only and name.startswith(
+                    "intervention_object_head."):
+                parameter.requires_grad_(True)
+            if not context_only and name.startswith("intervention_context_head."):
                 parameter.requires_grad_(True)
         print("[block object] object on frozen robot/shadow rollouts", flush=True)
         if bool(cfg.get("object_validation_selection", False)):
@@ -1019,6 +1051,13 @@ def main():
                 use_topology=use_topology,
                 teacher=(baseline if float(cfg.get("object_teacher_weight", 0.0)) > 0 else None),
                 teacher_weight=float(cfg.get("object_teacher_weight", 0.0)),
+                train_context=(physical_contexts_for_trajectories(
+                    train_data, device, batch[0].dtype)
+                    if candidate.intervention_context_dim > 0 else None),
+                validation_context=(physical_contexts_for_trajectories(
+                    validation_data, device, batch[0].dtype)
+                    if candidate.intervention_context_dim > 0 else None),
+                terminal_weight=float(cfg.get("object_terminal_weight", 0.0)),
             )
         else:
             object_history = train_model(
@@ -1070,6 +1109,9 @@ def main():
     test_data = cached_collect(args.cache_dir, test_key, lambda: collect_push_domains(
         (domain,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
         seed=test_seed, targets=tuple(x.as_array() for x in targets.evaluation), **common))
+    if candidate.intervention_context_dim > 0:
+        candidate.set_intervention_context(residual_descriptor(
+            domain.residual_name, device=device, dtype=batch[0].dtype))
     topology_methods = ("bt_dpwm",) if use_topology else ()
     rows = evaluate({"shared_baseline": baseline, "bt_dpwm": candidate}, domain, test_data,
                     device, int(q0a["rollout_horizon"]), topology_methods)

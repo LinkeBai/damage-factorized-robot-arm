@@ -18,6 +18,7 @@ from robotarm.models.contact_geometry import pusher_reference_point
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
 from robotarm.models.topology_surgery import TopologySurgery
 from robotarm.training.sim_protocol import load_g1_protocol
+from robotarm.training.g1_mechanism import residual_descriptor
 from robotarm.training.target_split import load_target_split
 from robotarm.training.topology_surgery_gate import _damage_tensors
 from scripts.run_bt_dpwm_gate_y0 import cached_collect
@@ -81,6 +82,9 @@ def main():
     parser.add_argument("--residual-scale", type=float)
     parser.add_argument("--residual-relative-clip", type=float)
     parser.add_argument("--residual-decay", type=float)
+    parser.add_argument("--context-strength", type=float)
+    parser.add_argument("--context-ramp", type=float)
+    parser.add_argument("--context-ramp-start", type=int)
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     q0a = yaml.safe_load(Path(cfg["q0a_config"]).read_text(encoding="utf-8"))
@@ -117,7 +121,15 @@ def main():
         intervention_residual_relative_clip=cfg.get(
             "intervention_residual_relative_clip"),
         intervention_residual_decay=cfg.get(
-            "intervention_residual_decay")).to(device)
+            "intervention_residual_decay"),
+        intervention_context_dim=int(cfg.get("intervention_context_dim", 0)),
+        intervention_context_rank=int(cfg.get("intervention_context_rank", 0)),
+        intervention_context_strength=float(
+            cfg.get("intervention_context_strength", 1.0)),
+        intervention_context_ramp=float(
+            cfg.get("intervention_context_ramp", 0.0)),
+        intervention_context_ramp_start=int(
+            cfg.get("intervention_context_ramp_start", 0))).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
     if args.residual_scale is not None:
         strict.intervention_residual_scale = float(args.residual_scale)
@@ -126,6 +138,12 @@ def main():
             args.residual_relative_clip)
     if args.residual_decay is not None:
         strict.intervention_residual_decay = float(args.residual_decay)
+    if args.context_strength is not None:
+        strict.intervention_context_strength = float(args.context_strength)
+    if args.context_ramp is not None:
+        strict.intervention_context_ramp = float(args.context_ramp)
+    if args.context_ramp_start is not None:
+        strict.intervention_context_ramp_start = int(args.context_ramp_start)
     ablated = copy.deepcopy(strict)
     with torch.no_grad():
         if hasattr(ablated, "geometric_object_head"):
@@ -149,11 +167,20 @@ def main():
         trajectories = cached_collect(args.cache_dir, key, lambda domain=domain: collect_push_domains(
             (domain,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
             seed=test_seed, targets=tuple(x.as_array() for x in targets.evaluation), **common))
+        if strict.intervention_context_dim > 0:
+            context = residual_descriptor(
+                domain.residual_name, device=device,
+                dtype=next(strict.parameters()).dtype)
+            strict.set_intervention_context(context)
+            ablated.set_intervention_context(context)
         rows.extend(evaluate(models, trajectories, domain, args.horizons, device))
     output = {"version": "g2_r0_core_metrics_v1", "seed": args.seed,
               "residual_scale": strict.intervention_residual_scale,
               "residual_relative_clip": strict.intervention_residual_relative_clip,
               "residual_decay": strict.intervention_residual_decay,
+              "context_strength": strict.intervention_context_strength,
+              "context_ramp": strict.intervention_context_ramp,
+              "context_ramp_start": strict.intervention_context_ramp_start,
               "horizons": args.horizons, "rows": rows}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, indent=2), encoding="utf-8")
