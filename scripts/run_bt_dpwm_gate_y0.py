@@ -175,8 +175,7 @@ def train_object_with_selection(
     validation_every, train_group_indices, validation_group_indices,
     group_robust_weight, use_topology=False,
 ):
-    parameters = [p for name, p in model.named_parameters()
-                  if name.startswith("object_") and p.requires_grad]
+    parameters = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(parameters, lr=learning_rate)
     history, validation_history = [], []
     with torch.no_grad():
