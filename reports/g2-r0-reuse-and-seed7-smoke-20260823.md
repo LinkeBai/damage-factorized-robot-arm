@@ -1,0 +1,82 @@
+# G2-R0 reuse audit and seed7 decisive smoke (2026-08-23)
+
+## Corrected task definition
+
+`D1`--`D5` denote which single joint is locked, not the number of simultaneous
+damages. The frozen task is therefore **held-out topology × held-out residual
+physics**, with D3 absent from base training and D2/D4 serving seen-topology
+controls. No result in this report is described as multi-joint composition.
+
+## What is reused
+
+| Artifact | R0 treatment | Reason |
+|---|---|---|
+| MuJoCo train/validation/test trajectories and caches | reuse | data protocol and seeds are unchanged |
+| Z32 compute-matched shared h136 | reuse | strongest unchanged base comparator |
+| Z69 BT checkpoint | reuse initialization | preserves learned robot/object dynamics |
+| analytic topology projection and zeroed topology columns | reuse | already verified by G2 structural ablations |
+| Z70 shared/BT adapters and Z65 posterior | defer/reuse in full R0 | K=0 architectural smoke must pass first |
+| Z75 support/hysteresis/z0 safety policy | defer/reuse | decision policy is not the current object-model bottleneck |
+| G2 robustness/calibration/failure evidence | reuse as frozen baseline | new method has not passed R0, so rerunning is premature |
+| shared/robot/object full training | not rerun initially | only the changed block should train |
+
+`ponytail-main` is a development-process plugin, not a dynamics model, dataset,
+or checkpoint. Its only applicable guidance is to reuse existing helpers and
+leave a focused test; it contributes no scientific mechanism.
+
+## Smoke A: geometry residual on the old forward coupling
+
+The first frozen extension added a 276-parameter, zero-initialized explicit
+pusher/object geometry residual and trained only those parameters. Relative to
+the frozen Z69 BT checkpoint, D3 H10 object RMSE improved from 0.048389 to
+0.043700 (about 9.69%). Relative to shared it improved 1.99%, just below the
+frozen 2% smoke threshold. Free RMSE nevertheless regressed 2.54% versus shared.
+
+This exposed a structural contradiction: the G2 checkpoint used
+`contact_conditioned_robot: true`. Although object gradients cannot update the
+robot block, predicted object state enters the next robot forward step. Thus the
+implementation was gradient-directed but not a strict forward block triangle.
+
+## Smoke B: strict forward triangle plus geometry
+
+The second protocol removed object-to-robot forward feedback, copied the six
+physical robot-input columns from Z69, retrained only the robot block for 40
+epochs with validation selection, and trained the same 276-parameter geometry
+residual. D3 H10 results were:
+
+| method | free RMSE | object RMSE | overall RMSE | violation RMSE |
+|---|---:|---:|---:|---:|
+| shared + projection | 0.206041 | 0.044585 | 0.157567 | 0 |
+| strict BT + geometry | 0.191688 | 0.044639 | 0.146856 | 0 |
+
+This is the desired short-horizon pattern: free +6.97% and overall +6.80%
+relative improvement, with object differing by only -0.12% and zero violations.
+However, the preregistered object-superiority gate remains NO-GO.
+
+## Multi-horizon falsification
+
+The frozen evaluator then measured every test domain at H=1/5/10/25/50 and
+included the exact same strict model with its geometry head zeroed. On primary
+D3 mixed-composition:
+
+| horizon | free gain vs shared | object gain vs shared | geometry object gain vs no-geometry |
+|---:|---:|---:|---:|
+| 10 | +6.97% | -0.12% | +7.72% |
+| 25 | +11.32% | -50.54% | -16.28% |
+| 50 | +24.71% | -174.18% | +2.07% |
+
+Across D2/D3/D4, strict BT's free advantage generally grows with horizon, while
+object rollout is unstable and substantially worse than shared at long horizons.
+The geometry branch often improves its matched no-geometry ablation (for example
+D2 H25 +56.63% and H50 +74.40%), proving a measurable causal contribution, but
+it does not close the absolute gap to shared.
+
+## Decision and next work
+
+Do not expand seeds yet. R0 has isolated a real positive mechanism—strict
+damage-projected robot dynamics—and a real remaining blocker—long-horizon object
+stability. The next change must remain inside the object block: train an
+increment/velocity-consistent geometric transition with multi-horizon stability
+and selection on held-out validation physics. Shared, trajectory caches, strict
+robot checkpoint, projection, and the new evaluator remain reusable. Only the
+object block and its matched ablation need rerunning before seed expansion.

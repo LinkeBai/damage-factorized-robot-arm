@@ -2327,3 +2327,24 @@ seeds，现有57/67不得再次作为未见验证集。
 最终completion audit逐项检查11类统一artifact的本地存在性和Git跟踪状态，以及18项实验要求，
 共40/40通过；冻结的aggregate、confirmation/robustness/structural-ablation paired raw summaries、
 claim table和curve source已选择性纳入版本控制，不再只存在于被`.gitignore`排除的本地`runs/`。
+
+---
+
+## 27. G2-R0 核心创新复用审计与seed7 smoke（2026-08-23）
+
+新周期不重写研究问题，目标是让损伤领域核心指标赢compute-matched
+`shared+projection`，普通object指标至少等价。先纠正术语：D1--D5表示锁定的关节编号，
+不是同时损伤数量；当前任务是held-out joint topology × held-out residual physics。
+
+R0复用全部MuJoCo cache、Z32 shared、Z69初始化、解析投影与安全组件；K0结构smoke不重跑
+adapter、posterior、robustness或confirmation。新增分支只有276参数。第一版几何residual使旧BT
+D3 H10 object RMSE改善约9.69%、相对shared改善1.99%，但free相对shared回归2.54%。审计定位到
+Z69的`contact_conditioned_robot:true`让预测object在下一步反向进入robot，故旧模型只是梯度边界，
+不是严格前向block triangle。
+
+严格三角版本去掉object→robot反馈，只小规模重训robot block和几何residual。seed7 D3 H10相对
+shared的free/overall改善+6.97%/+6.80%，object仅-0.12%、constraint violation=0，出现了“领域
+核心指标赢、普通指标持平”的短horizon信号。但H25/H50 object分别落后shared 50.54%/174.18%，
+因此不得扩seed或宣称方法成功。几何消融在多个域长horizon带来15--74% matched-object改善，证明
+显式路径有作用但不足以追上shared。下一步固定严格robot与全部旧artifact，只改善object block的
+increment/velocity consistency和多horizon稳定性；通过seed7决定性门后才启动development多seed。
