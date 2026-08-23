@@ -1,5 +1,5 @@
 \documentclass[conference]{IEEEtran}
-\usepackage{amsmath,amssymb,booktabs,xcolor}
+\usepackage{amsmath,amssymb,booktabs,xcolor,graphicx,multirow}
 \newcommand{\method}{PC-RR-IPWM}
 \newcommand{\todo}[1]{\textcolor{red}{[REAL-ROBOT TODO: #1]}}
 \title{Safe Few-Shot World-Model Adaptation to Unseen Joint-Locking Failures}
@@ -59,6 +59,38 @@ recurrent sim-to-real adaptation \cite{cong2020self}, and SE(2)-equivariant
 pushing models \cite{kim2023se2} address object physics. Our structural prior
 instead couples exact damaged-robot feasibility to explicit pusher geometry.
 
+AdaptiGraph estimates physical properties online to adapt graph dynamics
+\cite{zhang2024adaptigraph}; PIN-WM identifies a physics-informed rigid-body
+world model from few visual interactions \cite{li2025pinwm}; and ActivePusher
+combines residual physics, active data acquisition, and planning
+\cite{zhong2026activepusher}. These methods adapt object or environment
+physics. Our problem also changes the robot's feasible manifold: the lock is
+diagnosed and exact, while its downstream contact consequences are unknown.
+Interaction networks and graph simulators encode relational structure
+\cite{battaglia2016interaction,sanchezgonzalez2020learning}, and structured
+world models ground manipulation in human video \cite{mendonca2023structured}.
+Our factorization is intervention-specific rather than a generic graph prior.
+
+\begin{table*}[t]\centering
+\caption{Scope of representative adaptive dynamics and damage-recovery work.
+Hard constraint means feasibility is guaranteed by construction.}
+\begin{tabular}{lccccc}\toprule
+Method&Robot damage&Few-shot&Contact model&Hard constraint&Held-out lock\\\midrule
+Cully et al. \cite{cully2015robots}&yes&search&no&no&repertoire\\
+Fault-aware RL \cite{yang2021fault}&yes&no&no&no&randomized\\
+RMA \cite{kumar2021rma}&wear&yes&no&no&no\\
+TuneNet \cite{allevato2020tunenet}&no&yes&yes&no&no\\
+AdaptiGraph \cite{zhang2024adaptigraph}&no&yes&yes&no&no\\
+PIN-WM \cite{li2025pinwm}&no&yes&yes&physics&no\\
+ActivePusher \cite{zhong2026activepusher}&no&active&yes&no&no\\
+\method{}&joint lock&yes&yes&yes&yes\\\bottomrule
+\end{tabular}\label{tab:related}\end{table*}
+
+Table~\ref{tab:related} is not a global superiority claim. PIN-WM provides a
+richer physics engine and ActivePusher active planning; our contribution is
+orthogonal, focusing on the interface between diagnosed robot damage and
+learned interaction prediction.
+
 \section{Problem Formulation}
 State $s_t=[q_t,\dot q_t,o_t]$ contains five joint positions, velocities, and
 planar object state; $a_t\in\mathbb R^5$. Diagnosis gives lock
@@ -66,6 +98,24 @@ $d=(m,\bar q)$. Unknown physical context $z\in\mathbb R^8$ is inferred from
 $K$ safe transitions. D3 is held out from D1/D2/D4/D5 training support and is
 combined with held-out physics. We minimize autonomous H10/H25/H50 error while
 requiring $q_t^j=\bar q^j,\dot q_t^j=0$ for locked coordinates.
+
+We distinguish topology, physical, and compositional generalization. Topology
+holds out the locked-joint identity; physical generalization changes continuous
+residual factors; composition combines both. Calibration and evaluation
+trajectories are disjoint.
+
+\begin{figure*}[t]\centering
+\fbox{\parbox[c][35mm][c]{0.94\textwidth}{\centering
+\textbf{FINAL METHOD FIGURE PLACEHOLDER}\\
+Diagnosis $\rightarrow$ projection $\rightarrow$ contact-aware robot
+$\rightarrow$ pusher FK\\
+Safe transitions $\rightarrow$ 8D context $\rightarrow$ centered support gate
+$+$ depth risk\\
+Shared object base $\oplus$ geometry residual $\oplus$ latent intervention
+$\rightarrow$ rollout}}
+\caption{\method{}. The residual is disabled for intact and seen masks; a
+stop-gradient protects the robot block. \todo{Replace with one vector diagram.}}
+\label{fig:overview}\end{figure*}
 
 \section{Method}
 \subsection{Analytic projection}
@@ -83,6 +133,13 @@ it destabilizes free-joint pushing rollouts. Forward kinematics produces pusher
 geometry. A shared object base receives detached robot features, preventing
 object loss from rewriting the frozen robot block.
 
+The robot block is initialized from the same-seed shared checkpoint. Lock mask
+and angle do not enter shared input columns that were never trained to consume
+them; they act through projection. The shared object base is retained and only
+compact bridge/intervention modules are trained. The implementation is
+block-coordinate in optimization but contact-aware in its forward pass; we do
+not claim strict forward block-triangular causality.
+
 \subsection{Support-aware intervention}
 For training lock support $\mathcal S$,
 \[
@@ -96,6 +153,13 @@ The intact term forces bypass. Object prediction is
 where $r_g$ uses explicit pusher displacement/contact geometry and $r_\ell$ is
 a low-rank latent residual.
 
+The geometry branch receives pusher position, predicted displacement, relative
+pusher--object displacement, and a smooth contact gate. The latent branch
+captures effects absent from this representation. A bridge aligner maps frozen
+robot features to coordinates expected by the object head.
+Leave-one-intervention-out meta-training treats each seen lock as pseudo-unseen;
+D3 is never observed.
+
 \subsection{Context and rollout risk}
 An amortized posterior estimates 8D context from state/action transitions
 without simulator labels. The frozen rule uses K25 and scale 1.38. Centering
@@ -104,10 +168,99 @@ eight-step grace period and $\rho(t)=0.06\max(0,t-8)$. Support validation and
 hysteresis reject harmful updates. Conformal intervals quantify context error,
 not rollout-failure probability.
 
+Posterior output is normalized by fixed per-dimension simulator scales.
+Dimension- and budget-specific conformal radii are fit on development probes.
+This separates uncertainty about estimated physical context from risk that an
+update harms a rollout. The former has calibrated coverage; the latter is
+controlled by paired support validation and fallback. Posterior variance alone
+never accepts an update. The depth coefficient is domain-label-free: the shared
+base dominates early local predictions, then bounded context correction grows
+only after accumulated shift becomes relevant.
+
+\subsection{Training and deployment}
+Base checkpoints are frozen before intervention training. We optimize
+\begin{equation}
+\mathcal L=\sum_{H\in\mathcal H}w_H(\lambda_q\mathcal L_q^H+
+\lambda_o\mathcal L_o^H+\lambda_p\mathcal L_p^H)
++\lambda_T\mathcal L_o^{H_{\max}}.
+\end{equation}
+The terminal term exposes H50 divergence hidden by mean-over-depth loss.
+Feasibility is not learned from a penalty. At deployment, diagnosis supplies
+$m,\bar q$ and one nested safe sequence supplies context. Both models receive
+identical adapter budgets; support validation accepts the update or returns
+exact K0. No simulator parameter, domain label, or test trajectory is used.
+
+\subsection{Design rationale and frozen inference}
+Four negative results constrain the architecture. Topology-conditioned
+monolithic models did not reliably beat a capacity-matched shared model.
+Latent optimization and history/FiLM residuals did not produce stable few-shot
+gains. Independent robot/object factorization failed parameter- and
+compute-matched tests. Finally, deleting object/contact input from the robot
+transition degraded long-horizon free-joint prediction. The final design
+therefore uses a narrow intervention residual around the strongest
+contact-aware shared base.
+
+The support router prevents the residual from relearning generic object
+dynamics while degrading intact or seen locks. It reads only membership of the
+diagnostic mask in the frozen meta-training support, never a test-domain name.
+Deployment then: (1) fixes diagnosis and projection; (2) collects one nested
+25-transition safe sequence; (3) infers context; (4) fits matched rank-8
+adapters with identical budgets; (5) accepts or rejects through support
+validation; and (6) applies projection and the frozen depth ramp at every
+rollout step. No method-specific extra interaction is permitted.
+
+\begin{table}[t]\centering
+\caption{Frozen components and deployment permissions.}
+\begin{tabular}{lll}\toprule
+Component&Source&Deployment\\\midrule
+Robot block&shared/Z69&frozen\\
+Projection&diagnosis&fixed\\
+Object base&shared&frozen\\
+Bridge aligner&meta-train&frozen\\
+Geometry residual&meta-train&context gated\\
+Latent residual&meta-train&context gated\\
+Context posterior&Z65&inference only\\
+Rank-8 adapter&matched support&optimized\\\bottomrule
+\end{tabular}\end{table}
+
 \section{Experiments}
 Both methods use identical training data, K25 support, rank-8 adapters,
 optimization, and rollouts. The baseline is shared dynamics plus analytic
 projection and its matched adapter. Seed27 was untouched until the rule froze.
+
+\subsection{Protocol, metrics, and fairness}
+Training includes D1/D2/D4/D5 and variations in friction, backlash, motor
+strength, delay, and payload. Evaluation combines D3 with held-out residual
+composition and mixed-unseen interaction distributions. Comparisons pair
+identical initializations and actions.
+
+Free-joint RMSE excludes the fixed coordinate; object RMSE is primary; pusher
+RMSE measures task-space propagation. Improvement is
+\[
+100(\mathrm{RMSE}_{\rm shared}-\mathrm{RMSE}_{\rm ours})/
+\mathrm{RMSE}_{\rm shared}.
+\]
+We freeze a 2\% per-cell object gate, 5\% free non-regression, zero lock
+violation, and practical control tolerances. The baseline uses the same
+projection, K25 support, rank-8 adapter, optimizer, and rollout budget.
+
+The baseline is stronger than an unconstrained predictor because it receives
+the same lock projection. It asks whether intervention modeling adds prediction
+value beyond feasibility. K0 isolates context; intact/seen controls test
+collateral damage; geometry/latent/depth ablations test whether one extra branch
+alone explains the gain.
+
+\begin{table}[t]\centering
+\caption{Evaluation axes and evidential roles.}
+\begin{tabular}{lll}\toprule
+Axis&Setting&Question\\\midrule
+Topology&D3 held out&Unseen lock?\\
+Physics&held-out mix&Unknown residual?\\
+Budget&K0/K25&Adaptation effect?\\
+Depth&H10/25/50&Stability?\\
+Controls&intact/D2/D4&Negative transfer?\\
+Seed&7/17/27&Rule consistency?\\\bottomrule
+\end{tabular}\end{table}
 
 \begin{table}[t]\centering
 \caption{Object RMSE improvement (\%) over the matched baseline.}
@@ -127,6 +280,43 @@ object differences are at most 1.72\%; maximum IID pusher difference is
 1.081\,mm. K curves are not monotonic, so we claim a frozen K25 rule only.
 
 \begin{table}[t]\centering
+\caption{Matched safety and control checks.}
+\begin{tabular}{lc}\toprule
+Check&Worst difference\\\midrule
+Intact/D2/D4 object&1.72\% absolute\\
+Free-joint change&within 5\%\\
+IID pusher position&1.081 mm\\
+Locked violation&0\\
+Context conformal MACE&0.0289\\\bottomrule
+\end{tabular}\end{table}
+
+\subsection{Confirmation and interpretation}
+Seed27 was opened after scale, grace, and depth ramp froze on seeds7/17. All
+six confirmation cells exceed 2\%, with a 2.0430\% minimum. With three seeds
+we do not claim population significance; we report every cell and claim
+directional consistency under the frozen protocol.
+
+An earlier projected-only comparison had one 1.9579\% cell. It remains a
+development near-miss but is superseded by the strict matched-adapter decision.
+The result was not rounded or retuned; the final protocol removed an adapter
+mismatch.
+
+\subsection{Why K25 closes the long horizon}
+\begin{table}[t]\centering
+\caption{Seed17 H50 improvement (\%) over matched shared.}
+\begin{tabular}{lrr}\toprule
+Variant&Composition&Mixed-unseen\\\midrule
+K0 matched adapter&-122.55&-96.62\\
+K25, no depth risk&27.57&-3.86\\
+Full K25&12.52&2.95\\\bottomrule
+\end{tabular}\label{tab:kmechanism}\end{table}
+Context reverses the composition failure but still overshoots one mixed-unseen
+rollout. Depth scheduling sacrifices some composition gain while making the
+remaining negative cell positive. The frozen gate optimizes all-cell
+reliability, not maximum mean improvement. K5/K10/K50 curves are supportive but
+non-monotonic.
+
+\begin{table}[t]\centering
 \caption{Seed17 D3 mixed-unseen object improvement (\%).}
 \begin{tabular}{lrrr}\toprule
 Variant&H10&H25&H50\\\midrule
@@ -137,11 +327,87 @@ No intervention&0.01&0.09&0.41\\
 No depth risk&3.14&13.98&-3.86\\\bottomrule
 \end{tabular}\end{table}
 
+Removing intervention reduces mixed-unseen gain to at most 0.41\%. In
+composition, removing geometry reduces H10 from 6.53\% to 0.08\%; removing
+intervention yields 0.01/0.15/1.35\% at H10/H25/H50. Removing final projection
+creates nonzero locked error, whereas retaining it guarantees feasibility.
+Geometry supplies a direct path, latent correction models remaining physics,
+context selects correction, and depth risk limits accumulation.
+
+\subsection{Reproducibility and compute}
+Frozen YAML files define seeds, splits, adapters, and gates. Paired rollout rows
+and machine-readable JSON back every aggregate; the source of truth is
+matched\_gate\_summary\_v2.json. The evidence-freeze repository has 244 passing
+tests. GPU PyTorch handles training, while MuJoCo collection and Python rollout
+dominate serial time. Identical caches prevent a compute/data fairness confound.
+
+Failed runs and protocol changes remain in a failure ledger. Seed IDs determine
+data, initialization, and evaluation queries. Confirmation artifacts are
+immutable after opening. Tables are generated from the same JSON consumed by
+tests, reducing transcription risk; parameter counts, checkpoint identities,
+configuration hashes, and timing metadata accompany runs.
+
+\subsection{Claim matrix}
+Evidence supports: C1, projection guarantees zero lock violation; C2, complete
+K25 exceeds the matched baseline in every primary held-out object cell; C3,
+support routing keeps controls within margins; and C4, ablations demonstrate
+complementary roles. It does not establish population-level significance,
+monotonicity in K, or calibrated probability of rollout failure.
+
+\subsection{Threats to validity}
+\emph{Baseline leakage.} Both systems share initialization and data but train
+separate matched adapters; small control differences are reported rather than
+called exact equality. \emph{Selection.} Seeds7/17 are development and seed27
+is confirmation only. \emph{Metric mismatch.} Prediction RMSE does not prove
+task success, so the real-arm table also reports pushing success and aborts.
+\emph{Simulator fidelity.} G0 calibrates kinematics and safety, while contact
+physics remains randomized. \emph{Small denominators.} Absolute pusher
+millimeters accompany relative differences.
+
 \subsection{Real-arm protocol}
 \todo{Insert setup photo, calibration diagram, and results.} The frozen
 protocol uses a five-DoF ST3215 arm, eye-in-hand tracking, 10\,Hz, intact/D2/D3,
 K=0/5/10/25, and three repetitions. Stops trigger on stale vision, feedback
 timeout, 50$^\circ$C, raw current 400, or 3.5$^\circ$ lock drift.
+
+G0 measurements provide servo zero positions, directions, 5$^\circ$/s limits,
+link lengths, and emergency torque-disable. D2/D3/D4 holds accumulated 78
+cycles and 687 s; the clean final run had at most 0.79$^\circ$ drift and the
+largest reversal backlash was 3.08$^\circ$. These are safety margins, not task
+evidence. The remaining study uses a rigid tagged block and calibrated
+eye-in-hand camera. Intact checks coordinates, D2 tests a seen intervention,
+and D3 tests the held-out intervention, each with three repetitions and
+disjoint calibration/test pushes.
+
+\begin{figure}[t]\centering
+\fbox{\parbox[c][32mm][c]{0.92\columnwidth}{\centering
+\textbf{REAL-ARM FIGURE PLACEHOLDER}\\
+ST3215 arm + eye-in-hand camera + tagged block\\
+D2/D3 lock and table/world frames}}
+\caption{Real setup. \todo{Replace with one labeled photograph with calibration
+insets.}}\label{fig:real}\end{figure}
+
+\subsection{Pre-registered real-arm analysis}
+The primary comparison is D3 object RMSE at H10/H25 under K25. Secondary
+outcomes are pusher/free-joint RMSE, success, adaptation time, peak current,
+temperature, lock drift, and aborts. Intact and D2 are non-regression controls.
+Every trial resets the object and uses disjoint test actions. Per-repetition
+values and bootstrap intervals are retained, including failed/aborted runs.
+Scale 1.38, eight-step grace, and ramp 0.06 are not tuned on real outcomes.
+
+The camera supplies object pose in a fixed table frame. Servo current is a
+safety signal, not calibrated force. If H50 exits the visible or safe workspace,
+it is marked infeasible rather than shortened post hoc. Thus the real experiment
+tests a frozen simulation claim instead of becoming another development set.
+
+\subsection{Expected real-arm failure modes}
+Eye-in-hand occlusion can remove the object during contact; stale poses abort
+rather than being interpolated. Backlash can cause task-space pusher error even
+with small encoder drift, so both errors are retained. A software-held lock may
+draw current without moving, hence temperature/current stops are independent of
+prediction error. Table friction may lie outside simulation randomization; an
+adapter must still pass support validation. Communication loss invokes
+sequential torque disable and remains an abort in the ledger.
 
 \begin{table}[t]\centering
 \caption{Real-arm pushing. \todo{Populate after collection.}}
@@ -155,9 +421,14 @@ D3&Shared/ours&--&--&--\\\bottomrule
 \section{Limitations and Conclusion}
 Current evidence is predictive, not closed-loop control. Diagnosis must provide
 lock identity and angle. Contact awareness precludes strict triangular
-causality. Tests cover single locks and planar pushing. Nevertheless,
-\method{} improves every held-out matched cell while preserving exact
-feasibility and controls. \todo{Add real-arm limitations and conclusion.}
+causality. Tests cover single locks and planar pushing. Three seeds support
+consistency but not a broad population claim. Context coverage does not certify
+rollout risk, and deployment depends on diagnosis and camera state estimation.
+Nevertheless, \method{} improves every held-out matched cell while preserving
+exact feasibility and controls. The defensible result is selective improvement
+on an unseen intervention under a fair protocol, with analytic safety and
+reversible fallback. \todo{Add measured D3 effect, failure modes, and final
+sim-to-real conclusion.}
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 \end{document}

@@ -17,6 +17,14 @@
 8. Cong et al., Self-Adapting Recurrent Models for Object Pushing, IROS 2020.
 9. Kim et al., SE(2)-Equivariant Pushing Dynamics, CoRL 2022/2023.
 10. Richards et al., Adaptive-Control-Oriented Meta-Learning, RSS 2021.
+11. Zhang et al., AdaptiGraph, RSS 2024: online few-shot physical-property
+    estimation for graph dynamics across materials.
+12. Li et al., PIN-WM, RSS 2025: few-shot visual physics identification and
+    physics-aware digital cousins for non-prehensile manipulation.
+13. Zhong et al., ActivePusher, ICRA 2026: residual physics, active learning,
+    uncertainty-aware planning, and real pushing.
+14. Mendonca et al., Structured World Models from Human Videos, RSS 2023:
+    structured affordance-space world models for data-efficient manipulation.
 
 ## Defensible novelty gap
 
