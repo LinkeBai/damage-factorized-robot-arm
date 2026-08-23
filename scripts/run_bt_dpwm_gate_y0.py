@@ -526,6 +526,8 @@ def main():
         contact_gated_object_context=bool(cfg.get("contact_gated_object_context", False)),
         compact_bridge_object_head=bool(cfg.get("compact_bridge_object_head", False)),
         geometric_object_rank=int(cfg.get("geometric_object_rank", 0)),
+        object_integration_dt=cfg.get("object_integration_dt"),
+        object_position_blend=float(cfg.get("object_position_blend", 0.0)),
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))

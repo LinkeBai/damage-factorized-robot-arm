@@ -319,3 +319,12 @@ def test_zero_initialized_geometric_object_residual_preserves_checkpoint_forward
     torch.testing.assert_close(actual, expected)
     actual[:, 10:].pow(2).mean().backward()
     assert any(p.grad is not None for p in geometric.geometric_object_head.parameters())
+
+
+def test_object_position_blend_enforces_semi_implicit_integration():
+    model = BlockTriangularDPWM(object_integration_dt=0.005,
+                               object_position_blend=1.0)
+    state, action, mask, angle = _inputs()
+    prediction, _ = model.step(state, action, mask, angle, None)
+    torch.testing.assert_close(
+        prediction[:, 10:12], state[:, 10:12] + 0.005 * prediction[:, 12:14])

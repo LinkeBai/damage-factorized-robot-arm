@@ -92,7 +92,9 @@ def main():
         TopologyGraphConfig(hidden_dim=int(cfg["hidden_dim"])),
         contact_conditioned_robot=False, independent_object_encoder=True,
         object_hidden_dim=int(cfg["object_hidden_dim"]),
-        geometric_object_rank=int(cfg["geometric_object_rank"])).to(device)
+        geometric_object_rank=int(cfg["geometric_object_rank"]),
+        object_integration_dt=cfg.get("object_integration_dt"),
+        object_position_blend=float(cfg.get("object_position_blend", 0.0))).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
     ablated = copy.deepcopy(strict)
     with torch.no_grad():

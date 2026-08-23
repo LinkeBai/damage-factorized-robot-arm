@@ -42,6 +42,8 @@ class BlockTriangularDPWM(nn.Module):
         reaction_relative_clip: float | None = None,
         compact_bridge_object_head: bool = False,
         geometric_object_rank: int = 0,
+        object_integration_dt: float | None = None,
+        object_position_blend: float = 0.0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -68,6 +70,8 @@ class BlockTriangularDPWM(nn.Module):
         self.reaction_relative_clip = reaction_relative_clip
         self.compact_bridge_object_head = compact_bridge_object_head
         self.geometric_object_rank = int(geometric_object_rank)
+        self.object_integration_dt = object_integration_dt
+        self.object_position_blend = float(object_position_blend)
         if compact_bridge_object_head and independent_object_encoder:
             raise ValueError("compact bridge and independent object encoder are exclusive")
         if reaction_relative_clip is not None and reaction_relative_clip < 0:
@@ -76,6 +80,10 @@ class BlockTriangularDPWM(nn.Module):
             raise ValueError("robot_expert_count must be positive")
         if geometric_object_rank < 0:
             raise ValueError("geometric_object_rank must be non-negative")
+        if not 0.0 <= object_position_blend <= 1.0:
+            raise ValueError("object_position_blend must be in [0, 1]")
+        if object_position_blend > 0.0 and object_integration_dt is None:
+            raise ValueError("object position blending requires object_integration_dt")
         if robot_expert_count > 1 and (reaction_rank > 0 or shadow_object_rank > 0):
             raise ValueError("robot ensembles cannot combine with reaction or shadow in this gate")
         if shadow_object_rank > 0 and reaction_event_decay is not None:
@@ -450,5 +458,10 @@ class BlockTriangularDPWM(nn.Module):
                 previous_gate[:, None], projected_gate[:, None],
             ), -1).detach()
             next_obj = next_obj + self.geometric_object_head(geometry)
+        if self.object_integration_dt is not None and self.object_position_blend > 0.0:
+            integrated_position = obj[:, :2] + self.object_integration_dt * next_obj[:, 2:4]
+            blend = self.object_position_blend
+            next_obj = torch.cat(((1.0 - blend) * next_obj[:, :2]
+                                  + blend * integrated_position, next_obj[:, 2:4]), -1)
         prediction = torch.cat((projected_robot, next_obj), -1)
         return self.surgery.project_state(prediction, mask, lock_angle), returned_hidden
