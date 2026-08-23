@@ -378,6 +378,15 @@ def test_intervention_residual_meta_trains_seen_and_routes_only_unseen_at_eval()
     torch.testing.assert_close(unseen[:, 10:], base_unseen[:, 10:])
 
 
+def test_intact_topology_never_routes_intervention_residual():
+    model = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_residual_support_joints=(0, 1, 3, 4))
+    model.eval()
+    novelty = model._intervention_novelty(torch.zeros(3, 5))
+    torch.testing.assert_close(novelty, torch.zeros_like(novelty))
+
+
 def test_zero_initialized_latent_intervention_residual_is_trainable():
     torch.manual_seed(67)
     base = BlockTriangularDPWM(compact_bridge_object_head=True)

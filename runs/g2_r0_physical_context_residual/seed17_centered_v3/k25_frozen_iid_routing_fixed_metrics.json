@@ -1,0 +1,364 @@
+{
+  "version": "g2_r0_core_metrics_v1",
+  "seed": 17,
+  "residual_scale": 1.0,
+  "residual_relative_clip": null,
+  "residual_decay": null,
+  "context_strength": 1.0,
+  "context_ramp": 0.06,
+  "context_ramp_start": 8,
+  "context_delayed": true,
+  "context_budget": 25,
+  "context_shrink": 1.38,
+  "context_diagnostics": [
+    {
+      "domain": "intact__nominal",
+      "source": "Z65_K25",
+      "context": [
+        -0.04463362693786621,
+        0.006771270185709,
+        0.03908524662256241,
+        0.30264610052108765,
+        0.21734793484210968,
+        -0.005691210739314556,
+        -0.016307497397065163,
+        0.1859419047832489
+      ],
+      "log_variance": [
+        -6.044670104980469,
+        -5.762226581573486,
+        -6.651034355163574,
+        -7.0,
+        -2.8813581466674805,
+        -7.0,
+        -7.0,
+        -2.970212459564209
+      ]
+    },
+    {
+      "domain": "D2__nominal",
+      "source": "Z65_K25",
+      "context": [
+        -0.042412493377923965,
+        0.08414918929338455,
+        0.06887099146842957,
+        -0.08402138948440552,
+        0.23875316977500916,
+        -0.013690225780010223,
+        -0.014222532510757446,
+        0.23145951330661774
+      ],
+      "log_variance": [
+        -6.222578048706055,
+        -5.413118839263916,
+        -6.217587471008301,
+        -7.0,
+        -2.844208002090454,
+        -7.0,
+        -7.0,
+        -2.7867512702941895
+      ]
+    },
+    {
+      "domain": "D4__nominal",
+      "source": "Z65_K25",
+      "context": [
+        -0.03555377572774887,
+        0.037788111716508865,
+        0.04855986684560776,
+        0.2988893389701843,
+        0.23260962963104248,
+        -0.005142563488334417,
+        -0.012562073767185211,
+        0.20774908363819122
+      ],
+      "log_variance": [
+        -6.234974384307861,
+        -5.847970962524414,
+        -6.69760274887085,
+        -7.0,
+        -2.903440237045288,
+        -7.0,
+        -7.0,
+        -2.925753593444824
+      ]
+    }
+  ],
+  "horizons": [
+    10,
+    25,
+    50
+  ],
+  "rows": [
+    {
+      "domain": "intact__nominal",
+      "horizon": 10,
+      "method": "shared_projected",
+      "free_rmse": 0.15448765456676483,
+      "object_rmse": 0.0720829963684082,
+      "overall_rmse": 0.1361323446035385,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.007022758014500141
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 10,
+      "method": "strict_bt",
+      "free_rmse": 0.15448765456676483,
+      "object_rmse": 0.0720829963684082,
+      "overall_rmse": 0.1361323446035385,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.007022758014500141
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 10,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.15448765456676483,
+      "object_rmse": 0.0720829963684082,
+      "overall_rmse": 0.1361323446035385,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.007022758014500141
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 25,
+      "method": "shared_projected",
+      "free_rmse": 0.284873366355896,
+      "object_rmse": 0.08078881353139877,
+      "overall_rmse": 0.24460403621196747,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.009765650145709515
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 25,
+      "method": "strict_bt",
+      "free_rmse": 0.284873366355896,
+      "object_rmse": 0.08078881353139877,
+      "overall_rmse": 0.24460403621196747,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.009765650145709515
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 25,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.284873366355896,
+      "object_rmse": 0.08078881353139877,
+      "overall_rmse": 0.24460403621196747,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.009765650145709515
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 50,
+      "method": "shared_projected",
+      "free_rmse": 0.32004663348197937,
+      "object_rmse": 0.08361703157424927,
+      "overall_rmse": 0.2741566002368927,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.020398106426000595
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 50,
+      "method": "strict_bt",
+      "free_rmse": 0.32004663348197937,
+      "object_rmse": 0.08361703157424927,
+      "overall_rmse": 0.2741566002368927,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.020398106426000595
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 50,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.32004663348197937,
+      "object_rmse": 0.08361703157424927,
+      "overall_rmse": 0.2741566002368927,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.020398106426000595
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 10,
+      "method": "shared_projected",
+      "free_rmse": 0.24028970301151276,
+      "object_rmse": 0.057326942682266235,
+      "overall_rmse": 0.1842084676027298,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.005198389757424593
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 10,
+      "method": "strict_bt",
+      "free_rmse": 0.24028970301151276,
+      "object_rmse": 0.057326942682266235,
+      "overall_rmse": 0.1842084676027298,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.005198389757424593
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 10,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.24028970301151276,
+      "object_rmse": 0.057326942682266235,
+      "overall_rmse": 0.1842084676027298,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.005198389757424593
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 25,
+      "method": "shared_projected",
+      "free_rmse": 0.38845372200012207,
+      "object_rmse": 0.05632104352116585,
+      "overall_rmse": 0.29518258571624756,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.010676008649170399
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 25,
+      "method": "strict_bt",
+      "free_rmse": 0.38845372200012207,
+      "object_rmse": 0.05632104352116585,
+      "overall_rmse": 0.29518258571624756,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.010676008649170399
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 25,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.38845372200012207,
+      "object_rmse": 0.05632104352116585,
+      "overall_rmse": 0.29518258571624756,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.010676008649170399
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 50,
+      "method": "shared_projected",
+      "free_rmse": 0.3545556664466858,
+      "object_rmse": 0.06425871700048447,
+      "overall_rmse": 0.2702108323574066,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.030999399721622467
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 50,
+      "method": "strict_bt",
+      "free_rmse": 0.3545556664466858,
+      "object_rmse": 0.06425871700048447,
+      "overall_rmse": 0.2702108323574066,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.030999399721622467
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 50,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.3545556664466858,
+      "object_rmse": 0.06425871700048447,
+      "overall_rmse": 0.2702108323574066,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.030999399721622467
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 10,
+      "method": "shared_projected",
+      "free_rmse": 0.22540749609470367,
+      "object_rmse": 0.04228699952363968,
+      "overall_rmse": 0.17188474535942078,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.003229793393984437
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 10,
+      "method": "strict_bt",
+      "free_rmse": 0.22540749609470367,
+      "object_rmse": 0.04228699952363968,
+      "overall_rmse": 0.17188474535942078,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.003229793393984437
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 10,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.22540749609470367,
+      "object_rmse": 0.04228699952363968,
+      "overall_rmse": 0.17188474535942078,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.003229793393984437
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 25,
+      "method": "shared_projected",
+      "free_rmse": 0.3351520299911499,
+      "object_rmse": 0.058031823486089706,
+      "overall_rmse": 0.2552430033683777,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.008609071373939514
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 25,
+      "method": "strict_bt",
+      "free_rmse": 0.3351520299911499,
+      "object_rmse": 0.058031823486089706,
+      "overall_rmse": 0.2552430033683777,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.008609071373939514
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 25,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.3351520299911499,
+      "object_rmse": 0.058031823486089706,
+      "overall_rmse": 0.2552430033683777,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.008609071373939514
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 50,
+      "method": "shared_projected",
+      "free_rmse": 0.22545868158340454,
+      "object_rmse": 0.07011818140745163,
+      "overall_rmse": 0.17450320720672607,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.02037931978702545
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 50,
+      "method": "strict_bt",
+      "free_rmse": 0.22545868158340454,
+      "object_rmse": 0.07011818140745163,
+      "overall_rmse": 0.17450320720672607,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.02037931978702545
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 50,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.22545868158340454,
+      "object_rmse": 0.07011818140745163,
+      "overall_rmse": 0.17450320720672607,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.02037931978702545
+    }
+  ]
+}

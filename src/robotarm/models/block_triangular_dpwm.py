@@ -328,7 +328,9 @@ class BlockTriangularDPWM(nn.Module):
             return torch.ones(mask.shape[0], device=mask.device, dtype=mask.dtype)
         distance = (mask[:, None, :] - self.intervention_residual_support[None]) \
             .abs().sum(-1).min(-1).values
-        return (distance > 0.5).to(mask.dtype)
+        unseen = (distance > 0.5).to(mask.dtype)
+        damaged = (mask.sum(-1) > 0.5).to(mask.dtype)
+        return unseen * damaged
 
     def align_object_bridge(self, bridge: torch.Tensor, obj: torch.Tensor) -> torch.Tensor:
         """Map the strict robot code into the frozen shared-head coordinate system."""

@@ -178,7 +178,9 @@ def main():
                   goal_exploration_std=float(q0a["goal_exploration_std"]))
     rows = []
     context_diagnostics = []
-    for index, domain in enumerate(protocol.test):
+    evaluation_domains = tuple(dict.fromkeys(
+        (*protocol.train, *protocol.validation, *protocol.test)))
+    for index, domain in enumerate(evaluation_domains):
         if args.domains and domain.domain_id not in args.domains:
             continue
         test_seed = args.seed * 100_000 + index * 1000 + 500

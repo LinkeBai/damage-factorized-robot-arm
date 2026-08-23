@@ -186,3 +186,10 @@ posterior and a single 1.38 calibration factor, all twelve seed7/17 D3
 composition/mixed-unseen H10/H25/H50 object cells are positive and above 2%; the
 worst is seed17 mixed-unseen H50 at `+2.56%`.  Seed27 remains untouched pending
 the full control-domain and K-budget audit.
+
+After that audit passed, untouched seed27 was opened with the same frozen rule.
+K25 removes the K0 H50 failure (`-30.23/-29.51%`) and reaches
+`+37.94/+21.61%`; all six object cells are positive.  Five exceed 2%, while
+mixed-unseen H25 is `+1.9579%`, so the strict all-cell 2% confirmation flag
+remains false.  Free/pusher are positive, constraints are zero, and IID/seen
+controls are shared-equivalent.  No seed27 tuning is permitted.

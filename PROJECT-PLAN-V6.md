@@ -2425,6 +2425,23 @@ exponential residual decay提供首个稳定交点：在seed17上decay0.85使com
 mixed-unseen H50仍-8.55%。因此剩余唯一机制缺口收敛为**held-out topology × held-out physical
 composition × H50**。下一步冻结contact-aware base、support routing、geometry与decay接口，只将
 已有8维physical-context/K posterior接入residual coefficient；不得继续无条件scale/clip搜索。
+
+### 32. Frozen K25 three-seed confirmation (2026-08-23)
+
+The observable rule was frozen on seeds 7/17 before opening seed27: Z65 K25,
+posterior scale 1.38, exact centered zero bypass, eight-step delayed activation,
+and depth ramp 0.06.  Seed27 was then trained/evaluated without changing any
+rule.  Its D3 object gains are `+6.50/+2.54/+37.94%` for composition and
+`+7.42/+1.958/+21.61%` for mixed-unseen at H10/H25/H50.  K25 changes the two
+seed27 H50 cells from `-30.23/-29.51%` at K0 to `+37.94/+21.61%`.
+
+All seed27 free/pusher improvements are positive and all constraint violations
+are zero.  Intact/D2/D4 IID is exactly shared-equivalent; D2/D4 mixed controls
+have at most 0.0037% absolute object difference.  Confirmation is therefore
+stable-positive, but the preregistered 2% all-cell rule is technically not met:
+mixed-unseen H25 is 1.9579%, short by 0.0421 percentage points.  This value must
+not be rounded into a pass or used to retune the frozen rule.  The machine ledger
+is `runs/g2_r0_physical_context_residual/frozen_gate_summary_v1.json`.
 ### 31. G2-R0 physical-context residual stability development (2026-08-23)
 
 - Added a bounded 8D physical-context FiLM gate only on the intervention object
