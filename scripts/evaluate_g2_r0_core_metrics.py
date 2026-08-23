@@ -15,6 +15,7 @@ import yaml
 
 from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
 from robotarm.models.contact_geometry import pusher_reference_point
+from robotarm.models.physical_context_encoder import UncertainPhysicalContextEncoder
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
 from robotarm.models.topology_surgery import TopologySurgery
 from robotarm.training.sim_protocol import load_g1_protocol
@@ -85,8 +86,14 @@ def main():
     parser.add_argument("--context-strength", type=float)
     parser.add_argument("--context-ramp", type=float)
     parser.add_argument("--context-ramp-start", type=int)
+    parser.add_argument("--context-delayed", action="store_true")
+    parser.add_argument("--context-budget", type=int,
+                        help="Infer context from this many held-out calibration transitions.")
+    parser.add_argument("--context-shrink", type=float)
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    context_shrink = float(cfg.get("context_posterior_scale", 1.0)
+                           if args.context_shrink is None else args.context_shrink)
     q0a = yaml.safe_load(Path(cfg["q0a_config"]).read_text(encoding="utf-8"))
     protocol = load_g1_protocol(Path(q0a["protocol"]))
     targets = load_target_split(Path(q0a["targets"]))
@@ -129,8 +136,18 @@ def main():
         intervention_context_ramp=float(
             cfg.get("intervention_context_ramp", 0.0)),
         intervention_context_ramp_start=int(
-            cfg.get("intervention_context_ramp_start", 0))).to(device)
+            cfg.get("intervention_context_ramp_start", 0)),
+        intervention_context_delayed=bool(
+            cfg.get("intervention_context_delayed", False))).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
+    context_encoder = None
+    if args.context_budget is not None and args.context_budget > 0:
+        context_encoder = UncertainPhysicalContextEncoder(
+            hidden_dim=int(cfg.get("context_encoder_hidden_dim", 96))).to(device)
+        encoder_path = Path(str(cfg["context_encoder_run_template"]).format(
+            seed=args.seed)) / "context_encoder.pt"
+        context_encoder.load_state_dict(torch.load(encoder_path, map_location=device))
+        context_encoder.eval()
     if args.residual_scale is not None:
         strict.intervention_residual_scale = float(args.residual_scale)
     if args.residual_relative_clip is not None:
@@ -144,6 +161,8 @@ def main():
         strict.intervention_context_ramp = float(args.context_ramp)
     if args.context_ramp_start is not None:
         strict.intervention_context_ramp_start = int(args.context_ramp_start)
+    if args.context_delayed:
+        strict.intervention_context_delayed = True
     ablated = copy.deepcopy(strict)
     with torch.no_grad():
         if hasattr(ablated, "geometric_object_head"):
@@ -158,6 +177,7 @@ def main():
                   block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
                   goal_exploration_std=float(q0a["goal_exploration_std"]))
     rows = []
+    context_diagnostics = []
     for index, domain in enumerate(protocol.test):
         if args.domains and domain.domain_id not in args.domains:
             continue
@@ -168,11 +188,45 @@ def main():
             (domain,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
             seed=test_seed, targets=tuple(x.as_array() for x in targets.evaluation), **common))
         if strict.intervention_context_dim > 0:
-            context = residual_descriptor(
-                domain.residual_name, device=device,
-                dtype=next(strict.parameters()).dtype)
+            if args.context_budget is None:
+                context = residual_descriptor(
+                    domain.residual_name, device=device,
+                    dtype=next(strict.parameters()).dtype)
+                context_source, context_log_variance = "oracle", None
+            elif args.context_budget == 0:
+                context = torch.zeros(strict.intervention_context_dim, device=device)
+                context_source, context_log_variance = "K0", None
+            else:
+                calibration_seed = args.seed * 100_000 + index * 1000 + 100
+                calibration_key = json.dumps({
+                    "kind": "push_context_calibration", "seed": calibration_seed,
+                    "domain": domain.domain_id, "budget": args.context_budget,
+                    "q0a": q0a}, sort_keys=True)
+                calibration = cached_collect(
+                    args.cache_dir, calibration_key,
+                    lambda domain=domain: collect_push_domains(
+                        (domain,), trajectories_per_domain=1,
+                        steps=int(args.context_budget), seed=calibration_seed,
+                        targets=tuple(x.as_array() for x in targets.calibration),
+                        excitation="active",
+                        block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
+                        goal_exploration_std=float(q0a["goal_exploration_std"])))[0]
+                context_mask, _ = _damage_tensors([domain.damage], device)
+                with torch.no_grad():
+                    mean, log_variance = context_encoder(
+                        calibration.states[None].to(device),
+                        calibration.actions[None].to(device), context_mask,
+                        return_uncertainty=True)
+                context = mean[0] * context_shrink
+                context_log_variance = log_variance[0]
+                context_source = f"Z65_K{args.context_budget}"
             strict.set_intervention_context(context)
             ablated.set_intervention_context(context)
+            context_diagnostics.append({
+                "domain": domain.domain_id, "source": context_source,
+                "context": context.detach().cpu().tolist(),
+                "log_variance": (None if context_log_variance is None else
+                                 context_log_variance.detach().cpu().tolist())})
         rows.extend(evaluate(models, trajectories, domain, args.horizons, device))
     output = {"version": "g2_r0_core_metrics_v1", "seed": args.seed,
               "residual_scale": strict.intervention_residual_scale,
@@ -181,6 +235,10 @@ def main():
               "context_strength": strict.intervention_context_strength,
               "context_ramp": strict.intervention_context_ramp,
               "context_ramp_start": strict.intervention_context_ramp_start,
+              "context_delayed": strict.intervention_context_delayed,
+              "context_budget": args.context_budget,
+              "context_shrink": context_shrink,
+              "context_diagnostics": context_diagnostics,
               "horizons": args.horizons, "rows": rows}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, indent=2), encoding="utf-8")

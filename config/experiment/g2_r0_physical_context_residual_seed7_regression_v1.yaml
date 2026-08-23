@@ -1,13 +1,13 @@
-version: g2_r0_physical_context_residual_dev_v2
-status: development_seed17_oracle_context_upper_bound_higher_gate_lr
+version: g2_r0_physical_context_residual_seed7_regression_v1
+status: frozen_seed7_regression_after_seed17_selection
 v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
 q0a_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
-seeds: [17]
+seeds: [7]
 hidden_dim: 136
 baseline_hidden_dim: 136
 train_baseline: false
 external_baseline_model_template: runs/g2_bt_dpwm_meta_train_z32/seed{seed}_v1/baseline_model.pt
-initialize_candidate_full_template: runs/g2_r0_contact_aware_support_residual/seed{seed}_v1/model.pt
+initialize_candidate_full_template: runs/g2_r0_contact_aware_support_residual/seed7_v5/model.pt
 contact_conditioned_robot: true
 contact_gated_object_context: false
 independent_object_encoder: false

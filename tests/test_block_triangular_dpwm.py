@@ -452,6 +452,9 @@ def test_zero_physical_context_preserves_intervention_residual_exactly():
         compact_bridge_object_head=True, intervention_object_rank=8,
         intervention_context_dim=8, intervention_context_rank=4)
     conditioned.load_state_dict(plain.state_dict(), strict=False)
+    with torch.no_grad():
+        for parameter in conditioned.intervention_context_head.parameters():
+            parameter.normal_()
     conditioned.set_intervention_context(torch.zeros(3, 8))
     inputs = _inputs(batch=3)
     expected, _ = plain.step(*inputs, None)
@@ -482,7 +485,9 @@ def test_context_ramp_has_grace_period_and_carries_rollout_depth():
         intervention_context_ramp=0.1, intervention_context_ramp_start=10)
     model.set_intervention_context(torch.ones(2, 8))
     with torch.no_grad():
-        model.intervention_context_head[-1].bias.fill_(0.2)
+        model.intervention_context_head[0].weight.fill_(0.1)
+        model.intervention_context_head[0].bias.zero_()
+        model.intervention_context_head[-1].weight.fill_(0.2)
     reference = torch.ones(2, 4)
     at_zero = model._intervention_context_gain(reference, torch.zeros(2))
     at_ten = model._intervention_context_gain(reference, torch.full((2,), 10.0))
@@ -492,3 +497,20 @@ def test_context_ramp_has_grace_period_and_carries_rollout_depth():
     prediction, hidden = model.step(*_inputs(batch=2), None)
     assert isinstance(hidden, tuple)
     torch.testing.assert_close(hidden[1], torch.ones(2))
+
+
+def test_delayed_context_is_exact_k0_during_grace_period():
+    model = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_context_dim=8, intervention_context_rank=4,
+        intervention_context_ramp=0.1, intervention_context_ramp_start=10,
+        intervention_context_delayed=True)
+    model.set_intervention_context(torch.ones(2, 8))
+    with torch.no_grad():
+        model.intervention_context_head[0].weight.fill_(0.1)
+        model.intervention_context_head[-1].weight.fill_(0.2)
+    reference = torch.ones(2, 4)
+    before = model._intervention_context_gain(reference, torch.full((2,), 9.0))
+    after = model._intervention_context_gain(reference, torch.full((2,), 10.0))
+    torch.testing.assert_close(before, torch.ones_like(before))
+    assert torch.all(after > before)

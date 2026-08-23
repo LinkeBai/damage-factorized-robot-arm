@@ -57,6 +57,7 @@ class BlockTriangularDPWM(nn.Module):
         intervention_context_strength: float = 1.0,
         intervention_context_ramp: float = 0.0,
         intervention_context_ramp_start: int = 0,
+        intervention_context_delayed: bool = False,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -96,6 +97,7 @@ class BlockTriangularDPWM(nn.Module):
         self.intervention_context_strength = float(intervention_context_strength)
         self.intervention_context_ramp = float(intervention_context_ramp)
         self.intervention_context_ramp_start = int(intervention_context_ramp_start)
+        self.intervention_context_delayed = bool(intervention_context_delayed)
         if self.intervention_residual_scale < 0.0:
             raise ValueError("intervention residual scale must be non-negative")
         if (intervention_residual_relative_clip is not None
@@ -306,7 +308,17 @@ class BlockTriangularDPWM(nn.Module):
         if rollout_step is not None:
             risk_depth = (rollout_step - self.intervention_context_ramp_start).clamp_min(0.0)
             strength = strength + self.intervention_context_ramp * risk_depth[:, None]
-        return 1.0 + torch.tanh(strength * self.intervention_context_head(context))
+            if self.intervention_context_delayed:
+                strength = strength * (
+                    rollout_step[:, None] >= self.intervention_context_ramp_start
+                ).to(context.dtype)
+        # Center the learned map structurally, not merely at initialization:
+        # K=0/z=0 must remain the exact frozen intervention mechanism after
+        # arbitrary gate training.
+        zero = torch.zeros_like(context)
+        modulation = (self.intervention_context_head(context)
+                      - self.intervention_context_head(zero))
+        return 1.0 + torch.tanh(strength * modulation)
 
     def _intervention_novelty(self, mask: torch.Tensor) -> torch.Tensor:
         """Route a shared meta-residual without consulting domain/test labels."""

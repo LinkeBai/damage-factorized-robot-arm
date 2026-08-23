@@ -723,6 +723,7 @@ def main():
         intervention_context_strength=float(cfg.get("intervention_context_strength", 1.0)),
         intervention_context_ramp=float(cfg.get("intervention_context_ramp", 0.0)),
         intervention_context_ramp_start=int(cfg.get("intervention_context_ramp_start", 0)),
+        intervention_context_delayed=bool(cfg.get("intervention_context_delayed", False)),
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))

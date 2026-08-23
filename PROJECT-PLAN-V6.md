@@ -2443,3 +2443,14 @@ composition × H50**。下一步冻结contact-aware base、support routing、geo
   Next: substitute the already trained Z65 observable posterior, check seed7
   regression, and only then unlock untouched seed27.  No shared/Z69 retraining or
   MuJoCo recollection is justified.
+
+The zero-context map was subsequently made structurally exact as `h(z)-h(0)`;
+this recovers the full v5 K=0 result after arbitrary gate training.  The frozen
+observable K25 rule uses the existing Z65 posterior, one global calibration
+factor 1.38, and an eight-step zero-modulation grace period before the same
+depth-risk ramp activates.  Without per-seed/domain choices, D3 object gains are:
+seed7 composition `+9.13/+5.47/+38.71%`, mixed-unseen
+`+16.19/+34.69/+32.48%`; seed17 composition `+4.56/+12.77/+10.59%`,
+mixed-unseen `+7.35/+16.80/+2.56%` at H10/H25/H50.  This closes the K25
+development gate; D2/D4/IID controls and K0/5/10/50 curves remain required before
+untouched seed27 confirmation.

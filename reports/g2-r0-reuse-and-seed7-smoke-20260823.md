@@ -179,3 +179,10 @@ ten-step grace and depth-risk ramp, produced oracle-context D3 object gains of
 This establishes a mechanism upper bound only.  It does not authorize seed27:
 the next required evidence is replacement of the oracle descriptor by the
 already frozen Z65 K-transition posterior plus seed7 non-regression.
+
+The deployable K25 follow-up centers the gate as `h(z)-h(0)`, preserving exact
+K=0, and delays modulation for eight rollout steps.  With the frozen Z65
+posterior and a single 1.38 calibration factor, all twelve seed7/17 D3
+composition/mixed-unseen H10/H25/H50 object cells are positive and above 2%; the
+worst is seed17 mixed-unseen H50 at `+2.56%`.  Seed27 remains untouched pending
+the full control-domain and K-budget audit.
