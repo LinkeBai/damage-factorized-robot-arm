@@ -103,7 +103,9 @@ def main():
             int(x) for x in cfg.get("intervention_residual_support_joints", [])),
         intervention_residual_meta_train=bool(
             cfg.get("intervention_residual_meta_train", False)),
-        intervention_object_rank=int(cfg.get("intervention_object_rank", 0))).to(device)
+        intervention_object_rank=int(cfg.get("intervention_object_rank", 0)),
+        object_bridge_alignment_rank=int(
+            cfg.get("object_bridge_alignment_rank", 0))).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
     ablated = copy.deepcopy(strict)
     with torch.no_grad():

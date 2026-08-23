@@ -336,10 +336,34 @@ def main():
     shared = TopologyGraphWorldModel(TopologyGraphConfig(
         hidden_dim=int(base_cfg["baseline_hidden_dim"]))).to(device)
     shared.load_state_dict(torch.load(base_run/"baseline_model.pt", map_location=device))
+    bt_model_cfg = {}
+    if cfg.get("bt_model_config"):
+        bt_model_cfg = yaml.safe_load(
+            Path(cfg["bt_model_config"]).read_text(encoding="utf-8"))
     bt = BlockTriangularDPWM(
         TopologyGraphConfig(hidden_dim=int(base_cfg["hidden_dim"])),
-        contact_conditioned_robot=True, independent_object_encoder=True,
-        object_hidden_dim=int(base_cfg["object_hidden_dim"])).to(device)
+        contact_conditioned_robot=bool(
+            bt_model_cfg.get("contact_conditioned_robot", True)),
+        independent_object_encoder=bool(
+            bt_model_cfg.get("independent_object_encoder", True)),
+        object_hidden_dim=int(bt_model_cfg.get(
+            "object_hidden_dim", base_cfg["object_hidden_dim"])),
+        compact_bridge_object_head=bool(
+            bt_model_cfg.get("compact_bridge_object_head", False)),
+        geometric_object_rank=int(bt_model_cfg.get("geometric_object_rank", 0)),
+        object_integration_dt=bt_model_cfg.get("object_integration_dt"),
+        object_position_blend=float(
+            bt_model_cfg.get("object_position_blend", 0.0)),
+        geometric_object_contact_gate=bool(
+            bt_model_cfg.get("geometric_object_contact_gate", False)),
+        intervention_residual_support_joints=tuple(int(x) for x in
+            bt_model_cfg.get("intervention_residual_support_joints", [])),
+        intervention_residual_meta_train=bool(
+            bt_model_cfg.get("intervention_residual_meta_train", False)),
+        intervention_object_rank=int(
+            bt_model_cfg.get("intervention_object_rank", 0)),
+        object_bridge_alignment_rank=int(
+            bt_model_cfg.get("object_bridge_alignment_rank", 0))).to(device)
     bt_run = Path(str(cfg.get("bt_run_template",
         str(base_run))).format(seed=args.seed))
     bt.load_state_dict(torch.load(bt_run/"model.pt", map_location=device))

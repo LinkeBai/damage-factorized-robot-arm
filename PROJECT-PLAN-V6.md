@@ -2371,3 +2371,32 @@ D3 mixed-unseen为+14.09/+43.26/+31.68%，H10 free/overall为+2.39/+2.42%，零�
 因此当前判定是**held-out D3 core mechanism PASS / unified R0 gate still pending**。不得立即扩
 seed17/27；下一步只补physics-mismatch/K-adaptation路由或base-latent alignment，并要求D2/D4
 核心object控制域恢复等价，不回退到覆盖整个object head，也不重跑MuJoCo数据或既有shared/robot。
+
+---
+
+## 29. G2-R0 bridge alignment、K复用与robot稳定性审计（2026-08-23）
+
+shared-bridge oracle保持strict damage-projected robot rollout，仅将冻结object head的输入替换为同一
+rollout state上的shared hidden。D2 H10/H25/H50 object由-2.21/-4.34/-22.42%恢复为
+-0.19/+0.01/+1.88%，D4由-2.89/-4.67/-36.56%恢复为-0.42/+0.33/+1.29%，确认剩余
+control gap来自bridge坐标失配，而非object dynamics容量。部署版v3用rank32 object-side aligner
+蒸馏该坐标，不复制318k shared encoder；validation latent MSE由2.72e-4降至1.5e-5。
+
+v3 seed7保留D3核心收益：composition object H10/H25/H50为+3.71/+13.46/+23.16%，mixed-unseen
+为+13.91/+39.33/+27.69%。同时D2最差object回归压到3.87%，D4压到1.01%，均进入冻结的5%
+practical-equivalence margin；free/overall最差回归低于5%，locked violation为0。pusher相对
+shared的最坏绝对增加为2.556 mm，低于面向ST3215+eye-in-hand真机冻结的3 mm等价门。v4加入
+object-output-weighted bridge loss后D2改善但D3/D4变差，未统一超过v3，故否决。
+
+旧Z70/Z65/Z75 K链无需接口重训即可加载新base，但16个K>0单元只接受1次更新，且该D4更新使
+object own RMSE退化0.81%；其余全部安全回退K0。因此旧adapter权重可安全复用但没有新base上的
+K样本效率证据。将v3 residual强制用于D2/D4会使H10/H25 object退化约9--24%，故不能简单由K
+打开同一residual，后续K适配必须另学physics correction并继续使用Z75安全链。
+
+完整门的当前阻塞在robot expert跨seed稳定性。seed7 pusher-weight10在free上为正，但D3 pusher
+相对回归6.95/11.48%，绝对仅0.403/1.756 mm；weight100可使D3 H10 pusher +44.44%，却使free
+-7.12%，validation Pareto blend选择回原weight10。冻结同方法到development seed17时，epoch0
+free为-10.91%，40轮改善至-6.58%仍未过5%门；再续40轮选出的模型为-7.39%，排除简单增加epoch。
+因此seed17 object训练被门控停止，seed27未开启。下一步保持v3 object机制不变，只把robot训练
+原则改为intervention-equivariant leave-one-joint-out validation/selection；在seed17/27 development
+稳定后另用未触碰seed做confirmation，不得把已观察seed17重新称为独立确认。

@@ -48,6 +48,7 @@ class BlockTriangularDPWM(nn.Module):
         intervention_residual_support_joints: tuple[int, ...] = (),
         intervention_residual_meta_train: bool = False,
         intervention_object_rank: int = 0,
+        object_bridge_alignment_rank: int = 0,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -79,6 +80,7 @@ class BlockTriangularDPWM(nn.Module):
         self.geometric_object_contact_gate = bool(geometric_object_contact_gate)
         self.intervention_residual_meta_train = bool(intervention_residual_meta_train)
         self.intervention_object_rank = int(intervention_object_rank)
+        self.object_bridge_alignment_rank = int(object_bridge_alignment_rank)
         support = torch.zeros(len(intervention_residual_support_joints), c.dof)
         for row, joint in enumerate(intervention_residual_support_joints):
             if not 0 <= joint < c.dof:
@@ -95,6 +97,10 @@ class BlockTriangularDPWM(nn.Module):
             raise ValueError("geometric_object_rank must be non-negative")
         if intervention_object_rank < 0:
             raise ValueError("intervention_object_rank must be non-negative")
+        if object_bridge_alignment_rank < 0:
+            raise ValueError("object bridge alignment rank must be non-negative")
+        if object_bridge_alignment_rank > 0 and not compact_bridge_object_head:
+            raise ValueError("object bridge alignment requires compact bridge")
         if intervention_object_rank > 0 and not compact_bridge_object_head:
             raise ValueError("intervention object residual requires compact bridge")
         if not 0.0 <= object_position_blend <= 1.0:
@@ -223,6 +229,14 @@ class BlockTriangularDPWM(nn.Module):
             )
             nn.init.zeros_(self.intervention_object_head[-1].weight)
             nn.init.zeros_(self.intervention_object_head[-1].bias)
+        if object_bridge_alignment_rank > 0:
+            self.object_bridge_alignment_head = nn.Sequential(
+                nn.Linear(c.hidden_dim + c.object_dim, object_bridge_alignment_rank),
+                nn.Tanh(),
+                nn.Linear(object_bridge_alignment_rank, c.hidden_dim),
+            )
+            nn.init.zeros_(self.object_bridge_alignment_head[-1].weight)
+            nn.init.zeros_(self.object_bridge_alignment_head[-1].bias)
 
     def _intervention_novelty(self, mask: torch.Tensor) -> torch.Tensor:
         """Route a shared meta-residual without consulting domain/test labels."""
@@ -233,6 +247,12 @@ class BlockTriangularDPWM(nn.Module):
         distance = (mask[:, None, :] - self.intervention_residual_support[None]) \
             .abs().sum(-1).min(-1).values
         return (distance > 0.5).to(mask.dtype)
+
+    def align_object_bridge(self, bridge: torch.Tensor, obj: torch.Tensor) -> torch.Tensor:
+        """Map the strict robot code into the frozen shared-head coordinate system."""
+        if self.object_bridge_alignment_rank == 0:
+            return bridge
+        return bridge + self.object_bridge_alignment_head(torch.cat((bridge, obj), -1))
 
     @staticmethod
     def _neighbor_sum(nodes: torch.Tensor) -> torch.Tensor:
@@ -469,6 +489,7 @@ class BlockTriangularDPWM(nn.Module):
             )
         else:
             bridge = robot_hidden.mean(1).detach()
+            bridge = self.align_object_bridge(bridge, obj)
             if not self.compact_bridge_object_head:
                 bridge = torch.cat((bridge, projected_robot.detach()), -1)
             next_obj = obj + self.object_head(torch.cat((bridge, obj), -1))

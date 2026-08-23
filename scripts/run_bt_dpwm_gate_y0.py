@@ -297,6 +297,87 @@ def train_object_with_selection(
     return history, diagnostics
 
 
+def bridge_alignment_losses_per_trajectory(
+    model, teacher, batch, use_topology=False, object_weight=0.0,
+):
+    """Distill only the coordinate system consumed by the frozen object head."""
+    states, actions, mask, angle = batch
+    zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
+    model_hidden = teacher_hidden = None
+    losses = []
+    for step in range(actions.shape[1]):
+        _, model_hidden, obj, _, _ = model.step_robot(
+            states[:, step], actions[:, step], model_mask, model_angle, model_hidden)
+        with torch.no_grad():
+            teacher_prediction, teacher_hidden = teacher.step(
+                states[:, step], actions[:, step], zeros, zeros, teacher_hidden)
+        source = model.align_object_bridge(model_hidden.mean(1).detach(), obj.detach())
+        target = teacher_hidden.mean(1).detach()
+        value = (source - target).pow(2).mean(-1)
+        if object_weight > 0.0:
+            aligned_object = obj + model.object_head(torch.cat((source, obj), -1))
+            value = value + object_weight * (
+                aligned_object - teacher_prediction[:, 10:]).pow(2).mean(-1)
+        losses.append(value)
+    return torch.stack(losses).mean(0)
+
+
+def train_bridge_alignment_with_selection(
+    model, teacher, batch, validation_batch, *, epochs, learning_rate,
+    validation_every, train_group_indices, validation_group_indices,
+    group_robust_weight, use_topology=False, object_weight=0.0,
+):
+    parameters = list(model.object_bridge_alignment_head.parameters())
+    optimizer = torch.optim.Adam(parameters, lr=learning_rate)
+    history, validation_history = [], []
+    with torch.no_grad():
+        initial, groups = aggregate_topology_losses(
+            bridge_alignment_losses_per_trajectory(
+                model, teacher, validation_batch, use_topology, object_weight),
+            validation_group_indices, group_robust_weight)
+    best_value, best_epoch = float(initial), 0
+    best_state = {name: tensor.detach().clone()
+                  for name, tensor in model.state_dict().items()}
+    validation_history.append({"epoch": 0, "loss": best_value,
+        "topology_losses": {name: float(value) for name, value in groups.items()}})
+    for epoch in range(1, epochs + 1):
+        values = bridge_alignment_losses_per_trajectory(
+            model, teacher, batch, use_topology, object_weight)
+        loss, _ = aggregate_topology_losses(
+            values, train_group_indices, group_robust_weight)
+        optimizer.zero_grad(); loss.backward()
+        gradient = float(torch.nn.utils.clip_grad_norm_(parameters, 5.0))
+        optimizer.step(); history.append(float(loss.detach()))
+        suffix = ""
+        if epoch % validation_every == 0 or epoch == epochs:
+            with torch.no_grad():
+                value, groups = aggregate_topology_losses(
+                    bridge_alignment_losses_per_trajectory(
+                        model, teacher, validation_batch, use_topology, object_weight),
+                    validation_group_indices, group_robust_weight)
+            value_float = float(value)
+            validation_history.append({"epoch": epoch, "loss": value_float,
+                "topology_losses": {name: float(item) for name, item in groups.items()}})
+            if value_float < best_value:
+                best_value, best_epoch = value_float, epoch
+                best_state = {name: tensor.detach().clone()
+                              for name, tensor in model.state_dict().items()}
+            suffix = f" val={value_float:.6f}"
+        if epoch == 1 or epoch % 10 == 0:
+            print(f"  bridge-align epoch={epoch:03d} loss={loss.item():.6f}{suffix} "
+                  f"grad={gradient:.3f}", flush=True)
+    model.load_state_dict(best_state)
+    diagnostics = {"selected_epoch": best_epoch,
+        "selected_validation_loss": best_value,
+        "validation_history": validation_history,
+        "group_robust_weight": group_robust_weight,
+        "object_weight": object_weight}
+    print(f"[bridge] selected epoch={best_epoch} validation_loss={best_value:.6f}",
+          flush=True)
+    return history, diagnostics
+
+
 def train_blockwise_horizons(model, batch, *, epochs, learning_rate,
                              robot_horizon, object_horizon):
     """Optimize each directed block at its empirically identified time scale."""
@@ -605,6 +686,8 @@ def main():
         intervention_residual_meta_train=bool(
             cfg.get("intervention_residual_meta_train", False)),
         intervention_object_rank=int(cfg.get("intervention_object_rank", 0)),
+        object_bridge_alignment_rank=int(
+            cfg.get("object_bridge_alignment_rank", 0)),
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
@@ -630,6 +713,7 @@ def main():
               f"new parameters={sum(target[x].numel() for x in new_names):,}",
               flush=True)
     candidate_template_robot = None
+    candidate_secondary_robot = None
     if "initialize_candidate_model_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_model_template"]).format(seed=args.seed))
         source = torch.load(source_path, map_location=device)
@@ -643,6 +727,18 @@ def main():
         }
         print(f"[initialize] loaded {sum(x.numel() for x in compatible.values()):,} compatible "
               f"parameters from {source_path}", flush=True)
+    if "robot_blend_secondary_template" in cfg:
+        source_path = Path(str(cfg["robot_blend_secondary_template"]).format(seed=args.seed))
+        source = torch.load(source_path, map_location=device)
+        current = candidate.state_dict()
+        candidate_secondary_robot = {
+            name: value.detach().clone() for name, value in source.items()
+            if (name.startswith("robot_") or name.startswith("additional_robot_experts."))
+            and name in current and current[name].shape == value.shape
+        }
+        if set(candidate_secondary_robot) != set(candidate_template_robot or {}):
+            raise ValueError("secondary robot template is not architecture-compatible")
+        print(f"[initialize] loaded secondary robot endpoint {source_path}", flush=True)
     if bool(cfg.get("initialize_robot_from_baseline", False)):
         source = scaffold_source.state_dict(); target = candidate.state_dict()
         prefixes = {
@@ -705,7 +801,10 @@ def main():
                     destination = target_prefix + name[len(source_prefix):]
                     if destination in current and current[destination].shape == value.shape:
                         projected_shared[destination] = value.detach().clone()
-        projected_shared["robot_encoder.0.weight"][:, 3:5].zero_()
+        if candidate_secondary_robot is not None:
+            projected_shared = candidate_secondary_robot
+        else:
+            projected_shared["robot_encoder.0.weight"][:, 3:5].zero_()
         validation_batch = _batch(validation_data, device)
         validation_groups = topology_group_indices(validation_data, device)
         robust_weight = float(cfg.get("robot_blend_group_robust_weight", 0.5))
@@ -721,6 +820,12 @@ def main():
                     candidate, validation_batch,
                     int(cfg["robot_rollout_training_horizon"]), True,
                 )
+                pusher_weight = float(cfg.get("robot_blend_pusher_weight", 0.0))
+                if pusher_weight > 0.0:
+                    losses = losses + pusher_weight * robot_pusher_losses_per_trajectory(
+                        candidate, validation_batch,
+                        int(cfg["robot_rollout_training_horizon"]), True,
+                    )
                 value, groups = aggregate_topology_losses(
                     losses, validation_groups, robust_weight
                 )
@@ -764,6 +869,7 @@ def main():
     use_topology = bool(cfg.get("internal_topology_conditioning", False))
     robot_selection = None
     object_selection = None
+    bridge_selection = None
     refinement_epochs = int(cfg.get("joint_refinement_epochs", 0))
     shared_epochs = int(cfg["epochs"]) - refinement_epochs
     if bool(cfg.get("block_coordinate_training", False)):
@@ -828,6 +934,39 @@ def main():
                 rollout_horizon=int(cfg["robot_rollout_training_horizon"]),
                 use_topology=use_topology,
             )
+        bridge_history = []
+        bridge_epochs = int(cfg.get("bridge_alignment_epochs", 0))
+        if bridge_epochs:
+            if candidate.object_bridge_alignment_rank == 0:
+                raise ValueError("bridge alignment epochs require a nonzero alignment rank")
+            if validation_data is None:
+                validation_key = json.dumps({"kind": "push_validation", "seed": args.seed,
+                    "domains": [x.domain_id for x in protocol.validation], "q0a": q0a},
+                    sort_keys=True)
+                validation_data = cached_collect(
+                    args.cache_dir, validation_key, lambda: collect_push_domains(
+                        protocol.validation,
+                        trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
+                        seed=args.seed * 10_000 + 750,
+                        targets=tuple(x.as_array() for x in targets.validation), **common,
+                    )
+                )
+            for name, parameter in candidate.named_parameters():
+                parameter.requires_grad_(name.startswith("object_bridge_alignment_head."))
+            print(f"[block bridge] shared-coordinate distillation epochs={bridge_epochs}",
+                  flush=True)
+            bridge_history, bridge_selection = train_bridge_alignment_with_selection(
+                candidate, baseline, batch, _batch(validation_data, device),
+                epochs=bridge_epochs,
+                learning_rate=float(cfg.get("bridge_alignment_learning_rate", 0.001)),
+                validation_every=int(cfg.get("bridge_alignment_validation_every", 2)),
+                train_group_indices=topology_group_indices(train_data, device),
+                validation_group_indices=topology_group_indices(validation_data, device),
+                group_robust_weight=float(
+                    cfg.get("bridge_alignment_group_robust_weight", 0.5)),
+                use_topology=use_topology,
+                object_weight=float(cfg.get("bridge_alignment_object_weight", 0.0)),
+            )
         geometric_only = bool(cfg.get("geometric_object_only_training", False))
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(
@@ -870,7 +1009,7 @@ def main():
                 rollout_horizon=int(cfg["object_rollout_training_horizon"]),
                 use_topology=use_topology,
             )
-        history = robot_history + shadow_history + object_history
+        history = robot_history + shadow_history + bridge_history + object_history
         reaction_epochs = int(cfg.get("reaction_epochs", 0))
         if reaction_epochs:
             for name, parameter in candidate.named_parameters():
@@ -933,6 +1072,7 @@ def main():
                "swa_scaffold_history": swa_history, "swa_scaffold_count": swa_count,
                "scaffold_selection": scaffold_selection,
                "robot_selection": robot_selection,
+               "bridge_alignment_selection": bridge_selection,
                "object_selection": object_selection,
                "robot_blend_selection": blend_selection,
                "object_improvement_pct": obj, "free_arm_improvement_pct": free,

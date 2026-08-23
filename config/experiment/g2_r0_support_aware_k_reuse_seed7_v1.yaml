@@ -1,0 +1,11 @@
+version: g2_r0_support_aware_k_reuse_seed7_v1
+status: frozen_before_result
+base_evaluation_config: config/experiment/g2_bt_dpwm_z75_nested_support_gate_v1.yaml
+bt_model_config: config/experiment/g2_r0_support_aware_residual_seed7_v2.yaml
+bt_run_template: runs/g2_r0_support_aware_residual/seed{seed}_v2
+
+# Reuse the already frozen, same-architecture fair adapter and observable
+# physical-context encoder. No adapter, encoder, base model, or MuJoCo train data
+# is retrained for this compatibility gate.
+z48_run_template: runs/g2_bt_dpwm_z69_adapter_z70/seed{seed}_v1
+context_encoder_run_template: runs/g2_bt_dpwm_context_encoder_z65/seed{seed}_v1

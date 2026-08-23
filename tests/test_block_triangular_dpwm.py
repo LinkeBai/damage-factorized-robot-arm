@@ -394,3 +394,19 @@ def test_zero_initialized_latent_intervention_residual_is_trainable():
     torch.testing.assert_close(actual, expected)
     actual[:, 10:].pow(2).mean().backward()
     assert any(p.grad is not None for p in residual.intervention_object_head.parameters())
+
+
+def test_zero_initialized_object_bridge_alignment_preserves_forward_and_trains():
+    torch.manual_seed(71)
+    base = BlockTriangularDPWM(compact_bridge_object_head=True)
+    torch.manual_seed(71)
+    aligned = BlockTriangularDPWM(
+        compact_bridge_object_head=True, object_bridge_alignment_rank=16)
+    aligned.load_state_dict(base.state_dict(), strict=False)
+    inputs = _inputs()
+    expected, _ = base.step(*inputs, None)
+    actual, _ = aligned.step(*inputs, None)
+    torch.testing.assert_close(actual, expected)
+    actual[:, 10:].pow(2).mean().backward()
+    assert any(p.grad is not None
+               for p in aligned.object_bridge_alignment_head.parameters())

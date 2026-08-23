@@ -112,3 +112,30 @@ topologies. The unified gate is nevertheless not passed: the frozen base still
 receives a shifted strict-robot latent and loses long-horizon object accuracy on
 seen-topology/OOD-physics controls. Seed17/27 remain unopened until a reusable
 base-alignment or K-conditioned physics-mismatch route closes that control gap.
+
+## Alignment and stability continuation
+
+A frozen shared-bridge oracle established causality: replacing only the strict
+bridge code recovered D2 object gains to -0.19/+0.01/+1.88% and D4 to
+-0.42/+0.33/+1.29% at H10/H25/H50. A deployable rank-32 object-side alignment
+head then reduced validation bridge MSE by about 94.5% without duplicating the
+shared encoder. The selected v3 retained strong D3 object gains while limiting
+the worst D2/D4 object regression to 3.87%. Its worst pusher regression was
+2.556 mm in absolute terms, inside the frozen 3 mm hardware-facing equivalence
+margin. An object-output-weighted v4 traded away D3/D4 performance and was
+rejected.
+
+The frozen Z70 adapter/Z65 encoder/Z75 safety chain loaded without retraining,
+but accepted only one of sixteen nonzero-budget cells; that D4 update worsened
+BT-own object RMSE by 0.81%. Force-enabling the intervention residual on seen
+topologies harmed D2/D4 H10/H25 object metrics by roughly 9--24%, so K cannot
+simply toggle the same residual.
+
+Seed17 exposed the next blocker before object training: the identical strict
+robot protocol achieved D3 H10 free gain -6.58%, outside the preregistered 5%
+margin. Epoch0 was -10.91%, and a further 40-epoch continuation selected on the
+same validation objective was -7.39%; extra optimization is not the solution.
+Seed17 is now development evidence, not untouched confirmation, and seed27 was
+not opened. The object mechanism remains frozen; subsequent work is restricted
+to leave-one-joint-out intervention-equivariant robot selection, followed by
+new untouched confirmation seeds only after development stability.
