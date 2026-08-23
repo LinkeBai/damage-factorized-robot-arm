@@ -136,3 +136,19 @@ def test_shared_joint_basis_has_no_damage_mask_input():
     assert adapter.joint_transition_bases is None
     # robot(10) + projected action(5) + analytic history(25) + joint id(5)
     assert adapter.shared_joint_transition_basis[0].in_features == 45
+
+
+def test_before_object_wrapper_preserves_context_rollout_depth():
+    base = BlockTriangularDPWM(
+        compact_bridge_object_head=True, intervention_object_rank=8,
+        intervention_context_dim=8, intervention_context_rank=4,
+        intervention_context_ramp=0.1, intervention_context_ramp_start=2,
+        intervention_context_delayed=True)
+    base.set_intervention_context(torch.ones(8))
+    wrapped = FewShotProjectedModel(base, ProjectedResidualInnovation())
+    state, action, mask, angle = _inputs(batch=2)
+    prediction, hidden = wrapped.step(state, action, mask, angle, None)
+    assert isinstance(hidden.base, tuple)
+    torch.testing.assert_close(hidden.base[1], torch.ones(2))
+    _, hidden = wrapped.step(prediction, action, mask, angle, hidden)
+    torch.testing.assert_close(hidden.base[1], torch.full((2,), 2.0))

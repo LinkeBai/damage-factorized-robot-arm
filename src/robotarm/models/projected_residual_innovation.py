@@ -224,6 +224,12 @@ class FewShotProjectedModel(nn.Module):
         # downstream consequence of robot adaptation.
         if (self.adapter_before_object and hasattr(self.base_model, "step_robot")
                 and hasattr(self.base_model, "step_object")):
+            intervention_step = None
+            if getattr(self.base_model, "intervention_context_ramp", 0.0) > 0.0:
+                if base_hidden is None:
+                    intervention_step = state.new_zeros(state.shape[0])
+                else:
+                    base_hidden, intervention_step = base_hidden
             object_hidden = None
             if getattr(self.base_model, "independent_object_encoder", False) and base_hidden is not None:
                 object_hidden = (base_hidden[1] if isinstance(base_hidden, tuple)
@@ -238,7 +244,10 @@ class FewShotProjectedModel(nn.Module):
                 combined[:, :2 * self.adapter.dof], obj, projected_action,
                 base_mask, base_angle, depth, robot_hidden, object_hidden,
                 previous_robot=state[:, :2 * self.adapter.dof],
+                intervention_step=intervention_step,
             )
+            if intervention_step is not None:
+                next_hidden = (next_hidden, intervention_step + 1.0)
             # step_object returns its input robot block as the robot prediction.
             prediction = torch.cat((combined[:, :2 * self.adapter.dof],
                                     prediction[:, 2 * self.adapter.dof:]), dim=-1)

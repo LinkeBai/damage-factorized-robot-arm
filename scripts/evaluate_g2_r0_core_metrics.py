@@ -16,6 +16,8 @@ import yaml
 from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
 from robotarm.models.contact_geometry import pusher_reference_point
 from robotarm.models.physical_context_encoder import UncertainPhysicalContextEncoder
+from robotarm.models.projected_residual_innovation import (
+    FewShotProjectedModel, ProjectedResidualInnovation)
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
 from robotarm.models.topology_surgery import TopologySurgery
 from robotarm.training.sim_protocol import load_g1_protocol
@@ -90,6 +92,7 @@ def main():
     parser.add_argument("--context-budget", type=int,
                         help="Infer context from this many held-out calibration transitions.")
     parser.add_argument("--context-shrink", type=float)
+    parser.add_argument("--matched-adapter", action="store_true")
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     context_shrink = float(cfg.get("context_posterior_scale", 1.0)
@@ -164,6 +167,8 @@ def main():
     if args.context_delayed:
         strict.intervention_context_delayed = True
     ablated = copy.deepcopy(strict)
+    no_geometry = copy.deepcopy(strict)
+    no_latent = copy.deepcopy(strict)
     with torch.no_grad():
         if hasattr(ablated, "geometric_object_head"):
             for parameter in ablated.geometric_object_head.parameters():
@@ -171,8 +176,58 @@ def main():
         if hasattr(ablated, "intervention_object_head"):
             for parameter in ablated.intervention_object_head.parameters():
                 parameter.zero_()
-    models = {"shared_projected": shared.eval(), "strict_bt": strict.eval(),
-              "strict_bt_no_geometry": ablated.eval()}
+        if hasattr(no_geometry, "geometric_object_head"):
+            for parameter in no_geometry.geometric_object_head.parameters():
+                parameter.zero_()
+        if hasattr(no_latent, "intervention_object_head"):
+            for parameter in no_latent.intervention_object_head.parameters():
+                parameter.zero_()
+    if args.matched_adapter:
+        adapter_cfg = yaml.safe_load(Path(cfg.get(
+            "matched_adapter_config",
+            "config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml"
+        )).read_text(encoding="utf-8"))
+        def make_adapter():
+            return ProjectedResidualInnovation(
+                latent_dim=8, rank=int(adapter_cfg["adapter_rank"]),
+                hidden_dim=int(adapter_cfg["adapter_hidden_dim"]),
+                position_limit=float(adapter_cfg["correction_position_limit"]),
+                velocity_limit=float(adapter_cfg["correction_velocity_limit"]),
+                factorized_context=bool(adapter_cfg.get("factorized_context", False)),
+                analytic_history=bool(adapter_cfg.get("analytic_history", False)),
+                history_deadband=float(adapter_cfg.get("history_deadband", 0.04)),
+            ).to(device)
+        adapter_run = Path(str(cfg.get(
+            "matched_adapter_run_template",
+            "runs/g2_bt_dpwm_z69_adapter_z70/seed{seed}_v1"
+        )).format(seed=args.seed))
+        shared_adapter, bt_adapter, ablated_adapter, geometry_adapter, latent_adapter = (
+            make_adapter(), make_adapter(), make_adapter(), make_adapter(), make_adapter())
+        shared_adapter.load_state_dict(torch.load(
+            adapter_run / "shared_adapter.pt", map_location=device))
+        bt_state = torch.load(adapter_run / "bt_adapter.pt", map_location=device)
+        for adapter in (bt_adapter, ablated_adapter, geometry_adapter, latent_adapter):
+            adapter.load_state_dict(bt_state)
+        shared_wrapped = FewShotProjectedModel(
+            shared, shared_adapter, base_uses_topology=False).to(device)
+        strict_wrapped = FewShotProjectedModel(
+            strict, bt_adapter, base_uses_topology=True).to(device)
+        ablated_wrapped = FewShotProjectedModel(
+            ablated, ablated_adapter, base_uses_topology=True).to(device)
+        no_geometry_wrapped = FewShotProjectedModel(
+            no_geometry, geometry_adapter, base_uses_topology=True).to(device)
+        no_latent_wrapped = FewShotProjectedModel(
+            no_latent, latent_adapter, base_uses_topology=True).to(device)
+        models = {"shared_matched_adapter": shared_wrapped.eval(),
+                  "bt_matched_adapter": strict_wrapped.eval(),
+                  "bt_no_intervention_matched_adapter": ablated_wrapped.eval(),
+                  "bt_no_geometry_matched_adapter": no_geometry_wrapped.eval(),
+                  "bt_no_latent_matched_adapter": no_latent_wrapped.eval()}
+    else:
+        models = {"shared_projected": shared.eval(), "strict_bt": strict.eval(),
+                  "strict_bt_no_intervention": ablated.eval(),
+                  "strict_bt_no_geometry": no_geometry.eval(),
+                  "strict_bt_no_latent": no_latent.eval()}
     common = dict(steps=int(q0a["steps"]), excitation="goal",
                   block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
                   goal_exploration_std=float(q0a["goal_exploration_std"]))
@@ -224,6 +279,14 @@ def main():
                 context_source = f"Z65_K{args.context_budget}"
             strict.set_intervention_context(context)
             ablated.set_intervention_context(context)
+            no_geometry.set_intervention_context(context)
+            no_latent.set_intervention_context(context)
+            if args.matched_adapter:
+                shared_wrapped.set_residual_context(context)
+                strict_wrapped.set_residual_context(context)
+                ablated_wrapped.set_residual_context(context)
+                no_geometry_wrapped.set_residual_context(context)
+                no_latent_wrapped.set_residual_context(context)
             context_diagnostics.append({
                 "domain": domain.domain_id, "source": context_source,
                 "context": context.detach().cpu().tolist(),
@@ -241,6 +304,7 @@ def main():
               "context_budget": args.context_budget,
               "context_shrink": context_shrink,
               "context_diagnostics": context_diagnostics,
+              "matched_adapter": args.matched_adapter,
               "horizons": args.horizons, "rows": rows}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, indent=2), encoding="utf-8")

@@ -2442,6 +2442,26 @@ stable-positive, but the preregistered 2% all-cell rule is technically not met:
 mixed-unseen H25 is 1.9579%, short by 0.0421 percentage points.  This value must
 not be rounded into a pass or used to retune the frozen rule.  The machine ledger
 is `runs/g2_r0_physical_context_residual/frozen_gate_summary_v1.json`.
+
+### 33. Strict matched-adapter result supersedes projected-only gate
+
+The publication-grade comparison attaches the same-protocol rank-8 Z70 adapter
+to shared+analytic-projection and BT, with identical Z65 K25 support.  Under this
+strict matched comparison, all seed7/17/27 D3 object cells exceed 2%.  Seed27 is
+composition `+7.62/+2.04/+18.98%` and mixed-unseen
+`+9.19/+2.85/+2.58%`; the minimum confirmation cell is 2.0430%.  Therefore the
+earlier projected-only 1.9579% near miss remains valid historical evidence but
+is not the authoritative fair-baseline decision.
+
+The full/no-geometry/no-latent/no-intervention and K0/no-depth-risk ablations
+show that adapter-only performance is insufficient and that geometry, latent
+correction, context, and depth risk are complementary.  Matched IID/seen object
+differences remain within 1.72%, free within the 5% band, absolute pusher
+differences within 1.081 mm, and all constraints are exact.  G2-R simulation
+evidence is therefore closed; next stage is real-arm protocol execution and
+paper packaging, not further seed27 tuning.  See
+`reports/g2-r0-matched-gate-final-20260823.md` and
+`runs/g2_r0_physical_context_residual/matched_gate_summary_v2.json`.
 ### 31. G2-R0 physical-context residual stability development (2026-08-23)
 
 - Added a bounded 8D physical-context FiLM gate only on the intervention object
