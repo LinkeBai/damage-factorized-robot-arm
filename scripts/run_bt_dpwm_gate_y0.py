@@ -752,7 +752,7 @@ def main():
         for name, parameter in candidate.named_parameters():
             parameter.requires_grad_(
                 name.startswith("geometric_object_head.") if geometric_only
-                else name.startswith("object_"))
+                else name.startswith(("object_", "geometric_object_head.")))
         print("[block object] object on frozen robot/shadow rollouts", flush=True)
         if bool(cfg.get("object_validation_selection", False)):
             if validation_data is None:
