@@ -90,8 +90,10 @@ def main():
         map_location=device))
     strict = BlockTriangularDPWM(
         TopologyGraphConfig(hidden_dim=int(cfg["hidden_dim"])),
-        contact_conditioned_robot=False, independent_object_encoder=True,
-        object_hidden_dim=int(cfg["object_hidden_dim"]),
+        contact_conditioned_robot=False,
+        independent_object_encoder=bool(cfg.get("independent_object_encoder", True)),
+        object_hidden_dim=int(cfg.get("object_hidden_dim", cfg["hidden_dim"])),
+        compact_bridge_object_head=bool(cfg.get("compact_bridge_object_head", False)),
         geometric_object_rank=int(cfg["geometric_object_rank"]),
         object_integration_dt=cfg.get("object_integration_dt"),
         object_position_blend=float(cfg.get("object_position_blend", 0.0)),
