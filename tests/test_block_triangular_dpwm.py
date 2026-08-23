@@ -328,3 +328,19 @@ def test_object_position_blend_enforces_semi_implicit_integration():
     prediction, _ = model.step(state, action, mask, angle, None)
     torch.testing.assert_close(
         prediction[:, 10:12], state[:, 10:12] + 0.005 * prediction[:, 12:14])
+
+
+def test_contact_selective_geometry_suppresses_far_object_correction():
+    torch.manual_seed(59)
+    plain = BlockTriangularDPWM(geometric_object_rank=8)
+    gated = BlockTriangularDPWM(geometric_object_rank=8,
+                               geometric_object_contact_gate=True)
+    gated.load_state_dict(plain.state_dict())
+    with torch.no_grad():
+        plain.geometric_object_head[-1].bias.fill_(1.0)
+        gated.geometric_object_head[-1].bias.fill_(1.0)
+    state, action, mask, angle = _inputs(batch=2)
+    state[:, 10:12] = 100.0
+    ungated, _ = plain.step(state, action, mask, angle, None)
+    selected, _ = gated.step(state, action, mask, angle, None)
+    assert torch.linalg.vector_norm(selected[:, 10:] - ungated[:, 10:], dim=-1).min() > 1.0

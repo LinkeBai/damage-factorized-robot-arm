@@ -528,6 +528,8 @@ def main():
         geometric_object_rank=int(cfg.get("geometric_object_rank", 0)),
         object_integration_dt=cfg.get("object_integration_dt"),
         object_position_blend=float(cfg.get("object_position_blend", 0.0)),
+        geometric_object_contact_gate=bool(
+            cfg.get("geometric_object_contact_gate", False)),
     ).to(device)
     if "initialize_candidate_full_template" in cfg:
         source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))

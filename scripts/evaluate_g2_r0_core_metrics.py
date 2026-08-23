@@ -94,7 +94,9 @@ def main():
         object_hidden_dim=int(cfg["object_hidden_dim"]),
         geometric_object_rank=int(cfg["geometric_object_rank"]),
         object_integration_dt=cfg.get("object_integration_dt"),
-        object_position_blend=float(cfg.get("object_position_blend", 0.0))).to(device)
+        object_position_blend=float(cfg.get("object_position_blend", 0.0)),
+        geometric_object_contact_gate=bool(
+            cfg.get("geometric_object_contact_gate", False))).to(device)
     strict.load_state_dict(torch.load(args.model, map_location=device))
     ablated = copy.deepcopy(strict)
     with torch.no_grad():

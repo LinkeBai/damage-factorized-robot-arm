@@ -44,6 +44,7 @@ class BlockTriangularDPWM(nn.Module):
         geometric_object_rank: int = 0,
         object_integration_dt: float | None = None,
         object_position_blend: float = 0.0,
+        geometric_object_contact_gate: bool = False,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -72,6 +73,7 @@ class BlockTriangularDPWM(nn.Module):
         self.geometric_object_rank = int(geometric_object_rank)
         self.object_integration_dt = object_integration_dt
         self.object_position_blend = float(object_position_blend)
+        self.geometric_object_contact_gate = bool(geometric_object_contact_gate)
         if compact_bridge_object_head and independent_object_encoder:
             raise ValueError("compact bridge and independent object encoder are exclusive")
         if reaction_relative_clip is not None and reaction_relative_clip < 0:
@@ -457,7 +459,11 @@ class BlockTriangularDPWM(nn.Module):
                 projected_tip - obj[:, :2], obj[:, 2:4],
                 previous_gate[:, None], projected_gate[:, None],
             ), -1).detach()
-            next_obj = next_obj + self.geometric_object_head(geometry)
+            geometric_correction = self.geometric_object_head(geometry)
+            if self.geometric_object_contact_gate:
+                geometric_correction = geometric_correction * torch.maximum(
+                    previous_gate, projected_gate)[:, None]
+            next_obj = next_obj + geometric_correction
         if self.object_integration_dt is not None and self.object_position_blend > 0.0:
             integrated_position = obj[:, :2] + self.object_integration_dt * next_obj[:, 2:4]
             blend = self.object_position_blend
