@@ -170,10 +170,40 @@ def object_losses_per_trajectory(model, batch, horizon, use_topology=False):
     return torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
 
 
+def object_teacher_losses_per_trajectory(
+    model, teacher, batch, horizon, use_topology=False,
+):
+    """Match only object rollouts; the frozen teacher never changes robot dynamics."""
+    states, actions, mask, angle = batch
+    zeros = torch.zeros_like(mask)
+    model_mask, model_angle = (mask, angle) if use_topology else (zeros, zeros)
+    one_step, model_hidden, teacher_hidden = [], None, None
+    for step in range(actions.shape[1]):
+        prediction, model_hidden = model.step(
+            states[:, step], actions[:, step], model_mask, model_angle, model_hidden)
+        with torch.no_grad():
+            teacher_prediction, teacher_hidden = teacher.step(
+                states[:, step], actions[:, step], zeros, zeros, teacher_hidden)
+        one_step.append((prediction[:, 10:] - teacher_prediction[:, 10:]).pow(2).mean(-1))
+    rollout = []
+    horizon = min(horizon, actions.shape[1])
+    for start in range(0, actions.shape[1] - horizon + 1, horizon):
+        prediction, teacher_prediction = states[:, start], states[:, start]
+        model_hidden, teacher_hidden = None, None
+        for offset in range(horizon):
+            prediction, model_hidden = model.step(
+                prediction, actions[:, start + offset], model_mask, model_angle, model_hidden)
+            with torch.no_grad():
+                teacher_prediction, teacher_hidden = teacher.step(
+                    teacher_prediction, actions[:, start + offset], zeros, zeros, teacher_hidden)
+            rollout.append((prediction[:, 10:] - teacher_prediction[:, 10:]).pow(2).mean(-1))
+    return torch.stack(one_step).mean(0) + 0.5 * torch.stack(rollout).mean(0)
+
+
 def train_object_with_selection(
     model, batch, validation_batch, *, epochs, learning_rate, horizon,
     validation_every, train_group_indices, validation_group_indices,
-    group_robust_weight, use_topology=False,
+    group_robust_weight, use_topology=False, teacher=None, teacher_weight=0.0,
 ):
     parameters = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(parameters, lr=learning_rate)
@@ -195,6 +225,12 @@ def train_object_with_selection(
         loss, _ = aggregate_topology_losses(
             losses, train_group_indices, group_robust_weight
         )
+        if teacher is not None and teacher_weight > 0.0:
+            teacher_losses = object_teacher_losses_per_trajectory(
+                model, teacher, batch, horizon, use_topology)
+            teacher_loss, _ = aggregate_topology_losses(
+                teacher_losses, train_group_indices, group_robust_weight)
+            loss = loss + teacher_weight * teacher_loss
         optimizer.zero_grad(); loss.backward()
         gradient = float(torch.nn.utils.clip_grad_norm_(parameters, 5.0))
         optimizer.step(); history.append(float(loss.detach()))
@@ -781,6 +817,8 @@ def main():
                 validation_group_indices=topology_group_indices(validation_data, device),
                 group_robust_weight=float(cfg.get("object_group_robust_weight", 0.5)),
                 use_topology=use_topology,
+                teacher=(baseline if float(cfg.get("object_teacher_weight", 0.0)) > 0 else None),
+                teacher_weight=float(cfg.get("object_teacher_weight", 0.0)),
             )
         else:
             object_history = train_model(

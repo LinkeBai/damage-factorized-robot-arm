@@ -1,7 +1,11 @@
 import pytest
 import torch
 
-from scripts.run_bt_dpwm_gate_y0 import aggregate_topology_losses
+from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
+from robotarm.models.topology_graph_world_model import TopologyGraphWorldModel
+from scripts.run_bt_dpwm_gate_y0 import (
+    aggregate_topology_losses, object_teacher_losses_per_trajectory,
+)
 
 
 def test_group_robust_objective_interpolates_mean_and_worst_topology():
@@ -29,3 +33,16 @@ def test_group_robust_weight_is_bounded():
     groups = {"D1": torch.tensor([0]), "D2": torch.tensor([1])}
     with pytest.raises(ValueError, match=r"\[0, 1\]"):
         aggregate_topology_losses(losses, groups, 1.1)
+
+
+def test_object_teacher_loss_updates_student_but_not_frozen_teacher():
+    student, teacher = BlockTriangularDPWM(), TopologyGraphWorldModel()
+    states = torch.randn(2, 4, 14)
+    actions = torch.randn(2, 3, 5)
+    mask = torch.zeros(2, 5)
+    angle = torch.zeros(2, 5)
+    loss = object_teacher_losses_per_trajectory(
+        student, teacher, (states, actions, mask, angle), horizon=3).mean()
+    loss.backward()
+    assert any(parameter.grad is not None for parameter in student.object_head.parameters())
+    assert all(parameter.grad is None for parameter in teacher.parameters())
