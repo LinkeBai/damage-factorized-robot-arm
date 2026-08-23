@@ -1,0 +1,163 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb,booktabs,xcolor}
+\newcommand{\method}{PC-RR-IPWM}
+\newcommand{\todo}[1]{\textcolor{red}{[REAL-ROBOT TODO: #1]}}
+\title{Safe Few-Shot World-Model Adaptation to Unseen Joint-Locking Failures}
+\author{Anonymous Authors}
+\begin{document}\maketitle
+\begin{abstract}
+Robot world models deployed after hardware damage must adapt to unseen
+interaction dynamics while exactly respecting the altered mechanism. We study
+planar pushing with a serial manipulator whose diagnosed joint is locked at a
+known angle, while friction, delay, payload, and contact effects remain unknown.
+We introduce a contact-aware physical-context rollout-risk
+intervention-projected world model (\method{}). It combines analytic lock
+projection, a frozen contact-aware robot transition, a shared object model,
+explicit pusher geometry, and a support-aware low-rank intervention residual.
+An observable physical-context posterior inferred from 25 safe transitions
+modulates the residual through an exact-zero centered gate and a delayed
+rollout-risk schedule. Against a compute-, data-, and adapter-matched shared
+model, object rollout RMSE improves in all 18 combinations of three seeds, two
+held-out domains, and H10/H25/H50, from 2.04\% to 37.84\%. Lock violation is
+zero and controls remain practically equivalent. \todo{Add real-arm result.}
+\end{abstract}
+
+\section{Introduction}
+A locked joint changes the robot state manifold discretely, while contact
+dynamics vary continuously with friction, backlash, delay, and payload. An
+unconstrained model can violate the known lock; fitting a complete model after
+failure is data-intensive and unsafe. Fault-tolerant methods adapt behavior
+\cite{cully2015robots,yang2021fault}, and rapid adaptation infers latent
+properties from recent transitions \cite{kumar2021rma,allevato2020tunenet}.
+Pushing models learn uncertain contact dynamics
+\cite{finn2017visual,bauza2018data,kim2023se2,cong2020self}, but typically
+assume an intact robot or do not enforce the damaged manifold.
+
+We propose \method{}, which assigns known damage to analytic projection and
+allows unknown physics to modify only an unsupported-intervention object
+residual. Projected pusher geometry enters the object block through a
+stop-gradient bridge. A centered context gate gives exact base recovery, and a
+depth schedule limits accumulated residual error.
+
+Our contributions are: (i) exact projection plus contact-aware block-coordinate
+dynamics; (ii) a support-aware geometry/latent object intervention; (iii) an
+observable physical-context gate with reversible fallback; and (iv) a strict
+three-seed matched evaluation and component ablations.
+
+\section{Related Work}
+\textbf{Fault adaptation.} Damage recovery has been approached by repertoire
+search \cite{cully2015robots}, adversarial fault training
+\cite{yang2021fault}, latent extrinsics \cite{kumar2021rma}, residual simulator
+tuning \cite{allevato2020tunenet}, and meta-learned adaptive control
+\cite{richards2021adaptive}. We instead adapt a predictive manipulation model
+after a diagnosed discrete topology change.
+
+\textbf{Contact dynamics.} Learned forward models support visual and
+model-based planning \cite{finn2017visual,nagabandi2018neural}. Few-sample GP
+models \cite{bauza2018data}, hybrid online identification \cite{gao2019online},
+recurrent sim-to-real adaptation \cite{cong2020self}, and SE(2)-equivariant
+pushing models \cite{kim2023se2} address object physics. Our structural prior
+instead couples exact damaged-robot feasibility to explicit pusher geometry.
+
+\section{Problem Formulation}
+State $s_t=[q_t,\dot q_t,o_t]$ contains five joint positions, velocities, and
+planar object state; $a_t\in\mathbb R^5$. Diagnosis gives lock
+$d=(m,\bar q)$. Unknown physical context $z\in\mathbb R^8$ is inferred from
+$K$ safe transitions. D3 is held out from D1/D2/D4/D5 training support and is
+combined with held-out physics. We minimize autonomous H10/H25/H50 error while
+requiring $q_t^j=\bar q^j,\dot q_t^j=0$ for locked coordinates.
+
+\section{Method}
+\subsection{Analytic projection}
+\begin{align}
+\Pi_d(q)_j&=(1-m_j)q_j+m_j\bar q_j,\\
+\Pi_d(\dot q)_j&=(1-m_j)\dot q_j,\quad
+\Pi_d(a)_j=(1-m_j)a_j.
+\end{align}
+Projection is applied before and after prediction, giving exact feasibility.
+
+\subsection{Contact-aware block-coordinate model}
+A recurrent robot block predicts free-joint transitions from projected state,
+action, and contact/object context. Contact input is retained because deleting
+it destabilizes free-joint pushing rollouts. Forward kinematics produces pusher
+geometry. A shared object base receives detached robot features, preventing
+object loss from rewriting the frozen robot block.
+
+\subsection{Support-aware intervention}
+For training lock support $\mathcal S$,
+\[
+\nu(d)=\mathbb1[m\notin\mathcal S]\mathbb1[\lVert m\rVert_1>0].
+\]
+The intact term forces bypass. Object prediction is
+\[
+\hat o_{t+1}=f_o(o_t,\mathrm{sg}(h^r_{t+1}))
++\nu(d)\alpha_t(z)(r_g+r_\ell),
+\]
+where $r_g$ uses explicit pusher displacement/contact geometry and $r_\ell$ is
+a low-rank latent residual.
+
+\subsection{Context and rollout risk}
+An amortized posterior estimates 8D context from state/action transitions
+without simulator labels. The frozen rule uses K25 and scale 1.38. Centering
+$g(z)=h(z)-h(0)$ guarantees exact K0 recovery. Residual modulation has an
+eight-step grace period and $\rho(t)=0.06\max(0,t-8)$. Support validation and
+hysteresis reject harmful updates. Conformal intervals quantify context error,
+not rollout-failure probability.
+
+\section{Experiments}
+Both methods use identical training data, K25 support, rank-8 adapters,
+optimization, and rollouts. The baseline is shared dynamics plus analytic
+projection and its matched adapter. Seed27 was untouched until the rule froze.
+
+\begin{table}[t]\centering
+\caption{Object RMSE improvement (\%) over the matched baseline.}
+\begin{tabular}{ccrrr}\toprule
+Seed&Domain&H10&H25&H50\\\midrule
+7&composition&12.27&5.33&37.84\\
+7&mixed-unseen&15.89&32.50&36.60\\
+17&composition&6.53&13.54&12.52\\
+17&mixed-unseen&9.10&15.50&2.95\\
+27&composition&7.62&2.04&18.98\\
+27&mixed-unseen&9.19&2.85&2.58\\\bottomrule
+\end{tabular}\label{tab:main}\end{table}
+
+All 18 cells exceed 2\%; the minimum confirmation is 2.0430\%. Locked
+violation is zero and free-joint changes remain within 5\%. Intact/D2/D4
+object differences are at most 1.72\%; maximum IID pusher difference is
+1.081\,mm. K curves are not monotonic, so we claim a frozen K25 rule only.
+
+\begin{table}[t]\centering
+\caption{Seed17 D3 mixed-unseen object improvement (\%).}
+\begin{tabular}{lrrr}\toprule
+Variant&H10&H25&H50\\\midrule
+Full&9.10&15.50&2.95\\
+No geometry&4.57&12.36&1.17\\
+No latent&3.54&2.50&3.32\\
+No intervention&0.01&0.09&0.41\\
+No depth risk&3.14&13.98&-3.86\\\bottomrule
+\end{tabular}\end{table}
+
+\subsection{Real-arm protocol}
+\todo{Insert setup photo, calibration diagram, and results.} The frozen
+protocol uses a five-DoF ST3215 arm, eye-in-hand tracking, 10\,Hz, intact/D2/D3,
+K=0/5/10/25, and three repetitions. Stops trigger on stale vision, feedback
+timeout, 50$^\circ$C, raw current 400, or 3.5$^\circ$ lock drift.
+
+\begin{table}[t]\centering
+\caption{Real-arm pushing. \todo{Populate after collection.}}
+\begin{tabular}{llrrr}\toprule
+Lock&Method&Obj.H10&Obj.H25&Success\\\midrule
+Intact&Shared/ours&--&--&--\\
+D2&Shared/ours&--&--&--\\
+D3&Shared/ours&--&--&--\\\bottomrule
+\end{tabular}\end{table}
+
+\section{Limitations and Conclusion}
+Current evidence is predictive, not closed-loop control. Diagnosis must provide
+lock identity and angle. Contact awareness precludes strict triangular
+causality. Tests cover single locks and planar pushing. Nevertheless,
+\method{} improves every held-out matched cell while preserving exact
+feasibility and controls. \todo{Add real-arm limitations and conclusion.}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+\end{document}
