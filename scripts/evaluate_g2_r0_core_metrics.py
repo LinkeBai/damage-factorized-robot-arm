@@ -29,7 +29,7 @@ from scripts.run_push_benchmark import collect_push_domains
 
 
 @torch.no_grad()
-def evaluate(models, trajectories, domain, horizons, device):
+def evaluate(models, trajectories, domain, horizons, device, raw_rows=None):
     states = torch.stack([item.states for item in trajectories]).to(device)
     actions = torch.stack([item.actions for item in trajectories]).to(device)
     mask, angle = _damage_tensors([domain.damage] * len(trajectories), device)
@@ -66,6 +66,24 @@ def evaluate(models, trajectories, domain, horizons, device):
                     pusher_error = (pusher_reference_point(predictions[name][:, :5])[..., :2]
                                      - pusher_reference_point(target[:, :5])[..., :2]).pow(2).mean(-1)
                     values[name]["pusher_xy"].append(pusher_error)
+                    if raw_rows is not None:
+                        metric_values = {
+                            "free_squared_error": values[name]["free"][-1],
+                            "object_squared_error": error[:, 10:].mean(-1),
+                            "overall_squared_error": error.mean(-1),
+                            "violation_squared_error": values[name]["violation"][-1],
+                            "pusher_xy_squared_error": pusher_error,
+                        }
+                        for trajectory_index in range(len(trajectories)):
+                            raw_rows.append({
+                                "domain": domain.domain_id,
+                                "horizon": horizon,
+                                "window_start": start,
+                                "trajectory_index": trajectory_index,
+                                "method": name,
+                                **{key: float(value[trajectory_index].detach().cpu())
+                                   for key, value in metric_values.items()},
+                            })
         for name, metrics in values.items():
             rows.append({"domain": domain.domain_id, "horizon": horizon, "method": name,
                          **{f"{key}_rmse": float(torch.cat(items).mean().sqrt())
@@ -82,6 +100,10 @@ def main():
     parser.add_argument("--cache-dir", type=Path, default=Path("runs/trajectory_cache"))
     parser.add_argument("--horizons", nargs="+", type=int, default=[1, 5, 10, 25, 50])
     parser.add_argument("--domains", nargs="*")
+    parser.add_argument("--trajectories-per-domain", type=int,
+                        help="Override the frozen test trajectory count for an audit-only evaluation.")
+    parser.add_argument("--raw-output", type=Path,
+                        help="Optional per-window/per-trajectory squared-error JSON output.")
     parser.add_argument("--residual-scale", type=float)
     parser.add_argument("--residual-relative-clip", type=float)
     parser.add_argument("--residual-decay", type=float)
@@ -232,6 +254,7 @@ def main():
                   block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
                   goal_exploration_std=float(q0a["goal_exploration_std"]))
     rows = []
+    raw_rows = [] if args.raw_output is not None else None
     context_diagnostics = []
     evaluation_domains = tuple(dict.fromkeys(
         (*protocol.train, *protocol.validation, *protocol.test)))
@@ -239,10 +262,15 @@ def main():
         if args.domains and domain.domain_id not in args.domains:
             continue
         test_seed = args.seed * 100_000 + index * 1000 + 500
+        trajectory_count = int(args.trajectories_per_domain or
+                               q0a["trajectories_per_test_domain"])
+        # Include audit count in the cache key so enlarged evaluations cannot
+        # silently reuse the original three-trajectory cache.
         key = json.dumps({"kind": "push_test", "seed": test_seed,
-                          "domain": domain.domain_id, "q0a": q0a}, sort_keys=True)
+                          "domain": domain.domain_id, "q0a": q0a,
+                          "trajectories_per_domain": trajectory_count}, sort_keys=True)
         trajectories = cached_collect(args.cache_dir, key, lambda domain=domain: collect_push_domains(
-            (domain,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
+            (domain,), trajectories_per_domain=trajectory_count,
             seed=test_seed, targets=tuple(x.as_array() for x in targets.evaluation), **common))
         if strict.intervention_context_dim > 0:
             if args.context_budget is None:
@@ -292,7 +320,8 @@ def main():
                 "context": context.detach().cpu().tolist(),
                 "log_variance": (None if context_log_variance is None else
                                  context_log_variance.detach().cpu().tolist())})
-        rows.extend(evaluate(models, trajectories, domain, args.horizons, device))
+        rows.extend(evaluate(models, trajectories, domain, args.horizons, device,
+                             raw_rows=raw_rows))
     output = {"version": "g2_r0_core_metrics_v1", "seed": args.seed,
               "residual_scale": strict.intervention_residual_scale,
               "residual_relative_clip": strict.intervention_residual_relative_clip,
@@ -308,6 +337,14 @@ def main():
               "horizons": args.horizons, "rows": rows}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, indent=2), encoding="utf-8")
+    if args.raw_output is not None:
+        args.raw_output.parent.mkdir(parents=True, exist_ok=True)
+        args.raw_output.write_text(json.dumps({
+            "version": "g2_r0_raw_window_metrics_v1",
+            "seed": args.seed,
+            "trajectories_per_domain": trajectory_count,
+            "rows": raw_rows,
+        }, indent=2), encoding="utf-8")
     print(f"[R0] wrote {len(rows)} rows to {args.output}")
 
 

@@ -1,14 +1,14 @@
-# Project Plan V6 — Contact-aware Physical-Context Rollout-Risk Intervention-Projected World Model
+# Project Plan V6 — Intervention-Projected World Model (IPWM)
 
-**最后更新**：2026-08-23
-**当前事实源**：本文件、`reports/g2-r0-matched-gate-final-20260823.md`、`runs/g2_r0_physical_context_residual/matched_gate_summary_v2.json`
-**仓库状态**：G2-R 仿真证据已冻结；下一阶段是真机协议与论文封装。尚未投稿，也不宣称已被 ICRA 接收。
+**最后更新**：2026-08-24
+**当前事实源**：本文件、`reports/icra-senior-review-remediation-20260824.md`、`runs/g2_r0_icra_audit_20260824/summary.json`
+**仓库状态**：G2-R 已完成五种子、30轨迹、逐窗口不确定性复审；一个free-joint工程门失败已披露。G3真机任务证据仍未完成，尚未投稿。
 
 ## 1. 项目问题与最终主张
 
 目标是在只知道锁定关节编号/锁定角、没有力传感器、只有电流/位置速度和手眼视觉的条件下，对未见锁定拓扑与物理组合进行安全的少样本世界模型适配，同时保持普通物体预测不明显退化。
 
-最终方法名为 **Contact-aware Physical-Context Rollout-Risk Intervention-Projected World Model (PC-RR-IPWM)**，属于 BT-DPWM 家族。它不是严格的纯 forward block triangle：接触任务中机器人基座保留 contact-aware 条件；新增干预残差在 stop-gradient 边界后沿机器人/推子几何传播。论文应使用“contact-aware block-coordinate / intervention-projected”，不再使用“strict forward block-triangular”。
+最终论文简称为 **Intervention-Projected World Model (IPWM)**，物理上下文与滚动风险是其机制而非继续堆入缩写。它属于 BT-DPWM 研究轨迹，但不是严格的纯 forward block triangle：接触任务中机器人基座保留 contact-aware 条件；新增干预残差在 stop-gradient 边界后沿机器人/推子几何传播。
 
 核心贡献：
 
@@ -23,9 +23,9 @@
 - context：Z65 observable posterior；K25 规则为 posterior scale 1.38、8 步 grace、depth ramp 0.06、centered zero bypass。
 - 适配：shared+analytic-projection 与 BT 使用同协议 rank-8 adapter、相同 K25 支持数据、相同 rollout 预算；BT 采用 adapter-before-object 顺序。
 - intact 时 `damaged = mask.sum(-1)>0.5)，干预路由强制关闭。
-- seeds：7、17、27；domains：D3 composition、D3 mixed-unseen；horizons：H10/H25/H50。
+- seeds：7、17为开发，27为冻结确认，37/47为不调参审计扩展；domains：D3 composition、D3 mixed-unseen；horizons：H10/H25/H50。
 - baseline：compute-/protocol-matched `shared + analytic projection + rank-8 adapter`。
-- 门：locked violation = 0；free 不超过 5% 回退；IID/seen object 在 1.72% 绝对差内；pusher 绝对差在 1.081 mm 内。
+- 门：locked violation = 0；object点估计工程门为2%；free 目标是不超过5%回退（已有一个约6%失败，不能宣称全过）；IID/seen object历史控制差1.72%，pusher历史绝对差1.081 mm。
 
 ## 3. G2-R 已完成证据
 
@@ -35,30 +35,32 @@
 
 | seed | composition | mixed-unseen |
 |---|---|---|
-| 7 | +12.27 / +5.33 / +37.84% | +15.89 / +32.50 / +36.60% |
-| 17 | +6.53 / +13.54 / +12.52% | +9.10 / +15.50 / +2.95% |
-| 27 | +7.62 / +2.04 / +18.98% | +9.19 / +2.85 / +2.58% |
+| 7 | +11.82 / +4.90 / +37.82% | +15.10 / +31.54 / +36.49% |
+| 17 | +6.47 / +13.37 / +12.72% | +8.83 / +16.45 / +4.10% |
+| 27 | +7.63 / +2.04 / +19.12% | +9.04 / +3.22 / +5.33% |
+| 37 | +8.41 / +20.51 / +32.09% | +10.83 / +21.35 / +2.26% |
+| 47 | +10.63 / +36.06 / +31.13% | +12.54 / +39.57 / +26.51% |
 
-18/18 cells 超过预注册 2% 门，最小确认增益 **2.0430%**。所有 locked violations 为 0，free 在 5% band 内。
+30/30点估计超过冻结2%工程门，最小增益 **2.0434%**。每格trajectory-cluster 95% CI下界均大于0，最小下界1.274%；六个跨seed均值CI也均大于0。所有locked violation为0，但seed7 mixed-unseen H50 free约退化6%，未通过5%门。
 
 ### 3.2 控制与安全证据
 
-- matched IID/seen object 最大绝对差 1.72%，free 在 5% 内。
+- 历史matched IID/seen object最大绝对差1.72%；不得再表述为全部free在5%内。
 - pusher 最大绝对差 1.081 mm。
 - K0 通过 centered gate 精确回退到 base map。
 - conformal physical-context interval 的 dimensionwise MACE = 0.0289。
-- full test suite：244 passed。
+- full test suite：247 passed。
 
 ### 3.3 结构消融
 
-seed17 matched full ablation：
+seed27、每域30轨迹的matched消融显示：
 
-- 去 geometry：D3 mixed-unseen object 仅 +4.57/+12.36/+1.17%。
-- 去 latent：仅 +3.54/+2.50/+3.32%。
-- 去 intervention：仅 +0.01/+0.09/+0.41%。
-- 去 depth-risk：H50 mixed-unseen 变为 −3.86%。
+- 去geometry：mixed-unseen为−7.44/−15.42/+6.75%。
+- 去latent：为+4.40/−2.08/−50.86%。
+- 去intervention：仅+0.01/+0.11/+0.43%。
+- seed17无depth-risk的H50 mixed-unseen为−3.78%；完整规则为+4.10%。
 
-这些结果支持“解析投影 + 几何路径 + latent intervention + 风险门”是互补机制，不能归因于 adapter-only。
+这些结果支持不同组件对应不同失败区间，不能归因于adapter-only；不支持“完整模型在每个消融单元都最好”的过强表述。
 
 ### 3.4 历史结果的正确位置
 
@@ -82,7 +84,7 @@ DFWM 原始路线 No-Go；robust zero-shot ensemble 作为历史强基线完成�
 
 ### G2-R — 仿真门：完成
 
-三 seed strict matched-adapter、K0/K25、控制等价性、结构消融、failure ledger 和报告均冻结。结论是 **narrow safe-adaptation PASS**，不是所有 broad gate 通过。
+五seed strict matched-adapter、K0/K25、逐窗口raw rows、聚类CI、结构消融、failure ledger与hash manifest已完成。结论是 **object-specific adaptation PASS with one disclosed free-joint gate miss**，不是所有安全/控制门通过。
 
 ### G3 — 真机重复验证：未开始
 
@@ -94,9 +96,9 @@ DFWM 原始路线 No-Go；robust zero-shot ensemble 作为历史强基线完成�
 
 ## 6. 可复用与不需重跑
 
-直接复用：MuJoCo cache、Z32/shared checkpoint、Z69 robot 初始化、解析投影、Z65 posterior、Z70 rank-8 adapter、Z75 安全链、bridge aligner、现有 3-seed K 曲线和冻结 raw summaries。
+直接复用：MuJoCo cache、Z32/shared checkpoint、Z69 robot初始化、解析投影、Z65 posterior、Z70 rank-8 adapter、Z75安全链、bridge aligner、五seed checkpoint及冻结raw rows。
 
-不需重跑：MuJoCo 数据采集、shared 基线、seed7/17/27 matched-adapter G2-R、结构消融、conformal coverage、full tests。
+不需再训练：seed7/17/27/37/47 matched-adapter G2-R。投稿前只需按最终脚本复算汇总/图表、完成真机任务和最终测试。
 
 只在新增真机或明确改变模型/协议时重跑：真机 D2/D3；若改变 K 规则，必须使用全新 confirmation seeds，不能把 seed17/27 重新包装为未见验证集。
 
@@ -110,10 +112,10 @@ DFWM 原始路线 No-Go；robust zero-shot ensemble 作为历史强基线完成�
 
 ## 8. 复现入口与版本治理
 
-- 权威报告：`reports/g2-r0-matched-gate-final-20260823.md`
-- 权威汇总：`runs/g2_r0_physical_context_residual/matched_gate_summary_v2.json`
-- 结构消融：`runs/g2_r0_physical_context_residual/k25_matched_adapter_full_ablation_d3_metrics.json`
-- 测试命令：`pytest -q`（当前 244 passed）
+- 权威报告：`reports/icra-senior-review-remediation-20260824.md`
+- 权威汇总：`runs/g2_r0_icra_audit_20260824/summary.json`
+- 原始窗口行：`runs/g2_r0_icra_audit_20260824/seed*/raw_window_metrics_30traj.json`
+- 测试命令：`pytest -q`（当前 247 passed）
 - 改变模型、协议、K 规则或 baseline 时，必须新建报告与新 confirmation seeds，不覆盖冻结 artifact。
 
-**一句话状态**：我们已经完成一个可复现、可安全回退、在损伤领域核心指标上严格超过 matched shared 的新模型；尚未完成真机证据与 ICRA 投稿，下一步是落地验证和论文封装，不再更换核心机制。
+**一句话状态**：IPWM在五seed、扩大轨迹与成对区间下稳定改善损伤域object指标并精确满足锁定约束，但存在一个free-joint门失败；尚缺真机pushing，不能宣称完整安全恢复或投稿就绪。

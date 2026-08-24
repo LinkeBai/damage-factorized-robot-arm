@@ -1,0 +1,2270 @@
+{
+  "version": "g2_r0_icra_audit_summary_v1",
+  "bootstrap": "paired trajectory-cluster bootstrap",
+  "bootstrap_draws": 10000,
+  "bootstrap_seed": 20260824,
+  "seeds": {
+    "7": {
+      "cells": [
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 11.817612597523226,
+          "cluster_bootstrap_95ci_pct": [
+            11.16782590424304,
+            12.410477683262393
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04297045323566498,
+          "method_object_rmse": 0.03789237154087421
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -1.2968996267369584,
+          "cluster_bootstrap_95ci_pct": [
+            -1.4915767762241678,
+            -1.125476765259603
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.04297045323566498,
+          "method_object_rmse": 0.0435277368832855
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 8.306797814043044,
+          "cluster_bootstrap_95ci_pct": [
+            7.743959791323586,
+            8.846400974847251
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04297045323566498,
+          "method_object_rmse": 0.03940098456560037
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": -0.01764699491977865,
+          "cluster_bootstrap_95ci_pct": [
+            -0.02466837561136047,
+            -0.011362478785887956
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.04297045323566498,
+          "method_object_rmse": 0.04297803622936448
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 4.900142576617674,
+          "cluster_bootstrap_95ci_pct": [
+            4.62724620965502,
+            5.145624501172874
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.057947639661390014,
+          "method_object_rmse": 0.05510812269819725
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -1.9582756934593262,
+          "cluster_bootstrap_95ci_pct": [
+            -2.3957885228807285,
+            -1.5623394102453418
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.057947639661390014,
+          "method_object_rmse": 0.05908241420381241
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 18.44662070483388,
+          "cluster_bootstrap_95ci_pct": [
+            18.056852948346382,
+            18.81351440590719
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.057947639661390014,
+          "method_object_rmse": 0.047258258365649515
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": -0.03530770942439845,
+          "cluster_bootstrap_95ci_pct": [
+            -0.1094495907278096,
+            0.03032528587632696
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.1623,
+          "baseline_object_rmse": 0.057947639661390014,
+          "method_object_rmse": 0.057968099645619955
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 37.82015008978729,
+          "cluster_bootstrap_95ci_pct": [
+            36.95907179049474,
+            38.64286799623766
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05699943929695154,
+          "method_object_rmse": 0.03544216580450727
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 15.689184727971215,
+          "cluster_bootstrap_95ci_pct": [
+            14.43658196949344,
+            16.819015249949622
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05699943929695154,
+          "method_object_rmse": 0.048056691971744996
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 39.589840790116035,
+          "cluster_bootstrap_95ci_pct": [
+            38.082599180422655,
+            41.21301270444294
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05699943929695154,
+          "method_object_rmse": 0.03443345202802959
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 1.7272602864252529,
+          "cluster_bootstrap_95ci_pct": [
+            1.4503398565455001,
+            2.009701362836065
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05699943929695154,
+          "method_object_rmse": 0.056014910618490225
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 15.09881689716957,
+          "cluster_bootstrap_95ci_pct": [
+            14.715158487104027,
+            15.50206085456443
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05205825412385333,
+          "method_object_rmse": 0.04419807365382949
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 3.509687380463689,
+          "cluster_bootstrap_95ci_pct": [
+            3.4082856267170274,
+            3.6002143908146484
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05205825412385333,
+          "method_object_rmse": 0.05023117214837873
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 4.413978840801241,
+          "cluster_bootstrap_95ci_pct": [
+            3.9908513068806393,
+            4.855352063268323
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05205825412385333,
+          "method_object_rmse": 0.0497604138019359
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.014048516561611947,
+          "cluster_bootstrap_95ci_pct": [
+            0.006266042265260221,
+            0.021743383968434987
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.9997,
+          "baseline_object_rmse": 0.05205825412385333,
+          "method_object_rmse": 0.05205094071140105
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 31.53747683054643,
+          "cluster_bootstrap_95ci_pct": [
+            30.523977445065796,
+            32.219618274675476
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05936731529207118,
+          "method_object_rmse": 0.04064436198691678
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 12.60164211119903,
+          "cluster_bootstrap_95ci_pct": [
+            12.448322844905574,
+            12.74992954351298
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05936731529207118,
+          "method_object_rmse": 0.051886058687937234
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 14.89118499529284,
+          "cluster_bootstrap_95ci_pct": [
+            14.534740917889883,
+            15.287531495346347
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05936731529207118,
+          "method_object_rmse": 0.05052681854519008
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.17359518551700753,
+          "cluster_bootstrap_95ci_pct": [
+            0.11233163772137437,
+            0.23980294370888391
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05936731529207118,
+          "method_object_rmse": 0.05926425649095344
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 36.49359565539045,
+          "cluster_bootstrap_95ci_pct": [
+            36.07921014674528,
+            36.91804218404074
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.0852285512200044,
+          "method_object_rmse": 0.05412558835482865
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 27.822891016808626,
+          "cluster_bootstrap_95ci_pct": [
+            27.61282370360661,
+            28.027431104645906
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.0852285512200044,
+          "method_object_rmse": 0.06151550429885766
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 15.354580477584532,
+          "cluster_bootstrap_95ci_pct": [
+            14.815066779667605,
+            15.944881940877652
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.0852285512200044,
+          "method_object_rmse": 0.07214206473304947
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": -2.5422658390371007,
+          "cluster_bootstrap_95ci_pct": [
+            -2.695204220900084,
+            -2.39123583522717
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.0852285512200044,
+          "method_object_rmse": 0.08739528756277681
+        }
+      ]
+    },
+    "17": {
+      "cells": [
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 6.474034084087761,
+          "cluster_bootstrap_95ci_pct": [
+            6.176739166154987,
+            6.7506357657377505
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.042387499087168205,
+          "method_object_rmse": 0.03964331794887255
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 0.14719351190235264,
+          "cluster_bootstrap_95ci_pct": [
+            -0.01989074900318651,
+            0.30458638501588364
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.9597,
+          "baseline_object_rmse": 0.042387499087168205,
+          "method_object_rmse": 0.042325107438654225
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 7.501615924138391,
+          "cluster_bootstrap_95ci_pct": [
+            7.2731766841223475,
+            7.737060844895296
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.042387499087168205,
+          "method_object_rmse": 0.03920775170580118
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.011315370167781749,
+          "cluster_bootstrap_95ci_pct": [
+            0.009168160493862945,
+            0.013621054905150804
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.042387499087168205,
+          "method_object_rmse": 0.04238270278474163
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 13.367581244885956,
+          "cluster_bootstrap_95ci_pct": [
+            13.016502037337405,
+            13.697869999777922
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04936194570601794,
+          "method_object_rmse": 0.0427634475097095
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 5.879335090428851,
+          "cluster_bootstrap_95ci_pct": [
+            5.715556740609835,
+            6.036807549302413
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04936194570601794,
+          "method_object_rmse": 0.04645979151080559
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 7.686650437372997,
+          "cluster_bootstrap_95ci_pct": [
+            7.475154341814269,
+            7.896142879714607
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04936194570601794,
+          "method_object_rmse": 0.045567665490510494
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.15610824866520406,
+          "cluster_bootstrap_95ci_pct": [
+            0.09896279595691015,
+            0.21875714609829203
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04936194570601794,
+          "method_object_rmse": 0.04928488763706921
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 12.715968630139738,
+          "cluster_bootstrap_95ci_pct": [
+            11.622659792603018,
+            13.82243602081774
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04090693005982538,
+          "method_object_rmse": 0.035705217665864784
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 3.0210855323967243,
+          "cluster_bootstrap_95ci_pct": [
+            2.1111353583269166,
+            3.9591256695964976
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04090693005982538,
+          "method_object_rmse": 0.03967109671404035
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 11.9498652483476,
+          "cluster_bootstrap_95ci_pct": [
+            11.26664806429567,
+            12.661969819154049
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04090693005982538,
+          "method_object_rmse": 0.03601860704044045
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 1.530212275832145,
+          "cluster_bootstrap_95ci_pct": [
+            1.0457353330135337,
+            2.09037991659522
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04090693005982538,
+          "method_object_rmse": 0.040280967194383864
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 8.827518599019356,
+          "cluster_bootstrap_95ci_pct": [
+            8.49279024451055,
+            9.162577516445928
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05080340380717176,
+          "method_object_rmse": 0.04631872388715876
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 4.356295932739895,
+          "cluster_bootstrap_95ci_pct": [
+            4.149624563710005,
+            4.560460502542146
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05080340380717176,
+          "method_object_rmse": 0.04859025719342651
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 4.348176334336625,
+          "cluster_bootstrap_95ci_pct": [
+            4.011631227183564,
+            4.6891639008969115
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05080340380717176,
+          "method_object_rmse": 0.04859438222579084
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.009560503850352632,
+          "cluster_bootstrap_95ci_pct": [
+            0.007320599731248568,
+            0.011455833286930743
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05080340380717176,
+          "method_object_rmse": 0.05079854674579466
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 16.447341254978426,
+          "cluster_bootstrap_95ci_pct": [
+            16.115399241378697,
+            16.779737682901143
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04824162696137831,
+          "method_object_rmse": 0.04030716194808674
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 12.916238761543813,
+          "cluster_bootstrap_95ci_pct": [
+            12.676534804336331,
+            13.147324972310422
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04824162696137831,
+          "method_object_rmse": 0.042010623240593396
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 3.094307782928361,
+          "cluster_bootstrap_95ci_pct": [
+            2.8968836099191835,
+            3.301631565186364
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04824162696137831,
+          "method_object_rmse": 0.04674888254370112
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.09092875826405314,
+          "cluster_bootstrap_95ci_pct": [
+            0.033865170768374996,
+            0.15661783168040577
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.9996,
+          "baseline_object_rmse": 0.04824162696137831,
+          "method_object_rmse": 0.048197761449015955
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 4.102422933315098,
+          "cluster_bootstrap_95ci_pct": [
+            3.446978048831913,
+            4.8299836752770196
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05166116069555554,
+          "method_object_rmse": 0.049541801391564305
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 1.8497216037852906,
+          "cluster_bootstrap_95ci_pct": [
+            1.3463785449804913,
+            2.4143150799117397
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05166116069555554,
+          "method_object_rmse": 0.050705573045403615
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 3.847508578141597,
+          "cluster_bootstrap_95ci_pct": [
+            3.4651987147749694,
+            4.254686442571761
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05166116069555554,
+          "method_object_rmse": 0.04967349310622653
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.5518790178673992,
+          "cluster_bootstrap_95ci_pct": [
+            0.35719391705180886,
+            0.787371709449238
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05166116069555554,
+          "method_object_rmse": 0.05137605358929001
+        }
+      ]
+    },
+    "27": {
+      "cells": [
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 7.634440694060191,
+          "cluster_bootstrap_95ci_pct": [
+            7.1796094963968455,
+            8.057090961303764
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.043579484595420256,
+          "method_object_rmse": 0.0402524346892058
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -12.118514093934296,
+          "cluster_bootstrap_95ci_pct": [
+            -12.55776061994608,
+            -11.694317454764818
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.043579484595420256,
+          "method_object_rmse": 0.048860670578180186
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 9.36592807212499,
+          "cluster_bootstrap_95ci_pct": [
+            9.077593413607131,
+            9.643534881915487
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.043579484595420256,
+          "method_object_rmse": 0.039497861414010405
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.014684806722089511,
+          "cluster_bootstrap_95ci_pct": [
+            0.010803187161394287,
+            0.01849174686406964
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.043579484595420256,
+          "method_object_rmse": 0.043573085032336936
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 2.0434446160160946,
+          "cluster_bootstrap_95ci_pct": [
+            1.912906075544009,
+            2.1772687503803696
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05806497927303635,
+          "method_object_rmse": 0.05687845358029063
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -19.988039606917916,
+          "cluster_bootstrap_95ci_pct": [
+            -20.435848868947446,
+            -19.527773408084826
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05806497927303635,
+          "method_object_rmse": 0.06967103032787954
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 7.166333646580131,
+          "cluster_bootstrap_95ci_pct": [
+            6.828297243918975,
+            7.4978554018541725
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05806497927303635,
+          "method_object_rmse": 0.05390384912651297
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.14128208438220588,
+          "cluster_bootstrap_95ci_pct": [
+            0.07806556581293538,
+            0.20610203578936717
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05806497927303635,
+          "method_object_rmse": 0.05798294386002331
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 19.12159245414231,
+          "cluster_bootstrap_95ci_pct": [
+            16.884226323344475,
+            21.230287181385936
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05511925505092649,
+          "method_object_rmse": 0.04457957573632908
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -45.809147678983024,
+          "cluster_bootstrap_95ci_pct": [
+            -47.96651827953346,
+            -43.77196781470421
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05511925505092649,
+          "method_object_rmse": 0.08036891599676071
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": -41.674049319801355,
+          "cluster_bootstrap_95ci_pct": [
+            -42.88176641810322,
+            -40.4781040323466
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05511925505092649,
+          "method_object_rmse": 0.0780896805855567
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 1.1533481472913796,
+          "cluster_bootstrap_95ci_pct": [
+            1.048271845381764,
+            1.2509320010940146
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05511925505092649,
+          "method_object_rmse": 0.05448353814399582
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 9.041565302869973,
+          "cluster_bootstrap_95ci_pct": [
+            8.718551886340569,
+            9.3984602403443
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05118954148280594,
+          "method_object_rmse": 0.046561205661398326
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -7.442976258718764,
+          "cluster_bootstrap_95ci_pct": [
+            -7.867021590376442,
+            -7.070779394686056
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05118954148280594,
+          "method_object_rmse": 0.05499956690231818
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 4.400941955686912,
+          "cluster_bootstrap_95ci_pct": [
+            4.014731885462719,
+            4.835272420336137
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05118954148280594,
+          "method_object_rmse": 0.048936719474765376
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.014489658077927226,
+          "cluster_bootstrap_95ci_pct": [
+            0.012458009714283983,
+            0.016416097080783017
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05118954148280594,
+          "method_object_rmse": 0.05118212429327342
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 3.218054827516393,
+          "cluster_bootstrap_95ci_pct": [
+            3.001680320051134,
+            3.429894862782367
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05567561433858539,
+          "method_object_rmse": 0.05388394254361313
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -15.42370255105627,
+          "cluster_bootstrap_95ci_pct": [
+            -15.95999139765479,
+            -14.932590600802463
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05567561433858539,
+          "method_object_rmse": 0.06426285548764203
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": -2.0758801361909,
+          "cluster_bootstrap_95ci_pct": [
+            -2.3348634237130113,
+            -1.8017556868408318
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05567561433858539,
+          "method_object_rmse": 0.056831373357342334
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.10594824013129657,
+          "cluster_bootstrap_95ci_pct": [
+            0.05485119197396718,
+            0.15595114839344743
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.9998,
+          "baseline_object_rmse": 0.05567561433858539,
+          "method_object_rmse": 0.05561662700501137
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 5.332617382866657,
+          "cluster_bootstrap_95ci_pct": [
+            4.241262323811961,
+            6.322852612679311
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.07375812966903622,
+          "method_object_rmse": 0.06982489082502787
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 6.753396830202691,
+          "cluster_bootstrap_95ci_pct": [
+            5.431103887011705,
+            8.017348936334487
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.07375812966903622,
+          "method_object_rmse": 0.06877695047795074
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": -50.859811263033066,
+          "cluster_bootstrap_95ci_pct": [
+            -51.89051794166552,
+            -49.88988142744049
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.07375812966903622,
+          "method_object_rmse": 0.11127137520985124
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.4326132398603927,
+          "cluster_bootstrap_95ci_pct": [
+            0.3059526426999537,
+            0.5496539920319654
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.07375812966903622,
+          "method_object_rmse": 0.07343904223461457
+        }
+      ]
+    },
+    "37": {
+      "cells": [
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 8.41145800183365,
+          "cluster_bootstrap_95ci_pct": [
+            7.81059640531298,
+            8.941883038185065
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04541078615207476,
+          "method_object_rmse": 0.0415910769465905
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -7.286417032501781,
+          "cluster_bootstrap_95ci_pct": [
+            -7.568570420733841,
+            -7.012599172668126
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.04541078615207476,
+          "method_object_rmse": 0.04871960540885249
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 14.642854103979829,
+          "cluster_bootstrap_95ci_pct": [
+            14.087927939030365,
+            15.14212936969426
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04541078615207476,
+          "method_object_rmse": 0.038761350988356175
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": -0.02429028408062401,
+          "cluster_bootstrap_95ci_pct": [
+            -0.026249168126638488,
+            -0.022266765335872192
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.04541078615207476,
+          "method_object_rmse": 0.04542181656103434
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 20.510865222016808,
+          "cluster_bootstrap_95ci_pct": [
+            20.125570213205567,
+            20.907888146540746
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.06691560573161946,
+          "method_object_rmse": 0.05319063602751084
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 3.5263826795930138,
+          "cluster_bootstrap_95ci_pct": [
+            3.416125914425986,
+            3.6365704163882095
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.06691560573161946,
+          "method_object_rmse": 0.06455590540115488
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 16.572457584571122,
+          "cluster_bootstrap_95ci_pct": [
+            16.0671994259057,
+            17.093838008186278
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.06691560573161946,
+          "method_object_rmse": 0.055826045354287986
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": -0.11990216170414705,
+          "cluster_bootstrap_95ci_pct": [
+            -0.16596734271153527,
+            -0.07576262516685654
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.06691560573161946,
+          "method_object_rmse": 0.0669958389894091
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 32.08881891102919,
+          "cluster_bootstrap_95ci_pct": [
+            31.235716000043077,
+            32.97514827762299
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.059336863510640096,
+          "method_object_rmse": 0.040296364831226235
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 13.233115590499096,
+          "cluster_bootstrap_95ci_pct": [
+            12.739098145941272,
+            13.729253668635685
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.059336863510640096,
+          "method_object_rmse": 0.05148474777450041
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 22.823707158203533,
+          "cluster_bootstrap_95ci_pct": [
+            22.109834150677877,
+            23.575046706380657
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.059336863510640096,
+          "method_object_rmse": 0.04579399154610867
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.22098924243751672,
+          "cluster_bootstrap_95ci_pct": [
+            -0.15569680553194296,
+            0.5398512907389179
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 0.8897,
+          "baseline_object_rmse": 0.059336863510640096,
+          "method_object_rmse": 0.05920573542548175
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 10.831845360741534,
+          "cluster_bootstrap_95ci_pct": [
+            10.362648437484312,
+            11.324233138835119
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05367657066176439,
+          "method_object_rmse": 0.047862407532732916
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": -2.595263989128943,
+          "cluster_bootstrap_95ci_pct": [
+            -2.813192565977394,
+            -2.3958928687898275
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05367657066176439,
+          "method_object_rmse": 0.055069619370748515
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 13.334641795246016,
+          "cluster_bootstrap_95ci_pct": [
+            12.696938866779394,
+            13.978398806562335
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05367657066176439,
+          "method_object_rmse": 0.046518992236046
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": -0.007539995797751575,
+          "cluster_bootstrap_95ci_pct": [
+            -0.010062441047875244,
+            -0.005554819057370899
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05367657066176439,
+          "method_object_rmse": 0.05368061787293667
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 21.349658552680935,
+          "cluster_bootstrap_95ci_pct": [
+            20.78222509077624,
+            21.96182667683213
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.06053764811347565,
+          "method_object_rmse": 0.04761306694542511
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 7.620202133169658,
+          "cluster_bootstrap_95ci_pct": [
+            7.42955448791999,
+            7.786466603874804
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.06053764811347565,
+          "method_object_rmse": 0.05592455696056184
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 14.059718387677151,
+          "cluster_bootstrap_95ci_pct": [
+            13.128768026439754,
+            15.023631330637208
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.06053764811347565,
+          "method_object_rmse": 0.052026225270198026
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": -0.060707321789482266,
+          "cluster_bootstrap_95ci_pct": [
+            -0.12056180669845665,
+            0.009082145227360701
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 0.0411,
+          "baseline_object_rmse": 0.06053764811347565,
+          "method_object_rmse": 0.060574398898319684
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 2.2642861360403077,
+          "cluster_bootstrap_95ci_pct": [
+            1.2739263267203915,
+            3.354634011406153
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05616712153441038,
+          "method_object_rmse": 0.05489533718849381
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 18.421816409705183,
+          "cluster_bootstrap_95ci_pct": [
+            17.882064682905174,
+            19.01752537289494
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05616712153441038,
+          "method_object_rmse": 0.045820117522725315
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": -12.233914000121976,
+          "cluster_bootstrap_95ci_pct": [
+            -13.029013889698723,
+            -11.30509699273552
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 0.0,
+          "baseline_object_rmse": 0.05616712153441038,
+          "method_object_rmse": 0.06303855887927413
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 1.9263988811224826,
+          "cluster_bootstrap_95ci_pct": [
+            1.482943999345486,
+            2.4477905164655325
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05616712153441038,
+          "method_object_rmse": 0.05508511873361279
+        }
+      ]
+    },
+    "47": {
+      "cells": [
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 10.63128305559073,
+          "cluster_bootstrap_95ci_pct": [
+            10.284415193736297,
+            11.020712029014371
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04892098560673485,
+          "method_object_rmse": 0.04372005715329807
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 10.936528046395889,
+          "cluster_bootstrap_95ci_pct": [
+            10.701280884184028,
+            11.189024042076927
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04892098560673485,
+          "method_object_rmse": 0.043570728295281
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 6.866009545892692,
+          "cluster_bootstrap_95ci_pct": [
+            6.587831128525454,
+            7.167458867912418
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.04892098560673485,
+          "method_object_rmse": 0.045562066065031645
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.0030387471772414473,
+          "cluster_bootstrap_95ci_pct": [
+            -0.003217399801983643,
+            0.009750210393711167
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 0.8219,
+          "baseline_object_rmse": 0.04892098560673485,
+          "method_object_rmse": 0.04891949902166565
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 36.06051373003058,
+          "cluster_bootstrap_95ci_pct": [
+            35.45341345623776,
+            36.69783617811659
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.07584764353250706,
+          "method_object_rmse": 0.0484965936225627
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 18.317905806931716,
+          "cluster_bootstrap_95ci_pct": [
+            17.994614030259466,
+            18.663079493101993
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.07584764353250706,
+          "method_object_rmse": 0.06195394363344508
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 23.223572362820732,
+          "cluster_bootstrap_95ci_pct": [
+            22.827527283652998,
+            23.616720686983
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.07584764353250706,
+          "method_object_rmse": 0.05823311115124096
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.04073942036770602,
+          "cluster_bootstrap_95ci_pct": [
+            0.028575397051523004,
+            0.05318843812063279
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.07584764353250706,
+          "method_object_rmse": 0.07581674364216935
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 31.133953394774977,
+          "cluster_bootstrap_95ci_pct": [
+            30.494550975974967,
+            31.792775260892682
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.10982168193015346,
+          "method_object_rmse": 0.07562985066066147
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 12.253019371604157,
+          "cluster_bootstrap_95ci_pct": [
+            11.95403118148578,
+            12.55546122108787
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.10982168193015346,
+          "method_object_rmse": 0.09636520996903025
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 22.23043337228178,
+          "cluster_bootstrap_95ci_pct": [
+            21.78744260004496,
+            22.68815959606434
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.10982168193015346,
+          "method_object_rmse": 0.08540784610035147
+        },
+        {
+          "domain": "D3__mixed_composition",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.11066812050183183,
+          "cluster_bootstrap_95ci_pct": [
+            0.09621032394251855,
+            0.12521903879940757
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.10982168193015346,
+          "method_object_rmse": 0.10970014433885786
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 12.54202977920664,
+          "cluster_bootstrap_95ci_pct": [
+            12.347696039193098,
+            12.742228644430266
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05847589674973309,
+          "method_object_rmse": 0.051141832365723436
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 12.077024954410795,
+          "cluster_bootstrap_95ci_pct": [
+            11.850126897633272,
+            12.331228105043879
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05847589674973309,
+          "method_object_rmse": 0.05141374810695233
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 6.400910630453782,
+          "cluster_bootstrap_95ci_pct": [
+            6.248795209476931,
+            6.564489279587558
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05847589674973309,
+          "method_object_rmse": 0.054732906858426245
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 10,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.009147357635377187,
+          "cluster_bootstrap_95ci_pct": [
+            0.00625708482868359,
+            0.012493807617910106
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 15,
+          "paired_terminal_samples": 450,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.05847589674973309,
+          "method_object_rmse": 0.058470547750326896
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 39.57351716087113,
+          "cluster_bootstrap_95ci_pct": [
+            38.9986881639508,
+            40.1650155796775
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.08346443069519696,
+          "method_object_rmse": 0.0504346198908098
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 19.805752596718353,
+          "cluster_bootstrap_95ci_pct": [
+            19.542855940476755,
+            20.088470307048908
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.08346443069519696,
+          "method_object_rmse": 0.0669336720454468
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 22.037052810457403,
+          "cluster_bootstrap_95ci_pct": [
+            21.667835860837204,
+            22.418532636055236
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.08346443069519696,
+          "method_object_rmse": 0.06507133002494879
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 25,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.04458907894020202,
+          "cluster_bootstrap_95ci_pct": [
+            0.030490603284551308,
+            0.059922630784341076
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 6,
+          "paired_terminal_samples": 180,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.08346443069519696,
+          "method_object_rmse": 0.08342721467430729
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_matched_adapter",
+          "object_improvement_pct": 26.50731652992613,
+          "cluster_bootstrap_95ci_pct": [
+            26.055245945285694,
+            27.005844625885036
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.1309497925461152,
+          "method_object_rmse": 0.09623851654063482
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_geometry_matched_adapter",
+          "object_improvement_pct": 9.840078975539187,
+          "cluster_bootstrap_95ci_pct": [
+            9.621905261732508,
+            10.06127022360362
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.1309497925461152,
+          "method_object_rmse": 0.11806422954127273
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_latent_matched_adapter",
+          "object_improvement_pct": 17.91402949786746,
+          "cluster_bootstrap_95ci_pct": [
+            17.583794741742167,
+            18.27004432120296
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.1309497925461152,
+          "method_object_rmse": 0.10749140808200787
+        },
+        {
+          "domain": "D3__mixed_unseen",
+          "horizon": 50,
+          "method": "bt_no_intervention_matched_adapter",
+          "object_improvement_pct": 0.07188771989763716,
+          "cluster_bootstrap_95ci_pct": [
+            0.05705159188141458,
+            0.0860948853942228
+          ],
+          "trajectory_clusters": 30,
+          "terminal_windows_per_trajectory": 3,
+          "paired_terminal_samples": 90,
+          "probability_improvement_positive": 1.0,
+          "baseline_object_rmse": 0.1309497925461152,
+          "method_object_rmse": 0.1308556557260431
+        }
+      ]
+    }
+  },
+  "artifacts": [
+    {
+      "path": "scripts/evaluate_g2_r0_core_metrics.py",
+      "sha256": "93cc312515fe7a2742f4528f8f3bc27ab301bc71b691efb34d296904ebf9e3fe",
+      "bytes": 20154
+    },
+    {
+      "path": "scripts/summarize_g2_r0_icra_audit.py",
+      "sha256": "2f6d6a4ac70eea10cddb5d74816564bedb915ffeccf1ea545fe2f46760a55f8e",
+      "bytes": 7612
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed7/raw_window_metrics_30traj.json",
+      "sha256": "d97874e6ce6088a4ec9fbb22d2e9d790999566a5d5550cc46d1737c5e132018e",
+      "bytes": 3133699
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed7/metrics_30traj.json",
+      "sha256": "904e311128b1faf9c9597217148c4e00be639c82f6c4e6c1e464ac47d5f45c43",
+      "bytes": 11479
+    },
+    {
+      "path": "runs/g2_r0_physical_context_residual/seed7_centered_regression_v1/model.pt",
+      "sha256": "f757a3952e98d4af5f72248721f5641aa94748a14f86e3180be6d8ef26e5162e",
+      "bytes": 1384291
+    },
+    {
+      "path": "runs/g2_bt_dpwm_meta_train_z32/seed7_v1/baseline_model.pt",
+      "sha256": "77396566f52e601643836c1f2fa550b3a55606e36577d9ef4039b6dd165cf751",
+      "bytes": 1360813
+    },
+    {
+      "path": "runs/g2_bt_dpwm_context_encoder_z65/seed7_v1/context_encoder.pt",
+      "sha256": "905627b3a10195f38fa57b90ef6dfcefb43b03565d2b381111a7ae92e6541189",
+      "bytes": 211919
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed7_v1/shared_adapter.pt",
+      "sha256": "a5bf74f9f24defc47bf95024ea8db7c62c9c74337d972bcfe0488d12b14d5873",
+      "bytes": 43942
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed7_v1/bt_adapter.pt",
+      "sha256": "260b9be45a79e0bb1418fb547117304d77513bbf74ee726054cf84b2416f2710",
+      "bytes": 43898
+    },
+    {
+      "path": "config/experiment/g2_r0_physical_context_residual_seed7_regression_v1.yaml",
+      "sha256": "ae94e86838e8939765a074cceeccc374a00fe3f8e48102f94239d18bbcd7b0bc",
+      "bytes": 1752
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed17/raw_window_metrics_30traj.json",
+      "sha256": "b3b778b5219d2363ecd2f83a7de03e5b6b8175b1ddee914fb8a488ebca67472b",
+      "bytes": 3132704
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed17/metrics_30traj.json",
+      "sha256": "fbfc4e3a7ff391094cfeae7419f2111b676ce6e898a338dbfb0cc2b71ede77ec",
+      "bytes": 11474
+    },
+    {
+      "path": "runs/g2_r0_physical_context_residual/seed17_centered_v3/model.pt",
+      "sha256": "afb59f6b3d4e41566e6396fcc7f7ae1d4e50dcd1bdb8b8d23f66a29e3e37e461",
+      "bytes": 1384291
+    },
+    {
+      "path": "runs/g2_bt_dpwm_meta_train_z32/seed17_v1/baseline_model.pt",
+      "sha256": "49dab73b83a80ccd7e0bcd499276c9b51d429b48b1c5dfe1ca5c098236f48b37",
+      "bytes": 1360813
+    },
+    {
+      "path": "runs/g2_bt_dpwm_context_encoder_z65/seed17_v1/context_encoder.pt",
+      "sha256": "2162123167c1201e9f0cef399e8d8437cb0c7377e25c70b935a45aca0640e7c5",
+      "bytes": 211919
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed17_v1/shared_adapter.pt",
+      "sha256": "833489b00a09de93364d9c75b835c01ae9561b4dd3feaf24f9af91a5955bd3ef",
+      "bytes": 43942
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed17_v1/bt_adapter.pt",
+      "sha256": "0dc2efa4bd107fe3cf807560a6380a9df9fdb6c723616f23c00096f9985807e5",
+      "bytes": 43898
+    },
+    {
+      "path": "config/experiment/g2_r0_physical_context_residual_dev_v2.yaml",
+      "sha256": "cb803687fd09569e6f335e1226db980fb012e8301dcf8275809ae6a7769f1a5b",
+      "bytes": 1759
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed27/raw_window_metrics_30traj.json",
+      "sha256": "8a38e89fb06e6056f4e05ad0eb91df1a941834b2e2d30586c8287567e2f04549",
+      "bytes": 3131346
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed27/metrics_30traj.json",
+      "sha256": "b402b6b0544b818b536b7df071f5a9a6effd6f4106614ed680c257d782b49f6b",
+      "bytes": 11457
+    },
+    {
+      "path": "runs/g2_r0_physical_context_residual/seed27_confirmation_v1/model.pt",
+      "sha256": "af1a5c0e2d9cef67b476b6259bdcad9ecd010b1ad16b92a223313e6e72238e58",
+      "bytes": 1384291
+    },
+    {
+      "path": "runs/g2_bt_dpwm_meta_train_z32/seed27_v1/baseline_model.pt",
+      "sha256": "028ecef67d76c56946b7853f64b7139e1f2d4f511e60c4bf47413a9716b727e8",
+      "bytes": 1360813
+    },
+    {
+      "path": "runs/g2_bt_dpwm_context_encoder_z65/seed27_v1/context_encoder.pt",
+      "sha256": "5b16c81306bbbe7c53197eedd7c08b71abe334aa08a16c55375c2a7f875cc02d",
+      "bytes": 211919
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed27_v1/shared_adapter.pt",
+      "sha256": "831ea37dcf061119617aa813857da769bae6bd2e657ffb13b2adf9622faed6d2",
+      "bytes": 43942
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed27_v1/bt_adapter.pt",
+      "sha256": "ccc41f9934f4c570b08b87006ed21b99b4b1e27fe4bccf261d65d29a5557195c",
+      "bytes": 43898
+    },
+    {
+      "path": "config/experiment/g2_r0_physical_context_residual_seed27_confirmation_v1.yaml",
+      "sha256": "9fb17e01f20b0ff392527fa518e8848acac53ab51939b51c61bd6e0886568061",
+      "bytes": 1737
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed37/raw_window_metrics_30traj.json",
+      "sha256": "b8e094aed4d5e041a7d0546c1d1c4ad102661440d137a09602fd41e3fc66c754",
+      "bytes": 3131147
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed37/metrics_30traj.json",
+      "sha256": "433b83460b496e1a1cdc122aa9de2bfef58b283ddeb4895e4ec32fd49e92919c",
+      "bytes": 11477
+    },
+    {
+      "path": "runs/g2_r0_physical_context_residual_extension/seed37_v1/model.pt",
+      "sha256": "f1e278b70a83e33aed9a202d33aa8bd926a540c86c7d04501a60303c5056ffd6",
+      "bytes": 1384291
+    },
+    {
+      "path": "runs/g2_bt_dpwm_meta_train_z32/seed37_v1/baseline_model.pt",
+      "sha256": "cf3aaf0324a9cbd89bfa3bfe3db72ce382ae11a4b0f00f63983c26c80bd2451d",
+      "bytes": 1360813
+    },
+    {
+      "path": "runs/g2_bt_dpwm_context_encoder_z65/seed37_v1/context_encoder.pt",
+      "sha256": "f0ff81471d2ebbdbcb76b0f58780233bc8daa8f6b4b15555ce07c8474c507de2",
+      "bytes": 211919
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed37_v1/shared_adapter.pt",
+      "sha256": "faa43512322de3a47a7b26c38c5a32b538e03fda1dc0fa513f7619a26c3953cd",
+      "bytes": 43942
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed37_v1/bt_adapter.pt",
+      "sha256": "c280be42bec2c7fe05fa22a8f2ba0989eff16c2faf10517ff156f4d34c90e0f7",
+      "bytes": 43898
+    },
+    {
+      "path": "config/experiment/g2_r0_physical_context_residual_extension_v1.yaml",
+      "sha256": "92d3e17bed2d1185c2828781da20071933986f460886b1b9d0d553ca8457ad57",
+      "bytes": 1758
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed47/raw_window_metrics_30traj.json",
+      "sha256": "43ccb5c41e3bf22ed200433b1d77089b4b401d7298019185fdccfc3f7bbc4d51",
+      "bytes": 3134135
+    },
+    {
+      "path": "runs/g2_r0_icra_audit_20260824/seed47/metrics_30traj.json",
+      "sha256": "6f4db633c7dc70a5574bc8c538542d6ebf1c3abb5d3af6c32efe32808757cb08",
+      "bytes": 11480
+    },
+    {
+      "path": "runs/g2_r0_physical_context_residual_extension/seed47_v1/model.pt",
+      "sha256": "2202e897f8d198e7662c457953124b9c3597c22eede0d853649f6b4c214f7f2d",
+      "bytes": 1384291
+    },
+    {
+      "path": "runs/g2_bt_dpwm_meta_train_z32/seed47_v1/baseline_model.pt",
+      "sha256": "a4cd2e910ddbdcf3aa1b8ce94f4bb8fded26692de887bc2fc732649a2c6722f4",
+      "bytes": 1360813
+    },
+    {
+      "path": "runs/g2_bt_dpwm_context_encoder_z65/seed47_v1/context_encoder.pt",
+      "sha256": "a78c0ef8dfc57109fd1300ff92b498964a4977f8582719877d76b51066d19bed",
+      "bytes": 211919
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed47_v1/shared_adapter.pt",
+      "sha256": "2411af61d578854b41a505e992ffe8cbc58ea7658ce6dd5866d4419fac451e60",
+      "bytes": 43942
+    },
+    {
+      "path": "runs/g2_bt_dpwm_z69_adapter_z70/seed47_v1/bt_adapter.pt",
+      "sha256": "f3e5c96b214c11b62130f66898bc16d611cbae23e9db5a952c070ef3e598f77e",
+      "bytes": 43898
+    },
+    {
+      "path": "config/experiment/g2_r0_physical_context_residual_extension_v1.yaml",
+      "sha256": "92d3e17bed2d1185c2828781da20071933986f460886b1b9d0d553ca8457ad57",
+      "bytes": 1758
+    }
+  ],
+  "gate": {
+    "full_model_all_point_estimates_positive": true,
+    "full_model_all_ci_lower_bounds_positive": true,
+    "minimum_full_model_point_improvement_pct": 2.0434446160160946,
+    "minimum_full_model_ci_lower_bound_pct": 1.2739263267203915
+  },
+  "cross_seed_summary": [
+    {
+      "domain": "D3__mixed_composition",
+      "horizon": 10,
+      "seed_count": 5,
+      "mean_object_improvement_pct": 8.993765686619112,
+      "seed_bootstrap_95ci_pct": [
+        7.325681511625911,
+        10.74371230844412
+      ],
+      "per_seed_object_improvement_pct": [
+        11.817612597523226,
+        6.474034084087761,
+        7.634440694060191,
+        8.41145800183365,
+        10.63128305559073
+      ]
+    },
+    {
+      "domain": "D3__mixed_composition",
+      "horizon": 25,
+      "seed_count": 5,
+      "mean_object_improvement_pct": 15.376509477913421,
+      "seed_bootstrap_95ci_pct": [
+        5.4509511260306995,
+        26.71850979774524
+      ],
+      "per_seed_object_improvement_pct": [
+        4.900142576617674,
+        13.367581244885956,
+        2.0434446160160946,
+        20.510865222016808,
+        36.06051373003058
+      ]
+    },
+    {
+      "domain": "D3__mixed_composition",
+      "horizon": 50,
+      "seed_count": 5,
+      "mean_object_improvement_pct": 26.5760966959747,
+      "seed_bootstrap_95ci_pct": [
+        17.871663451118145,
+        34.19037827928159
+      ],
+      "per_seed_object_improvement_pct": [
+        37.82015008978729,
+        12.715968630139738,
+        19.12159245414231,
+        32.08881891102919,
+        31.133953394774977
+      ]
+    },
+    {
+      "domain": "D3__mixed_unseen",
+      "horizon": 10,
+      "seed_count": 5,
+      "mean_object_improvement_pct": 11.268355187801413,
+      "seed_bootstrap_95ci_pct": [
+        9.314002632904039,
+        13.376009154717064
+      ],
+      "per_seed_object_improvement_pct": [
+        15.09881689716957,
+        8.827518599019356,
+        9.041565302869973,
+        10.831845360741534,
+        12.54202977920664
+      ]
+    },
+    {
+      "domain": "D3__mixed_unseen",
+      "horizon": 25,
+      "seed_count": 5,
+      "mean_object_improvement_pct": 22.42520972531866,
+      "seed_bootstrap_95ci_pct": [
+        11.527796513614806,
+        33.14468489661137
+      ],
+      "per_seed_object_improvement_pct": [
+        31.53747683054643,
+        16.447341254978426,
+        3.218054827516393,
+        21.349658552680935,
+        39.57351716087113
+      ]
+    },
+    {
+      "domain": "D3__mixed_unseen",
+      "horizon": 50,
+      "seed_count": 5,
+      "mean_object_improvement_pct": 14.940047727507727,
+      "seed_bootstrap_95ci_pct": [
+        3.6132071043154936,
+        28.01810528588252
+      ],
+      "per_seed_object_improvement_pct": [
+        36.49359565539045,
+        4.102422933315098,
+        5.332617382866657,
+        2.2642861360403077,
+        26.50731652992613
+      ]
+    }
+  ]
+}

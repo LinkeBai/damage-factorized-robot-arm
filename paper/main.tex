@@ -2,7 +2,7 @@
 \usepackage{amsmath,amssymb,booktabs,xcolor,graphicx,multirow,tikz,pgfplots}
 \usetikzlibrary{arrows.meta,positioning,fit}
 \pgfplotsset{compat=1.18}
-\newcommand{\method}{PC-RR-IPWM}
+\newcommand{\method}{IPWM}
 \newcommand{\todo}[1]{\textcolor{red}{[REAL-ROBOT TODO: #1]}}
 \title{Safe Few-Shot World-Model Adaptation to Unseen Joint-Locking Failures}
 \author{Anonymous Authors}
@@ -12,16 +12,18 @@ Robot world models deployed after hardware damage must adapt to unseen
 interaction dynamics while exactly respecting the altered mechanism. We study
 planar pushing with a serial manipulator whose diagnosed joint is locked at a
 known angle, while friction, delay, payload, and contact effects remain unknown.
-We introduce a contact-aware physical-context rollout-risk
-intervention-projected world model (\method{}). It combines analytic lock
+We introduce an intervention-projected world model (\method{}) with observable
+physical context and rollout-risk scheduling. It combines analytic lock
 projection, a frozen contact-aware robot transition, a shared object model,
 explicit pusher geometry, and a support-aware low-rank intervention residual.
 An observable physical-context posterior inferred from 25 safe transitions
 modulates the residual through an exact-zero centered gate and a delayed
 rollout-risk schedule. Against a compute-, data-, and adapter-matched shared
-model, object rollout RMSE improves in all 18 combinations of three seeds, two
-held-out domains, and H10/H25/H50, from 2.04\% to 37.84\%. Lock violation is
-zero and controls remain practically equivalent. \todo{Add real-arm result.}
+model, object rollout RMSE improves in all 30 combinations of five seeds, two
+held-out domains, and H10/H25/H50, from 2.04\% to 39.57\%. Paired
+trajectory-cluster 95\% intervals exclude zero in every cell, as do all six
+cross-seed mean intervals. Lock violation is zero; one free-joint cell misses
+the 5\% engineering gate. \todo{Add real-arm result.}
 \end{abstract}
 
 \section{Introduction}
@@ -43,8 +45,8 @@ depth schedule limits accumulated residual error.
 
 Our contributions are: (i) exact projection plus contact-aware block-coordinate
 dynamics; (ii) a support-aware geometry/latent object intervention; (iii) an
-observable physical-context gate with reversible fallback; and (iv) a strict
-three-seed matched evaluation and component ablations.
+observable physical-context gate with reversible fallback; and (iv) a matched
+five-seed evaluation with paired uncertainty and failure-regime ablations.
 
 \section{Related Work}
 \textbf{Fault adaptation.} Damage recovery has been approached by repertoire
@@ -219,6 +221,12 @@ transition degraded long-horizon free-joint prediction. The final design
 therefore uses a narrow intervention residual around the strongest
 contact-aware shared base.
 
+FT-GWM and FTC-WM preceded this design and failed object-rollout gates. They
+motivate its constraints but provide no positive evidence for it: explicit
+geometry replaces learned contact force, the strongest shared base is frozen,
+and correction is routed only outside intervention support. Git history places
+the 2\% engineering gate before the R0 confirmation run.
+
 The support router prevents the residual from relearning generic object
 dynamics while degrading intact or seen locks. It reads only membership of the
 diagnostic mask in the frozen meta-training support, never a test-domain name.
@@ -257,7 +265,8 @@ are fixed before confirmation.
 \section{Experiments}
 Both methods use identical training data, K25 support, rank-8 adapters,
 optimization, and rollouts. The baseline is shared dynamics plus analytic
-projection and its matched adapter. Seed27 was untouched until the rule froze.
+projection and its matched adapter. Seed27 was untouched until the rule froze;
+seeds37/47 are unchanged post-freeze audit extensions.
 
 \subsection{Protocol, metrics, and fairness}
 Training includes D1/D2/D4/D5 and variations in friction, backlash, motor
@@ -290,22 +299,30 @@ Physics&held-out mix&Unknown residual?\\
 Budget&K0/K25&Adaptation effect?\\
 Depth&H10/25/50&Stability?\\
 Controls&intact/D2/D4&Negative transfer?\\
-Seed&7/17/27&Rule consistency?\\\bottomrule
+Seed&7/17/27/37/47&Rule consistency?\\\bottomrule
 \end{tabular}\end{table}
 
 \begin{table}[t]\centering
-\caption{Object RMSE improvement (\%) over the matched baseline.}
+\caption{Object RMSE improvement (\%) over the matched baseline; 30 test
+trajectories per domain.}
 \begin{tabular}{ccrrr}\toprule
 Seed&Domain&H10&H25&H50\\\midrule
-7&composition&12.27&5.33&37.84\\
-7&mixed-unseen&15.89&32.50&36.60\\
-17&composition&6.53&13.54&12.52\\
-17&mixed-unseen&9.10&15.50&2.95\\
-27&composition&7.62&2.04&18.98\\
-27&mixed-unseen&9.19&2.85&2.58\\\bottomrule
+7&composition&11.82&4.90&37.82\\
+7&mixed-unseen&15.10&31.54&36.49\\
+17&composition&6.47&13.37&12.72\\
+17&mixed-unseen&8.83&16.45&4.10\\
+27&composition&7.63&2.04&19.12\\
+27&mixed-unseen&9.04&3.22&5.33\\
+37&composition&8.41&20.51&32.09\\
+37&mixed-unseen&10.83&21.35&2.26\\
+47&composition&10.63&36.06&31.13\\
+47&mixed-unseen&12.54&39.57&26.51\\\bottomrule
 \end{tabular}\label{tab:main}\end{table}
 
-All 18 cells exceed 2\%; the minimum confirmation is 2.0430\%. Locked
+All 30 point estimates exceed 2\%; the minimum is 2.0434\%. Paired
+trajectory-cluster 95\% intervals exclude zero in every cell; the minimum lower
+bound is 1.274\%. All six five-seed mean bootstrap intervals also exclude zero.
+Locked
 violation is zero. One seed7 mixed-unseen H50 cell has 5.97\% free-joint
 regression, narrowly missing the frozen 5\% gate; all other cells satisfy it.
 Intact/D2/D4 object differences are at most 1.72\%; maximum IID pusher
@@ -324,10 +341,11 @@ Context conformal MACE&0.0289\\\bottomrule
 \end{tabular}\end{table}
 
 \subsection{Confirmation and interpretation}
-Seed27 was opened after scale, grace, and depth ramp froze on seeds7/17. All
-six confirmation cells exceed 2\%, with a 2.0430\% minimum. With three seeds
-we do not claim population significance; we report every cell and claim
-directional consistency under the frozen protocol.
+Seed27 was opened after scale, grace, and depth ramp froze on seeds7/17.
+Seeds37/47 were then run as unchanged audit extensions. Every point estimate
+and within-seed trajectory interval is positive. Five seeds remain a modest
+population sample, so we report seed-bootstrap intervals without claiming a
+universal dominance theorem.
 
 An earlier projected-only comparison had one 1.9579\% cell. It remains a
 development near-miss but is superseded by the strict matched-adapter decision.
@@ -339,9 +357,9 @@ mismatch.
 \caption{Seed17 H50 improvement (\%) over matched shared.}
 \begin{tabular}{lrr}\toprule
 Variant&Composition&Mixed-unseen\\\midrule
-K0 matched adapter&-122.55&-96.62\\
-K25, no depth risk&27.57&-3.86\\
-Full K25&12.52&2.95\\\bottomrule
+K0 matched adapter&-125.79&-104.26\\
+K25, no depth risk&25.82&-3.78\\
+Full K25&12.72&4.10\\\bottomrule
 \end{tabular}\label{tab:kmechanism}\end{table}
 \begin{figure}[t]\centering
 \begin{tikzpicture}
@@ -353,43 +371,45 @@ Full K25&12.52&2.95\\\bottomrule
  xtick=data,x tick label style={rotate=18,anchor=east,font=\scriptsize},
  legend style={font=\scriptsize,at={(0.5,1.02)},anchor=south,
  legend columns=2},grid=major]
-\addplot coordinates {(K0,-122.55) (K25-no-risk,27.57) (Full-K25,12.52)};
-\addplot coordinates {(K0,-96.62) (K25-no-risk,-3.86) (Full-K25,2.95)};
+\addplot coordinates {(K0,-125.79) (K25-no-risk,25.82) (Full-K25,12.72)};
+\addplot coordinates {(K0,-104.26) (K25-no-risk,-3.78) (Full-K25,4.10)};
 \legend{composition,mixed-unseen}
 \end{axis}
 \end{tikzpicture}
 \caption{Seed17 long-horizon mechanism. Context reverses catastrophic K0
 drift; depth risk trades peak gain for an all-positive frozen gate.}
 \label{fig:kmechanism}\end{figure}
-Context reverses the composition failure but still overshoots one mixed-unseen
-rollout. Depth scheduling sacrifices some composition gain while making the
-remaining negative cell positive. The frozen gate optimizes all-cell
-reliability, not maximum mean improvement. K5/K10/K50 curves are supportive but
-non-monotonic.
+Context reverses the composition failure but still overshoots mixed-unseen.
+Depth scheduling sacrifices composition gain while making the negative regime
+positive. This reliability--performance exchange is the scheduler's central
+role, not evidence that it dominates every cell. K5/K10/K50 curves are
+supportive but non-monotonic.
 
 \begin{table}[t]\centering
-\caption{Seed17 D3 mixed-unseen object improvement (\%).}
+\caption{Seed27 enlarged D3 mixed-unseen object improvement (\%).}
 \begin{tabular}{lrrr}\toprule
 Variant&H10&H25&H50\\\midrule
-Full&9.10&15.50&2.95\\
-No geometry&4.57&12.36&1.17\\
-No latent&3.54&2.50&3.32\\
-No intervention&0.01&0.09&0.41\\
-No depth risk&3.14&13.98&-3.86\\\bottomrule
+Full&9.04&3.22&5.33\\
+No geometry&-7.44&-15.42&6.75\\
+No latent&4.40&-2.08&-50.86\\
+No intervention&0.01&0.11&0.43\\\bottomrule
 \end{tabular}\end{table}
 
-Removing intervention reduces mixed-unseen gain to at most 0.41\%. In
-composition, removing geometry reduces H10 from 6.53\% to 0.08\%; removing
-intervention yields 0.01/0.15/1.35\% at H10/H25/H50. Removing final projection
+Removing intervention reduces mixed-unseen gain to at most 0.43\%. Removing
+geometry or latent correction creates different negative regimes; neither
+branch alone uniformly dominates the complete rule. Removing final projection
 creates nonzero locked error, whereas retaining it guarantees feasibility.
 Geometry supplies a direct path, latent correction models remaining physics,
-context selects correction, and depth risk limits accumulation.
+context selects correction, and depth risk limits accumulation. We do not claim
+that the full model wins every ablation cell: enlarged seed27 ablations contain
+single-branch wins, while no-intervention collapses toward zero and geometry or
+latent removal creates distinct long-horizon negative regimes.
 
 \subsection{Reproducibility and compute}
-Frozen YAML files define seeds, splits, adapters, and gates. Tracked aggregate
-JSON backs the reported values; per-window rows and paired uncertainty intervals
-remain to be exported in the final audit package. The current source of truth is
-matched\_gate\_summary\_v2.json. The evidence-freeze repository has 244 passing
+Frozen YAML files define seeds, splits, adapters, and gates. The audit package
+stores per-window paired squared errors, 10,000-draw trajectory-cluster
+intervals, absolute RMSE, artifact hashes, and aggregate JSON. Its source of
+truth is g2\_r0\_icra\_audit\_20260824/summary.json. The repository has 247 passing
 tests. GPU PyTorch handles training, while MuJoCo collection and Python rollout
 dominate serial time. Identical caches prevent a compute/data fairness confound.
 
@@ -401,16 +421,16 @@ configuration hashes, and timing metadata accompany runs.
 
 \subsection{Claim matrix}
 Evidence supports: C1, projection guarantees zero lock violation; C2, complete
-K25 exceeds the matched baseline in every primary held-out object cell; C3,
-support routing keeps controls within margins; and C4, ablations demonstrate
-complementary roles. It does not establish population-level significance,
-monotonicity in K, or calibrated probability of rollout failure.
+K25 exceeds the matched baseline in every audited held-out object cell; C3,
+support routing limits collateral change but misses one D3 free-joint gate; and
+C4, ablations locate component-dependent failure regimes. It does not establish
+universal dominance, monotonicity in K, or calibrated rollout-failure probability.
 
 \subsection{Threats to validity}
 \emph{Baseline leakage.} Both systems share initialization and data but train
 separate matched adapters; small control differences are reported rather than
-called exact equality. \emph{Selection.} Seeds7/17 are development and seed27
-is confirmation only. \emph{Metric mismatch.} Prediction RMSE does not prove
+called exact equality. \emph{Selection.} Seeds7/17 are development, seed27 is
+confirmation, and seeds37/47 are unchanged audit extensions. \emph{Metric mismatch.} Prediction RMSE does not prove
 task success, so the real-arm table also reports pushing success and aborts.
 \emph{Simulator fidelity.} G0 calibrates kinematics and safety, while contact
 physics remains randomized. \emph{Small denominators.} Absolute pusher
@@ -421,6 +441,12 @@ millimeters accompany relative differences.
 protocol uses a five-DoF ST3215 arm, eye-in-hand tracking, 10\,Hz, intact/D2/D3,
 K=0/5/10/25, and three repetitions. Stops trigger on stale vision, feedback
 timeout, 50$^\circ$C, raw current 400, or 3.5$^\circ$ lock drift.
+
+These are conservative project-level G0 software guards, not claimed servo
+ratings: 5$^\circ$/s and 3.5$^\circ$ limit motion/drift, 50$^\circ$C is a
+temperature abort, and 400 is the controller's dimensionless raw-current field.
+Per-joint calibrated current in amperes remains unavailable, so current is used
+only for abort logic and never interpreted as force.
 
 G0 measurements provide servo zero positions, directions, 5$^\circ$/s limits,
 link lengths, and emergency torque-disable. D2/D3/D4 holds accumulated 78
@@ -473,11 +499,11 @@ D3&Shared/ours&--&--&--\\\bottomrule
 \section{Limitations and Conclusion}
 Current evidence is predictive, not closed-loop control. Diagnosis must provide
 lock identity and angle. Contact awareness precludes strict triangular
-causality. Tests cover single locks and planar pushing. Three seeds support
-consistency but not a broad population claim. Context coverage does not certify
+causality. Tests cover single locks and planar pushing. Five seeds and clustered
+intervals support consistency but not a broad population theorem. Context coverage does not certify
 rollout risk, and deployment depends on diagnosis and camera state estimation.
-Nevertheless, \method{} improves every held-out matched cell while preserving
-exact feasibility and controls. The defensible result is selective improvement
+Nevertheless, \method{} improves every held-out matched object cell while preserving
+exact feasibility, with one disclosed free-joint gate miss. The defensible result is selective improvement
 on an unseen intervention under a fair protocol, with analytic safety and
 reversible fallback. \todo{Add measured D3 effect, failure modes, and final
 sim-to-real conclusion.}

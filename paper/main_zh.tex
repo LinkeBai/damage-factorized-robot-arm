@@ -5,7 +5,7 @@
 \usetikzlibrary{positioning,fit,arrows.meta}
 \pgfplotsset{compat=1.18}
 \setlength{\columnsep}{0.65cm}
-\newcommand{\method}{PC-RR-IPWM}
+\newcommand{\method}{IPWM}
 \newcommand{\todo}[1]{\textcolor{red}{【真机待补：#1】}}
 \title{面向未见关节锁定故障的安全少样本世界模型适配}
 \author{匿名作者}
@@ -15,12 +15,12 @@
 \begin{abstract}
 机器人在硬件损伤后部署世界模型时，既要适应未见交互动力学，又要严格满足改变后的机械约束。
 本文研究串联机械臂平面推动任务：诊断系统给出被锁关节及锁定角，但摩擦、延迟、负载与接触效应仍未知。
-我们提出接触感知物理上下文--滚动风险干预投影世界模型（\method{}）。
+我们提出带可观测物理上下文和滚动风险调度的干预投影世界模型（\method{}）。
 该方法组合解析锁定投影、冻结的接触感知机器人转移、共享物体模型、显式推子几何和支持感知低秩干预残差。
 模型从25条安全转移推断可观测物理上下文，通过精确零旁路的中心化门控和延迟滚动风险调度残差。
-相对计算、数据和适配器严格匹配的共享模型，在3个种子、2个未见损伤--物理域和H10/H25/H50组成的18个单元中，物体滚动RMSE全部改善，范围为2.04\%至37.84\%。
-锁定坐标违例为零，完整臂与已见损伤控制域保持实用等价。
-消融表明几何、latent干预、物理上下文和深度风险具有互补作用。
+相对计算、数据和适配器严格匹配的共享模型，在5个种子、2个未见损伤--物理域和H10/H25/H50组成的30个单元中，物体滚动RMSE全部改善，范围为2.04\%至39.57\%。逐轨迹聚类95\%区间在每格均排除零，6个跨种子均值区间也排除零。
+锁定坐标违例为零，但一个free-joint单元未通过5\%工程门槛。
+消融定位了几何、latent干预和深度风险各自的失败区间，而不是声称完整模型逐格占优。
 \todo{补充真机结论。}
 \end{abstract}
 
@@ -37,8 +37,8 @@
 \begin{enumerate}
 \item 解析损伤投影、接触感知机器人动力学与支持感知物体干预残差的统一分解；
 \item 具有精确零上下文回退和滚动深度调度的可部署物理上下文门；
-\item 严格匹配适配器的三种子实验：18个核心单元全部为正、锁定约束精确满足、控制域保持等价；
-\item 区分几何、latent干预、物理上下文和深度风险作用的结构消融。
+\item 严格匹配适配器的五种子、30轨迹成对实验及聚类不确定性区间；
+\item 定位几何、latent干预、物理上下文和深度风险失败区间的结构消融。
 \end{enumerate}
 
 \section{相关工作}
@@ -156,6 +156,8 @@ conformal interval校准的是上下文估计误差，不是滚动失败概率�
 \subsection{设计依据与冻结推理}
 四类负结果共同约束了最终架构：拓扑条件化的整体模型未能稳定超过容量匹配的共享模型；潜变量优化与history/FiLM残差没有带来稳定少样本收益；独立机器人/物体分解在参数和计算匹配下失败；从机器人转移删除物体/接触输入又会恶化长时自由关节预测。因此，最终方法围绕最强接触感知共享基座，仅加入窄干预残差。
 
+FT-GWM与FTC-WM先于本方法且未通过object rollout门。它们只提供设计约束，不作为本文正证据：显式几何取代学习接触力，最强共享基座保持冻结，修正只在训练干预支持外开启。Git历史表明2\%工程门早于R0确认实验。
+
 支持路由阻止残差重新学习通用物体动力学并损害完整臂或已见锁定。部署固定为：诊断和投影；采集一条嵌套的25转移安全序列；推断上下文；用相同预算拟合rank-8适配器；经支持验证接受或回退；每个滚动步执行投影和冻结深度调度。两种方法不允许获得额外交互。
 
 \begin{table}[t]\centering
@@ -197,24 +199,28 @@ free-joint RMSE排除固定坐标，object RMSE是核心损伤域指标，pusher
 预算&K0/K25&适配作用？\\
 深度&H10/25/50&长时稳定？\\
 控制&完整臂/D2/D4&负迁移？\\
-种子&7/17/27&规则一致？\\\bottomrule
+种子&7/17/27/37/47&规则一致？\\\bottomrule
 \end{tabular}\end{table}
 
 \begin{table}[t]\centering
-\caption{相对匹配baseline的object RMSE改善（\%）。}
+\caption{相对匹配baseline的object RMSE改善（\%，每域30条测试轨迹）。}
 \begin{tabular}{ccrrr}\toprule
 种子&域&H10&H25&H50\\\midrule
-7&composition&12.27&5.33&37.84\\
-7&mixed-unseen&15.89&32.50&36.60\\
-17&composition&6.53&13.54&12.52\\
-17&mixed-unseen&9.10&15.50&2.95\\
-27&composition&7.62&2.04&18.98\\
-27&mixed-unseen&9.19&2.85&2.58\\\bottomrule
+7&composition&11.82&4.90&37.82\\
+7&mixed-unseen&15.10&31.54&36.49\\
+17&composition&6.47&13.37&12.72\\
+17&mixed-unseen&8.83&16.45&4.10\\
+27&composition&7.63&2.04&19.12\\
+27&mixed-unseen&9.04&3.22&5.33\\
+37&composition&8.41&20.51&32.09\\
+37&mixed-unseen&10.83&21.35&2.26\\
+47&composition&10.63&36.06&31.13\\
+47&mixed-unseen&12.54&39.57&26.51\\\bottomrule
 \end{tabular}
 \end{table}
 
-18个单元全部超过2\%，最小确认值2.0430\%。seed7的mixed-unseen H50存在5.97\%的free-joint退化，略微未通过冻结的5\%门槛；其余单元满足该门槛。
-seed27只在规则冻结后开启。三种子不足以支持总体显著性主张，因此逐格报告并仅主张冻结协议下方向一致。
+30个点估计全部超过2\%，最小值2.0434\%。逐轨迹聚类95\%区间每格均排除零，最小下界为1.274\%；6个五种子均值bootstrap区间也排除零。seed7的mixed-unseen H50存在约6\%的free-joint退化，略微未通过冻结的5\%门槛。
+seed27只在规则冻结后开启；seed37/47是完全不调参的审计扩展。五种子仍不足以支持普适总体定理，因此报告全部区间。
 早期projected-only比较有一个1.9579\%近失；最终结果来自消除adapter协议不匹配，不是四舍五入或重新调参。
 
 \begin{table}[t]\centering
@@ -230,7 +236,7 @@ IID pusher&1.081 mm\\
 \end{table}
 
 \subsection{确认与解释}
-seed27在seed7/17冻结缩放、grace和深度ramp之后才开启。其6个确认单元全部超过2\%，最小值为2.0430\%。三个种子不足以支持总体统计显著性，因此本文报告所有单元，仅主张冻结协议下的方向一致性。
+seed27在seed7/17冻结缩放、grace和深度ramp之后才开启，seed37/47随后作为不调参审计扩展运行。全部点估计和固定seed内轨迹区间为正；本文同时报告五种子bootstrap区间，但不声称普适占优。
 
 早期projected-only比较曾出现1.9579\%的近失单元。它作为开发失败记录保留，但被严格的匹配适配器判定取代；最终结果既非四舍五入，也没有针对确认种子重新调参。
 
@@ -239,9 +245,9 @@ seed27在seed7/17冻结缩放、grace和深度ramp之后才开启。其6个确�
 \caption{seed17相对匹配shared的H50改善（\%）。}
 \begin{tabular}{lrr}\toprule
 变体&composition&mixed-unseen\\\midrule
-K0匹配适配器&-122.55&-96.62\\
-K25，无深度风险&27.57&-3.86\\
-完整K25&12.52&2.95\\\bottomrule
+K0匹配适配器&-125.79&-104.26\\
+K25，无深度风险&25.82&-3.78\\
+完整K25&12.72&4.10\\\bottomrule
 \end{tabular}\end{table}
 
 \begin{figure}[t]\centering
@@ -254,46 +260,46 @@ K25，无深度风险&27.57&-3.86\\
  xtick=data,x tick label style={rotate=18,anchor=east,font=\scriptsize},
  legend style={font=\scriptsize,at={(0.5,1.02)},anchor=south,legend columns=2},
  grid=major]
-\addplot coordinates {(K0,-122.55) (K25-no-risk,27.57) (Full-K25,12.52)};
-\addplot coordinates {(K0,-96.62) (K25-no-risk,-3.86) (Full-K25,2.95)};
+\addplot coordinates {(K0,-125.79) (K25-no-risk,25.82) (Full-K25,12.72)};
+\addplot coordinates {(K0,-104.26) (K25-no-risk,-3.78) (Full-K25,4.10)};
 \legend{composition,mixed-unseen}
 \end{axis}
 \end{tikzpicture}
 \caption{seed17长时机制。上下文扭转K0灾难性漂移；深度风险牺牲峰值收益，换取冻结门控下所有单元为正。}
 \end{figure}
 
-上下文修复composition失败，但无深度风险时仍在一个mixed-unseen滚动上过冲。冻结门控追求逐单元可靠性而非最大平均收益；K5/K10/K50曲线可提供辅助证据，但并不单调。
+上下文修复composition失败，但无深度风险时仍在mixed-unseen上过冲。深度调度牺牲峰值composition收益以消除负区间；这是可靠性--性能交换，而非调度器逐格占优。K5/K10/K50曲线并不单调。
 
 \subsection{消融}
 \begin{table}[t]\centering
-\caption{seed17 D3 mixed-unseen object改善（\%）。}
+\caption{seed27扩大评估的D3 mixed-unseen object改善（\%）。}
 \begin{tabular}{lrrr}\toprule
 变体&H10&H25&H50\\\midrule
-完整模型&9.10&15.50&2.95\\
-无geometry&4.57&12.36&1.17\\
-无latent&3.54&2.50&3.32\\
-无intervention&0.01&0.09&0.41\\
-无depth risk&3.14&13.98&-3.86\\\bottomrule
+完整模型&9.04&3.22&5.33\\
+无geometry&-7.44&-15.42&6.75\\
+无latent&4.40&-2.08&-50.86\\
+无intervention&0.01&0.11&0.43\\\bottomrule
 \end{tabular}
 \end{table}
 
-去掉干预后收益最多0.41\%；composition中去geometry使H10从6.53\%降到0.08\%。
+去掉干预后收益最多0.43\%；去geometry与去latent产生不同负区间，单一分支并不逐格弱于或强于完整规则。
 去掉最终投影产生非零锁定误差。
-K0在seed17 H50相对baseline为$-122.55/-96.62\%$；有K25上下文但无深度风险时为$+27.57/-3.86\%$；完整K25为$+12.52/+2.95\%$。
+K0在seed17 H50相对baseline为$-125.79/-104.26\%$；有K25上下文但无深度风险时为$+25.82/-3.78\%$；完整K25为$+12.72/+4.10\%$。
 深度规则牺牲部分均值收益，换取所有冻结单元为正。我们不主张K单调性。
 
 \subsection{复现、主张边界与有效性威胁}
-冻结YAML定义种子、数据切分、adapter和门控；已追踪的聚合JSON支撑当前数值，但最终审计包仍需导出逐窗口误差和成对不确定性区间。
-证据冻结时测试为244 passed。两方法复用相同MuJoCo缓存。
-seed7/17是开发种子，seed27是确认种子。共享与本文模型分别训练匹配adapter，因此控制域是实用等价而非逐位相同。
+冻结YAML定义种子、数据切分、adapter和门控；审计包保存逐窗口成对平方误差、10,000次轨迹聚类bootstrap区间、绝对RMSE、artifact hash与聚合JSON。
+证据冻结时测试为247 passed。两方法复用相同MuJoCo缓存。
+seed7/17是开发种子，seed27是确认种子，seed37/47是不调参审计扩展。共享与本文模型分别训练匹配adapter，因此控制域是实用等价而非逐位相同。
 预测RMSE不能代替真实任务成功率；相对pusher差异的小分母问题通过同时报告毫米绝对值处理。
 
-可支持的主张为：解析投影保证零锁定违例；完整K25在全部主要留出object单元超过匹配baseline；支持路由将控制域维持在冻结容差内；消融显示各组件具有互补作用。现有证据不支持总体显著性、K单调性或滚动失败概率已校准等主张。GPU PyTorch承担训练，MuJoCo采集与Python滚动仍是主要串行耗时；配置哈希、checkpoint身份和计时元数据随运行保存。
+可支持的主张为：解析投影保证零锁定违例；完整K25在全部审计object单元超过匹配baseline；支持路由限制附带变化但有一个D3 free-joint门失败；消融定位组件依赖的失败区间。现有证据不支持普适占优、K单调性或滚动失败概率已校准等主张。GPU PyTorch承担训练，MuJoCo采集与Python滚动仍是主要串行耗时。
 
 \section{真机协议}
 \todo{替换为一张带坐标标注的ST3215机械臂、眼在手上摄像头和物块照片。}
 冻结协议为10 Hz、完整臂/D2/D3、K=0/5/10/25、每条件3次重复。
 温度50$^\circ$C、电流raw 400、锁定漂移3.5$^\circ$或视觉/反馈过期触发停止。
+这些数值是项目在G0冻结的保守软件守护值，不宣称为舵机额定极限：5$^\circ$/s与3.5$^\circ$分别限制运动和漂移，50$^\circ$C触发温度中止，400是控制器无物理单位的原始电流字段。当前没有逐关节安培标定，因此电流只用于中止，不能解释为力。
 G0已经测得舵机零位、方向、5$^\circ$/s限速、连杆尺寸和急停路径；D2/D3/D4锁定累计78次、687秒，最终干净实验最大漂移0.79$^\circ$，最大反向回差3.08$^\circ$。
 
 正式实验使用带视觉标记的刚性物块。完整臂检查坐标对齐，D2测试已见干预，D3测试未见干预。
