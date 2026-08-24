@@ -1,5 +1,7 @@
 \documentclass[conference]{IEEEtran}
-\usepackage{amsmath,amssymb,booktabs,xcolor,graphicx,multirow}
+\usepackage{amsmath,amssymb,booktabs,xcolor,graphicx,multirow,tikz,pgfplots}
+\usetikzlibrary{arrows.meta,positioning,fit}
+\pgfplotsset{compat=1.18}
 \newcommand{\method}{PC-RR-IPWM}
 \newcommand{\todo}[1]{\textcolor{red}{[REAL-ROBOT TODO: #1]}}
 \title{Safe Few-Shot World-Model Adaptation to Unseen Joint-Locking Failures}
@@ -105,16 +107,33 @@ residual factors; composition combines both. Calibration and evaluation
 trajectories are disjoint.
 
 \begin{figure*}[t]\centering
-\fbox{\parbox[c][35mm][c]{0.94\textwidth}{\centering
-\textbf{FINAL METHOD FIGURE PLACEHOLDER}\\
-Diagnosis $\rightarrow$ projection $\rightarrow$ contact-aware robot
-$\rightarrow$ pusher FK\\
-Safe transitions $\rightarrow$ 8D context $\rightarrow$ centered support gate
-$+$ depth risk\\
-Shared object base $\oplus$ geometry residual $\oplus$ latent intervention
-$\rightarrow$ rollout}}
-\caption{\method{}. The residual is disabled for intact and seen masks; a
-stop-gradient protects the robot block. \todo{Replace with one vector diagram.}}
+\begin{tikzpicture}[font=\footnotesize,>=Latex,node distance=5mm and 6.5mm,
+ box/.style={draw,rounded corners,align=center,minimum height=9mm,
+ minimum width=22.5mm,fill=blue!6},
+ fixed/.style={box,fill=gray!12}, learned/.style={box,fill=orange!12},
+ gate/.style={box,fill=green!12}, arr/.style={->,thick}]
+\node[fixed] (diag) {diagnosis\\$(m,\bar q)$};
+\node[fixed,right=of diag] (proj) {analytic\\projection $\Pi_d$};
+\node[learned,right=of proj] (robot) {frozen contact-aware\\robot transition};
+\node[fixed,right=of robot] (fk) {pusher FK\\and contact geometry};
+\node[learned,right=of fk] (obj) {shared object base\\$+$ intervention};
+\node[fixed,right=of obj] (out) {projected\\rollout};
+\node[fixed,below=12mm of proj] (support) {$K$ safe\\transitions};
+\node[learned,right=of support] (post) {8D observable\\context posterior};
+\node[gate,right=of post] (cg) {centered gate\\$h(z)-h(0)$};
+\node[gate,right=of cg] (route) {support router\\$+$ depth risk};
+\draw[arr] (diag)--(proj); \draw[arr] (proj)--(robot);
+\draw[arr] (robot)--(fk); \draw[arr] (fk)--(obj); \draw[arr] (obj)--(out);
+\draw[arr] (support)--(post); \draw[arr] (post)--(cg);
+\draw[arr] (cg)--(route); \draw[arr] (route)--(obj);
+\draw[arr,dashed] (robot) to[bend right=18]
+ node[below,align=center]{stop-gradient bridge} (obj);
+\node[draw,dashed,rounded corners,fit=(fk)(obj)(route),inner sep=3mm,
+ label=above:{support-aware robot-to-object correction}] {};
+\end{tikzpicture}
+\caption{\method{} deployment graph. Known damage is enforced analytically.
+The context-gated geometry and latent residual is enabled only outside the
+training intervention support; K0 recovers the base exactly.}
 \label{fig:overview}\end{figure*}
 
 \section{Method}
@@ -223,6 +242,18 @@ Context posterior&Z65&inference only\\
 Rank-8 adapter&matched support&optimized\\\bottomrule
 \end{tabular}\end{table}
 
+\subsection{Implementation details}
+Robot and baseline hidden size is 136. The geometry residual has rank 16, the
+latent intervention rank 32, and the context modulation rank 16. The context
+encoder hidden size is 96 and outputs an 8D mean and uncertainty. Residual
+training freezes the robot block, uses 60 object epochs, learning rate
+$3\times10^{-3}$ for the final context gate, rollout horizon 50, validation
+every two epochs, group-robust weight 0.5, and terminal H50 weight 5.0.
+The matched online adapter performs 12 optimization steps with initial step
+size 0.2, backtracking factor 0.5 for at most eight steps, trust radius 0.5,
+and $\ell_2$ coefficient $10^{-3}$. These values are shared across seeds and
+are fixed before confirmation.
+
 \section{Experiments}
 Both methods use identical training data, K25 support, rank-8 adapters,
 optimization, and rollouts. The baseline is shared dynamics plus analytic
@@ -310,6 +341,24 @@ K0 matched adapter&-122.55&-96.62\\
 K25, no depth risk&27.57&-3.86\\
 Full K25&12.52&2.95\\\bottomrule
 \end{tabular}\label{tab:kmechanism}\end{table}
+\begin{figure}[t]\centering
+\begin{tikzpicture}
+\begin{axis}[
+ width=0.98\columnwidth,height=48mm,
+ ybar,bar width=7pt,ymin=-130,ymax=40,
+ ylabel={H50 improvement (\%)},
+ symbolic x coords={K0,K25-no-risk,Full-K25},
+ xtick=data,x tick label style={rotate=18,anchor=east,font=\scriptsize},
+ legend style={font=\scriptsize,at={(0.5,1.02)},anchor=south,
+ legend columns=2},grid=major]
+\addplot coordinates {(K0,-122.55) (K25-no-risk,27.57) (Full-K25,12.52)};
+\addplot coordinates {(K0,-96.62) (K25-no-risk,-3.86) (Full-K25,2.95)};
+\legend{composition,mixed-unseen}
+\end{axis}
+\end{tikzpicture}
+\caption{Seed17 long-horizon mechanism. Context reverses catastrophic K0
+drift; depth risk trades peak gain for an all-positive frozen gate.}
+\label{fig:kmechanism}\end{figure}
 Context reverses the composition failure but still overshoots one mixed-unseen
 rollout. Depth scheduling sacrifices some composition gain while making the
 remaining negative cell positive. The frozen gate optimizes all-cell
