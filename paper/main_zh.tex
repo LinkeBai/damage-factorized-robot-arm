@@ -213,7 +213,7 @@ free-joint RMSE排除固定坐标，object RMSE是核心损伤域指标，pusher
 \end{tabular}
 \end{table}
 
-18个单元全部超过2\%，最小确认值2.0430\%。
+18个单元全部超过2\%，最小确认值2.0430\%。seed7的mixed-unseen H50存在5.97\%的free-joint退化，略微未通过冻结的5\%门槛；其余单元满足该门槛。
 seed27只在规则冻结后开启。三种子不足以支持总体显著性主张，因此逐格报告并仅主张冻结协议下方向一致。
 早期projected-only比较有一个1.9579\%近失；最终结果来自消除adapter协议不匹配，不是四舍五入或重新调参。
 
@@ -222,7 +222,7 @@ seed27只在规则冻结后开启。三种子不足以支持总体显著性主�
 \begin{tabular}{lc}\toprule
 检查&最坏差异\\\midrule
 完整臂/D2/D4 object&1.72\%绝对差\\
-free-joint&处于5\%区间\\
+free-joint退化&5.97\%（1格超5\%）\\
 IID pusher&1.081 mm\\
 锁定坐标违例&0\\
 上下文conformal MACE&0.0289\\\bottomrule
@@ -283,7 +283,7 @@ K0在seed17 H50相对baseline为$-122.55/-96.62\%$；有K25上下文但无深度
 深度规则牺牲部分均值收益，换取所有冻结单元为正。我们不主张K单调性。
 
 \subsection{复现、主张边界与有效性威胁}
-冻结YAML定义种子、数据切分、adapter和门控；逐行paired rollout和JSON支撑全部汇总。
+冻结YAML定义种子、数据切分、adapter和门控；已追踪的聚合JSON支撑当前数值，但最终审计包仍需导出逐窗口误差和成对不确定性区间。
 证据冻结时测试为244 passed。两方法复用相同MuJoCo缓存。
 seed7/17是开发种子，seed27是确认种子。共享与本文模型分别训练匹配adapter，因此控制域是实用等价而非逐位相同。
 预测RMSE不能代替真实任务成功率；相对pusher差异的小分母问题通过同时报告毫米绝对值处理。

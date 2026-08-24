@@ -306,16 +306,18 @@ Seed&Domain&H10&H25&H50\\\midrule
 \end{tabular}\label{tab:main}\end{table}
 
 All 18 cells exceed 2\%; the minimum confirmation is 2.0430\%. Locked
-violation is zero and free-joint changes remain within 5\%. Intact/D2/D4
-object differences are at most 1.72\%; maximum IID pusher difference is
-1.081\,mm. K curves are not monotonic, so we claim a frozen K25 rule only.
+violation is zero. One seed7 mixed-unseen H50 cell has 5.97\% free-joint
+regression, narrowly missing the frozen 5\% gate; all other cells satisfy it.
+Intact/D2/D4 object differences are at most 1.72\%; maximum IID pusher
+difference is 1.081\,mm. K curves are not monotonic, so we claim a frozen K25
+rule only.
 
 \begin{table}[t]\centering
 \caption{Matched safety and control checks.}
 \begin{tabular}{lc}\toprule
 Check&Worst difference\\\midrule
 Intact/D2/D4 object&1.72\% absolute\\
-Free-joint change&within 5\%\\
+Free-joint regression&5.97\% worst (one gate miss)\\
 IID pusher position&1.081 mm\\
 Locked violation&0\\
 Context conformal MACE&0.0289\\\bottomrule
@@ -384,8 +386,9 @@ Geometry supplies a direct path, latent correction models remaining physics,
 context selects correction, and depth risk limits accumulation.
 
 \subsection{Reproducibility and compute}
-Frozen YAML files define seeds, splits, adapters, and gates. Paired rollout rows
-and machine-readable JSON back every aggregate; the source of truth is
+Frozen YAML files define seeds, splits, adapters, and gates. Tracked aggregate
+JSON backs the reported values; per-window rows and paired uncertainty intervals
+remain to be exported in the final audit package. The current source of truth is
 matched\_gate\_summary\_v2.json. The evidence-freeze repository has 244 passing
 tests. GPU PyTorch handles training, while MuJoCo collection and Python rollout
 dominate serial time. Identical caches prevent a compute/data fairness confound.
