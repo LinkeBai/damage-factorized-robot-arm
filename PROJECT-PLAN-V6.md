@@ -49,7 +49,7 @@
 - pusher 最大绝对差 1.081 mm。
 - K0 通过 centered gate 精确回退到 base map。
 - conformal physical-context interval 的 dimensionwise MACE = 0.0289。
-- full test suite：247 passed。
+- full test suite：248 passed。
 
 ### 3.3 结构消融
 
@@ -115,7 +115,7 @@ DFWM 原始路线 No-Go；robust zero-shot ensemble 作为历史强基线完成�
 - 权威报告：`reports/icra-senior-review-remediation-20260824.md`
 - 权威汇总：`runs/g2_r0_icra_audit_20260824/summary.json`
 - 原始窗口行：`runs/g2_r0_icra_audit_20260824/seed*/raw_window_metrics_30traj.json`
-- 测试命令：`pytest -q`（当前 247 passed）
+- 测试命令：`pytest -q`（当前 248 passed）
 - 改变模型、协议、K 规则或 baseline 时，必须新建报告与新 confirmation seeds，不覆盖冻结 artifact。
 
 **一句话状态**：IPWM在五seed、扩大轨迹与成对区间下稳定改善损伤域object指标并精确满足锁定约束，但存在一个free-joint门失败；尚缺真机pushing，不能宣称完整安全恢复或投稿就绪。

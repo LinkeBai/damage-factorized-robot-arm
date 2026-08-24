@@ -1,4 +1,5 @@
 import json
+import hashlib
 from pathlib import Path
 
 import numpy as np
@@ -6,6 +7,17 @@ import numpy as np
 
 ROOT = Path(__file__).parents[1]
 AUDIT = ROOT / "runs/g2_r0_icra_audit_20260824"
+
+
+def test_manifest_artifacts_exist_and_match_sha256():
+    summary = json.loads((AUDIT / "summary.json").read_text(encoding="utf-8"))
+    assert len(summary["artifacts"]) == 42
+    for artifact in summary["artifacts"]:
+        path = ROOT / artifact["path"]
+        assert path.is_file(), artifact["path"]
+        assert path.stat().st_size == artifact["bytes"], artifact["path"]
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        assert digest == artifact["sha256"], artifact["path"]
 
 
 def test_five_seed_audit_is_complete_and_positive():

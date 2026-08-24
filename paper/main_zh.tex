@@ -289,7 +289,7 @@ K0在seed17 H50相对baseline为$-125.79/-104.26\%$；有K25上下文但无深�
 
 \subsection{复现、主张边界与有效性威胁}
 冻结YAML定义种子、数据切分、adapter和门控；审计包保存逐窗口成对平方误差、10,000次轨迹聚类bootstrap区间、绝对RMSE、artifact hash与聚合JSON。
-证据冻结时测试为247 passed。两方法复用相同MuJoCo缓存。
+证据冻结时测试为248 passed。两方法复用相同MuJoCo缓存。
 seed7/17是开发种子，seed27是确认种子，seed37/47是不调参审计扩展。共享与本文模型分别训练匹配adapter，因此控制域是实用等价而非逐位相同。
 预测RMSE不能代替真实任务成功率；相对pusher差异的小分母问题通过同时报告毫米绝对值处理。
 
