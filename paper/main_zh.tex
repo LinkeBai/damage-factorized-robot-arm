@@ -1,0 +1,228 @@
+\documentclass[UTF8,a4paper,10pt,twocolumn]{ctexart}
+\usepackage[margin=1.7cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,xcolor}
+\setlength{\columnsep}{0.65cm}
+\newcommand{\method}{PC-RR-IPWM}
+\newcommand{\todo}[1]{\textcolor{red}{【真机待补：#1】}}
+\title{面向未见关节锁定故障的安全少样本世界模型适配}
+\author{匿名作者}
+\date{}
+\begin{document}\maketitle
+
+\begin{abstract}
+机器人在硬件损伤后部署世界模型时，既要适应未见交互动力学，又要严格满足改变后的机械约束。
+本文研究串联机械臂平面推动任务：诊断系统给出被锁关节及锁定角，但摩擦、延迟、负载与接触效应仍未知。
+我们提出接触感知物理上下文--滚动风险干预投影世界模型（\method{}）。
+该方法组合解析锁定投影、冻结的接触感知机器人转移、共享物体模型、显式推子几何和支持感知低秩干预残差。
+模型从25条安全转移推断可观测物理上下文，通过精确零旁路的中心化门控和延迟滚动风险调度残差。
+相对计算、数据和适配器严格匹配的共享模型，在3个种子、2个未见损伤--物理域和H10/H25/H50组成的18个单元中，物体滚动RMSE全部改善，范围为2.04\%至37.84\%。
+锁定坐标违例为零，完整臂与已见损伤控制域保持实用等价。
+消融表明几何、latent干预、物理上下文和深度风险具有互补作用。
+\todo{补充真机结论。}
+\end{abstract}
+
+\section{引言}
+关节锁定会离散地改变机器人可行状态流形，而摩擦、回差、延迟和负载又会连续改变接触动力学。
+无约束模型可能违反已知锁定；故障后重新拟合完整模型则数据成本高且可能不安全。
+已有故障容错工作主要通过行为库搜索或故障随机化适配策略，快速适配方法则从近期转移推断环境隐变量。
+推动动力学工作能够学习不确定接触，但通常假设机器人本体完好，或没有显式保证损伤后的运动学流形。
+
+\method{}将已知损伤交给解析投影，只允许未知物理修正训练支持集外的物体干预残差。
+投影后的推子几何经停止梯度桥进入物体模块；中心化上下文门保证精确回退，深度风险调度限制残差累积。
+
+本文贡献为：
+\begin{enumerate}
+\item 解析损伤投影、接触感知机器人动力学与支持感知物体干预残差的统一分解；
+\item 具有精确零上下文回退和滚动深度调度的可部署物理上下文门；
+\item 严格匹配适配器的三种子实验：18个核心单元全部为正、锁定约束精确满足、控制域保持等价；
+\item 区分几何、latent干预、物理上下文和深度风险作用的结构消融。
+\end{enumerate}
+
+\section{相关工作}
+\textbf{故障适配。} Cully等通过行为库搜索实现损伤后运动恢复；故障感知对抗训练提高跨关节故障鲁棒性；RMA从近期本体感知推断外部属性；TuneNet执行单次残差系统辨识；面向自适应控制的元学习则学习闭环适配特征。与之不同，我们在已诊断离散拓扑改变后适配预测式操作模型。
+
+\textbf{接触与推动动力学。} 视觉前向模型和神经动力学支持模型规划。少样本高斯过程、混合解析--神经在线辨识、仿真训练的自适应循环模型和SE(2)等变推动模型分别处理物体物理变化。AdaptiGraph在线估计未知材料属性；PIN-WM从少量视觉交互辨识物理世界模型；ActivePusher组合残差物理、主动采样和不确定性规划。它们主要适配物体或环境物理，我们还必须处理机器人可行流形本身的改变。
+
+\textbf{结构化世界模型。} 交互网络、图物理模拟器和人类视频世界模型把关系结构或视觉可供性嵌入动力学。我们的结构不是通用图先验，而是干预特定计算分解：解析模块保证诊断约束，接触感知机器人模块保留反作用信息，物体残差只对支持集外锁定启用。
+
+\begin{table*}[t]\centering
+\caption{代表性适配动力学与损伤恢复工作的范围比较。}
+\begin{tabular}{lccccc}\toprule
+方法&机器人损伤&少样本&接触物体模型&硬约束&未见锁定\\\midrule
+Cully等&是&行为搜索&否&否&行为库\\
+故障感知RL&是&否&否&否&随机化\\
+RMA&磨损/地形&是&否&否&否\\
+TuneNet&否&是&是&否&否\\
+AdaptiGraph&否&是&是&否&否\\
+PIN-WM&否&是&是&物理模型&否\\
+ActivePusher&否&主动采样&是&否&否\\
+\method{}&关节锁定&是&是&是&是\\\bottomrule
+\end{tabular}
+\end{table*}
+
+\section{问题定义}
+状态$s_t=[q_t,\dot q_t,o_t]$包含5个关节位置、速度和平面物体状态，动作$a_t\in\mathbb R^5$。
+诊断给出锁定$d=(m,\bar q)$；未知8维物理上下文$z$由$K$条安全转移推断。
+D3从D1/D2/D4/D5训练支持中完全留出，并与未见连续物理组合。
+目标是在$H\in\{10,25,50\}$自主滚动中降低误差，同时对所有锁定坐标满足
+$q_t^j=\bar q^j,\dot q_t^j=0$，且不明显损害完整臂和已见锁定域。
+
+我们区分三类泛化：拓扑泛化留出锁定关节身份；物理泛化改变连续残差；组合泛化同时改变二者。
+校准轨迹与评估轨迹严格分离。
+
+\begin{figure*}[t]\centering
+\fbox{\parbox[c][34mm][c]{0.94\textwidth}{\centering
+\textbf{最终方法图占位}\\
+诊断 $\rightarrow$ 解析投影 $\rightarrow$ 接触感知机器人模块 $\rightarrow$ 推子FK\\
+安全转移 $\rightarrow$ 8维上下文 $\rightarrow$ 中心化支持门 $+$ 深度风险\\
+共享物体基座 $\oplus$ 几何残差 $\oplus$ latent干预 $\rightarrow$ 自主滚动}}
+\caption{\method{}概览。完整臂和已见锁定关闭干预残差，停止梯度保护冻结机器人模块。}
+\end{figure*}
+
+\section{方法}
+\subsection{解析损伤投影}
+\begin{align}
+\Pi_d(q)_j&=(1-m_j)q_j+m_j\bar q_j,\\
+\Pi_d(\dot q)_j&=(1-m_j)\dot q_j,\quad
+\Pi_d(a)_j=(1-m_j)a_j.
+\end{align}
+每步预测前后均执行投影，因此可行性不依赖网络权重或惩罚项。
+
+\subsection{接触感知块坐标基座}
+循环机器人模块从投影状态、动作和当前接触/物体上下文预测自由关节。
+删除接触输入会破坏长时自由关节预测，因此保留该反馈。
+正运动学把投影机器人滚动转为推子几何；共享物体基座接收停止梯度的机器人特征，物体损失不会重写冻结机器人模块。
+机器人和物体基座来自相同种子的强共享checkpoint，只训练紧凑桥接与干预模块。
+“块坐标”描述优化边界，不代表严格单向物理因果。
+
+\subsection{支持感知干预残差}
+对训练锁定支持集$\mathcal S$，
+\[
+\nu(d)=\mathbb1[m\notin\mathcal S]\mathbb1[\lVert m\rVert_1>0].
+\]
+第二项强制完整臂旁路。物体预测为
+\[
+\hat o_{t+1}=f_o(o_t,\mathrm{sg}(h^r_{t+1}))
++\nu(d)\alpha_t(z)(r_g+r_\ell).
+\]
+$r_g$使用推子位置、预测位移、相对物体位移和连续接触门；$r_\ell$建模该显式表示之外的低秩残差。
+bridge aligner将冻结机器人特征映射到共享物体头的坐标系。
+leave-one-intervention-out训练把每个已见锁定当作伪未见，训练中从不使用D3。
+
+\subsection{可观测上下文与滚动风险}
+amortized posterior仅从state/action转移推断8维物理上下文，不读取仿真特权参数。
+冻结规则使用K25和1.38缩放。中心化
+\[
+g(z)=h(z)-h(0)
+\]
+保证任意门控训练后K0仍精确恢复基座。
+前8步残差为零，之后以$\rho(t)=0.06\max(0,t-8)$渐增并保持有界。
+conformal interval校准的是上下文估计误差，不是滚动失败概率；更新安全由成对support validation和回退负责。
+
+\subsection{训练与部署}
+冻结基座后优化
+\[
+\mathcal L=\sum_{H\in\mathcal H}w_H(\lambda_q\mathcal L_q^H+
+\lambda_o\mathcal L_o^H+\lambda_p\mathcal L_p^H)
++\lambda_T\mathcal L_o^{H_{\max}}.
+\]
+终点风险项显式暴露平均深度损失可能掩盖的H50发散。
+部署依次完成诊断与投影、收集一条25步嵌套安全序列、推断上下文、以相同预算拟合两种rank-8 adapter、执行支持验证、在每步滚动应用投影和冻结深度规则。
+部署过程不读取domain label、仿真参数或测试轨迹。
+
+\section{实验}
+\subsection{协议、公平性和指标}
+训练包含D1/D2/D4/D5以及摩擦、回差、电机强度、延迟和负载变化；评估把D3与未见物理组合。
+所有对比使用相同初始状态与动作。
+主baseline为共享循环模型$+$解析投影$+$独立匹配rank-8 adapter，并获得相同K25支持数据、优化器和预算。
+
+free-joint RMSE排除固定坐标，object RMSE是核心损伤域指标，pusher RMSE反映任务空间传播。
+改善率为
+\[
+100(\mathrm{RMSE}_{shared}-\mathrm{RMSE}_{ours})/\mathrm{RMSE}_{shared}.
+\]
+冻结门槛为：每个object单元至少2\%改善、free变化在5\%内、锁定违例为零、控制域处于实用容差。
+
+\begin{table}[t]\centering
+\caption{相对匹配baseline的object RMSE改善（\%）。}
+\begin{tabular}{ccrrr}\toprule
+种子&域&H10&H25&H50\\\midrule
+7&composition&12.27&5.33&37.84\\
+7&mixed-unseen&15.89&32.50&36.60\\
+17&composition&6.53&13.54&12.52\\
+17&mixed-unseen&9.10&15.50&2.95\\
+27&composition&7.62&2.04&18.98\\
+27&mixed-unseen&9.19&2.85&2.58\\\bottomrule
+\end{tabular}
+\end{table}
+
+18个单元全部超过2\%，最小确认值2.0430\%。
+seed27只在规则冻结后开启。三种子不足以支持总体显著性主张，因此逐格报告并仅主张冻结协议下方向一致。
+早期projected-only比较有一个1.9579\%近失；最终结果来自消除adapter协议不匹配，不是四舍五入或重新调参。
+
+\begin{table}[t]\centering
+\caption{安全与控制检查。}
+\begin{tabular}{lc}\toprule
+检查&最坏差异\\\midrule
+完整臂/D2/D4 object&1.72\%绝对差\\
+free-joint&处于5\%区间\\
+IID pusher&1.081 mm\\
+锁定坐标违例&0\\
+上下文conformal MACE&0.0289\\\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{消融与长时机制}
+\begin{table}[t]\centering
+\caption{seed17 D3 mixed-unseen object改善（\%）。}
+\begin{tabular}{lrrr}\toprule
+变体&H10&H25&H50\\\midrule
+完整模型&9.10&15.50&2.95\\
+无geometry&4.57&12.36&1.17\\
+无latent&3.54&2.50&3.32\\
+无intervention&0.01&0.09&0.41\\
+无depth risk&3.14&13.98&-3.86\\\bottomrule
+\end{tabular}
+\end{table}
+
+去掉干预后收益最多0.41\%；composition中去geometry使H10从6.53\%降到0.08\%。
+去掉最终投影产生非零锁定误差。
+K0在seed17 H50相对baseline为$-122.55/-96.62\%$；有K25上下文但无深度风险时为$+27.57/-3.86\%$；完整K25为$+12.52/+2.95\%$。
+深度规则牺牲部分均值收益，换取所有冻结单元为正。我们不主张K单调性。
+
+\subsection{复现与有效性威胁}
+冻结YAML定义种子、数据切分、adapter和门控；逐行paired rollout和JSON支撑全部汇总。
+证据冻结时测试为244 passed。两方法复用相同MuJoCo缓存。
+seed7/17是开发种子，seed27是确认种子。共享与本文模型分别训练匹配adapter，因此控制域是实用等价而非逐位相同。
+预测RMSE不能代替真实任务成功率；相对pusher差异的小分母问题通过同时报告毫米绝对值处理。
+
+\section{真机协议}
+\todo{替换为一张带坐标标注的ST3215机械臂、眼在手上摄像头和物块照片。}
+冻结协议为10 Hz、完整臂/D2/D3、K=0/5/10/25、每条件3次重复。
+温度50$^\circ$C、电流raw 400、锁定漂移3.5$^\circ$或视觉/反馈过期触发停止。
+G0已经测得舵机零位、方向、5$^\circ$/s限速、连杆尺寸和急停路径；D2/D3/D4锁定累计78次、687秒，最终干净实验最大漂移0.79$^\circ$，最大反向回差3.08$^\circ$。
+
+正式实验使用带视觉标记的刚性物块。完整臂检查坐标对齐，D2测试已见干预，D3测试未见干预。
+校准和测试push严格分离。主要指标为D3 K25的H10/H25 object RMSE；次要指标为pusher/free RMSE、成功率、适配时间、温度、电流、漂移和abort。
+所有失败/中止保留，1.38缩放、8步grace和0.06 ramp不在真机结果上调节。
+
+\begin{table}[t]\centering
+\caption{\todo{填写完整臂/D2/D3每次真机推动结果。}}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrr}\toprule
+锁定&方法&Obj.H10&Obj.H25&成功率\\\midrule
+完整臂&Shared/本文&--&--&--\\
+D2&Shared/本文&--&--&--\\
+D3&Shared/本文&--&--&--\\\bottomrule
+\end{tabular}
+\end{table}
+
+\section{局限与结论}
+当前证据是预测证据，不是闭环控制收益。方法假设诊断提供锁定身份和角度；接触感知机器人模块不支持严格三角因果表述；conformal coverage不等于滚动风险概率；实验限于单关节锁定和平面推动。
+三种子证明一致性但不是广泛总体统计。
+
+在这些边界内，\method{}在严格公平协议下改善所有未见D3核心单元，同时保持解析零违例、控制域等价和可逆回退。
+核心结论不是对共享模型的普适全面领先，而是在未见损伤干预上的选择性提升。
+\todo{补充真机D3效果、失败模式与最终sim-to-real结论。}
+
+\end{document}
