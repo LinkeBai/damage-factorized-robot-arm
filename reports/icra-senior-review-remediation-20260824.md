@@ -64,6 +64,8 @@
 
 真机pushing需要实体物块、相机标定和机械臂执行。未采集前，稿件只能保留预注册协议和G0 readiness，不能填写表8、成功率或sim-to-real结论。
 
+2026-08-24只读readiness audit未发送任何运动命令，结果为`ready_for_low_amplitude_smoke=false`：硬件配置文件通过，OpenCV ArUco可用；当前未检测到预期COM3，且缺少`eye_in_hand_aruco_calibrated.yaml`和实时视觉位姿文件。对应机器可读结果保存在`runs/real_bt_dpwm_z70/readiness_20260824.json`。因此安全门明确禁止启动真机运动。
+
 ## 第二轮完成性自审
 
 - 原审查文件128行已再次逐行对照；F1--F6、CE1--CE5、N1--N3、C1、W1--W4和P5均在上表有唯一映射；
