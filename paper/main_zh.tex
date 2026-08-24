@@ -1,6 +1,9 @@
 \documentclass[UTF8,a4paper,10pt,twocolumn]{ctexart}
 \usepackage[margin=1.7cm]{geometry}
 \usepackage{amsmath,amssymb,booktabs,graphicx,xcolor}
+\usepackage{tikz,pgfplots}
+\usetikzlibrary{positioning,fit,arrows.meta}
+\pgfplotsset{compat=1.18}
 \setlength{\columnsep}{0.65cm}
 \newcommand{\method}{PC-RR-IPWM}
 \newcommand{\todo}[1]{\textcolor{red}{【真机待补：#1】}}
@@ -71,12 +74,32 @@ $q_t^j=\bar q^j,\dot q_t^j=0$，且不明显损害完整臂和已见锁定域。
 校准轨迹与评估轨迹严格分离。
 
 \begin{figure*}[t]\centering
-\fbox{\parbox[c][34mm][c]{0.94\textwidth}{\centering
-\textbf{最终方法图占位}\\
-诊断 $\rightarrow$ 解析投影 $\rightarrow$ 接触感知机器人模块 $\rightarrow$ 推子FK\\
-安全转移 $\rightarrow$ 8维上下文 $\rightarrow$ 中心化支持门 $+$ 深度风险\\
-共享物体基座 $\oplus$ 几何残差 $\oplus$ latent干预 $\rightarrow$ 自主滚动}}
-\caption{\method{}概览。完整臂和已见锁定关闭干预残差，停止梯度保护冻结机器人模块。}
+\begin{tikzpicture}[font=\footnotesize,>=Latex,node distance=5mm and 6.5mm,
+ box/.style={draw,rounded corners,align=center,minimum height=9mm,
+ minimum width=22.5mm,fill=blue!6},
+ fixed/.style={box,fill=gray!12}, learned/.style={box,fill=orange!12},
+ gate/.style={box,fill=green!12}, arr/.style={->,thick}]
+\node[fixed] (diag) {故障诊断\\$(m,\bar q)$};
+\node[fixed,right=of diag] (proj) {解析投影\\$\Pi_d$};
+\node[learned,right=of proj] (robot) {冻结接触感知\\机器人转移};
+\node[fixed,right=of robot] (fk) {推子FK\\与接触几何};
+\node[learned,right=of fk] (obj) {共享物体基座\\$+$干预残差};
+\node[fixed,right=of obj] (out) {投影后\\自主滚动};
+\node[fixed,below=12mm of proj] (support) {$K$条安全\\转移};
+\node[learned,right=of support] (post) {8维可观测\\上下文后验};
+\node[gate,right=of post] (cg) {中心化门控\\$h(z)-h(0)$};
+\node[gate,right=of cg] (route) {支持路由\\$+$深度风险};
+\draw[arr] (diag)--(proj); \draw[arr] (proj)--(robot);
+\draw[arr] (robot)--(fk); \draw[arr] (fk)--(obj); \draw[arr] (obj)--(out);
+\draw[arr] (support)--(post); \draw[arr] (post)--(cg);
+\draw[arr] (cg)--(route); \draw[arr] (route)--(obj);
+\draw[arr,dashed] (robot) to[bend right=18]
+ node[below,align=center]{停止梯度桥接} (obj);
+\node[draw,dashed,rounded corners,fit=(fk)(obj)(route),inner sep=3mm,
+ label=above:{支持感知机器人到物体修正}] {};
+\end{tikzpicture}
+\caption{\method{}部署图。已知损伤由解析投影强制满足；上下文门控的几何与潜变量残差只在训练干预支持之外启用，K0精确恢复基座。}
+\label{fig:overview-zh}
 \end{figure*}
 
 \section{方法}
@@ -130,6 +153,28 @@ conformal interval校准的是上下文估计误差，不是滚动失败概率�
 部署依次完成诊断与投影、收集一条25步嵌套安全序列、推断上下文、以相同预算拟合两种rank-8 adapter、执行支持验证、在每步滚动应用投影和冻结深度规则。
 部署过程不读取domain label、仿真参数或测试轨迹。
 
+\subsection{设计依据与冻结推理}
+四类负结果共同约束了最终架构：拓扑条件化的整体模型未能稳定超过容量匹配的共享模型；潜变量优化与history/FiLM残差没有带来稳定少样本收益；独立机器人/物体分解在参数和计算匹配下失败；从机器人转移删除物体/接触输入又会恶化长时自由关节预测。因此，最终方法围绕最强接触感知共享基座，仅加入窄干预残差。
+
+支持路由阻止残差重新学习通用物体动力学并损害完整臂或已见锁定。部署固定为：诊断和投影；采集一条嵌套的25转移安全序列；推断上下文；用相同预算拟合rank-8适配器；经支持验证接受或回退；每个滚动步执行投影和冻结深度调度。两种方法不允许获得额外交互。
+
+\begin{table}[t]\centering
+\caption{冻结组件与部署权限。}
+\begin{tabular}{lll}\toprule
+组件&来源&部署状态\\\midrule
+机器人模块&shared/Z69&冻结\\
+解析投影&诊断&固定\\
+物体基座&shared&冻结\\
+桥接对齐器&元训练&冻结\\
+几何残差&元训练&上下文门控\\
+潜变量残差&元训练&上下文门控\\
+上下文后验&Z65&仅推理\\
+rank-8适配器&匹配支持集&优化\\\bottomrule
+\end{tabular}\end{table}
+
+\subsection{实现细节}
+机器人模块和baseline隐层宽度均为136；几何残差秩16，潜变量干预秩32，上下文调制秩16。上下文编码器隐层宽度96，输出8维均值及不确定度。残差训练冻结机器人模块，物体模块训练60个epoch，最终上下文门学习率为$3\times10^{-3}$，滚动长度50，每2个epoch验证一次，group-robust权重0.5，H50终点权重5.0。匹配在线适配器执行12步优化，初始步长0.2，最多8次以0.5回溯，trust radius为0.5，$\ell_2$系数为$10^{-3}$。这些值跨种子共享，并在确认实验前冻结。
+
 \section{实验}
 \subsection{协议、公平性和指标}
 训练包含D1/D2/D4/D5以及摩擦、回差、电机强度、延迟和负载变化；评估把D3与未见物理组合。
@@ -142,6 +187,18 @@ free-joint RMSE排除固定坐标，object RMSE是核心损伤域指标，pusher
 100(\mathrm{RMSE}_{shared}-\mathrm{RMSE}_{ours})/\mathrm{RMSE}_{shared}.
 \]
 冻结门槛为：每个object单元至少2\%改善、free变化在5\%内、锁定违例为零、控制域处于实用容差。
+
+\begin{table}[t]\centering
+\caption{评估维度及其证据作用。}
+\begin{tabular}{lll}\toprule
+维度&设置&检验问题\\\midrule
+拓扑&D3留出&未见锁定？\\
+物理&留出组合&未知残差？\\
+预算&K0/K25&适配作用？\\
+深度&H10/25/50&长时稳定？\\
+控制&完整臂/D2/D4&负迁移？\\
+种子&7/17/27&规则一致？\\\bottomrule
+\end{tabular}\end{table}
 
 \begin{table}[t]\centering
 \caption{相对匹配baseline的object RMSE改善（\%）。}
@@ -172,7 +229,42 @@ IID pusher&1.081 mm\\
 \end{tabular}
 \end{table}
 
-\subsection{消融与长时机制}
+\subsection{确认与解释}
+seed27在seed7/17冻结缩放、grace和深度ramp之后才开启。其6个确认单元全部超过2\%，最小值为2.0430\%。三个种子不足以支持总体统计显著性，因此本文报告所有单元，仅主张冻结协议下的方向一致性。
+
+早期projected-only比较曾出现1.9579\%的近失单元。它作为开发失败记录保留，但被严格的匹配适配器判定取代；最终结果既非四舍五入，也没有针对确认种子重新调参。
+
+\subsection{K25为何修复长时滚动}
+\begin{table}[t]\centering
+\caption{seed17相对匹配shared的H50改善（\%）。}
+\begin{tabular}{lrr}\toprule
+变体&composition&mixed-unseen\\\midrule
+K0匹配适配器&-122.55&-96.62\\
+K25，无深度风险&27.57&-3.86\\
+完整K25&12.52&2.95\\\bottomrule
+\end{tabular}\end{table}
+
+\begin{figure}[t]\centering
+\begin{tikzpicture}
+\begin{axis}[
+ width=0.98\columnwidth,height=48mm,
+ ybar,bar width=7pt,ymin=-130,ymax=40,
+ ylabel={H50改善（\%）},
+ symbolic x coords={K0,K25-no-risk,Full-K25},
+ xtick=data,x tick label style={rotate=18,anchor=east,font=\scriptsize},
+ legend style={font=\scriptsize,at={(0.5,1.02)},anchor=south,legend columns=2},
+ grid=major]
+\addplot coordinates {(K0,-122.55) (K25-no-risk,27.57) (Full-K25,12.52)};
+\addplot coordinates {(K0,-96.62) (K25-no-risk,-3.86) (Full-K25,2.95)};
+\legend{composition,mixed-unseen}
+\end{axis}
+\end{tikzpicture}
+\caption{seed17长时机制。上下文扭转K0灾难性漂移；深度风险牺牲峰值收益，换取冻结门控下所有单元为正。}
+\end{figure}
+
+上下文修复composition失败，但无深度风险时仍在一个mixed-unseen滚动上过冲。冻结门控追求逐单元可靠性而非最大平均收益；K5/K10/K50曲线可提供辅助证据，但并不单调。
+
+\subsection{消融}
 \begin{table}[t]\centering
 \caption{seed17 D3 mixed-unseen object改善（\%）。}
 \begin{tabular}{lrrr}\toprule
@@ -190,11 +282,13 @@ IID pusher&1.081 mm\\
 K0在seed17 H50相对baseline为$-122.55/-96.62\%$；有K25上下文但无深度风险时为$+27.57/-3.86\%$；完整K25为$+12.52/+2.95\%$。
 深度规则牺牲部分均值收益，换取所有冻结单元为正。我们不主张K单调性。
 
-\subsection{复现与有效性威胁}
+\subsection{复现、主张边界与有效性威胁}
 冻结YAML定义种子、数据切分、adapter和门控；逐行paired rollout和JSON支撑全部汇总。
 证据冻结时测试为244 passed。两方法复用相同MuJoCo缓存。
 seed7/17是开发种子，seed27是确认种子。共享与本文模型分别训练匹配adapter，因此控制域是实用等价而非逐位相同。
 预测RMSE不能代替真实任务成功率；相对pusher差异的小分母问题通过同时报告毫米绝对值处理。
+
+可支持的主张为：解析投影保证零锁定违例；完整K25在全部主要留出object单元超过匹配baseline；支持路由将控制域维持在冻结容差内；消融显示各组件具有互补作用。现有证据不支持总体显著性、K单调性或滚动失败概率已校准等主张。GPU PyTorch承担训练，MuJoCo采集与Python滚动仍是主要串行耗时；配置哈希、checkpoint身份和计时元数据随运行保存。
 
 \section{真机协议}
 \todo{替换为一张带坐标标注的ST3215机械臂、眼在手上摄像头和物块照片。}
@@ -205,6 +299,19 @@ G0已经测得舵机零位、方向、5$^\circ$/s限速、连杆尺寸和急停�
 正式实验使用带视觉标记的刚性物块。完整臂检查坐标对齐，D2测试已见干预，D3测试未见干预。
 校准和测试push严格分离。主要指标为D3 K25的H10/H25 object RMSE；次要指标为pusher/free RMSE、成功率、适配时间、温度、电流、漂移和abort。
 所有失败/中止保留，1.38缩放、8步grace和0.06 ramp不在真机结果上调节。
+
+\begin{figure}[t]\centering
+\fbox{\parbox[c][32mm][c]{0.92\columnwidth}{\centering
+\textbf{真机图片待补}\\
+ST3215机械臂 $+$ 眼在手上摄像头 $+$ 标记物块\\
+D2/D3锁定及桌面/世界坐标系}}
+\caption{真机装置。\todo{替换为一张带标注的照片与标定插图。}}
+\end{figure}
+
+摄像头在固定桌面坐标系中提供物体位姿；舵机电流仅作为安全信号，不解释为经过标定的力。若H50滚动离开视觉或安全工作区，则记为不可行，不能事后缩短。每次实验重置物块，测试动作与标定动作分离，并保留逐次结果及bootstrap区间。
+
+\subsection{预期真机失败模式}
+眼在手上视角可能在接触时遮挡物块，过期位姿将触发中止而不插值。回差可能在编码器漂移很小时造成推子任务空间误差，因此两者都需报告。软件保持锁定可能在不运动时持续耗流，故温度和电流停止条件独立于预测误差。桌面摩擦也可能超出仿真随机化范围，适配器仍必须通过支持验证；通信丢失则顺序卸载力矩，并作为中止保留在日志中。
 
 \begin{table}[t]\centering
 \caption{\todo{填写完整臂/D2/D3每次真机推动结果。}}
@@ -225,4 +332,8 @@ D3&Shared/本文&--&--&--\\\bottomrule
 核心结论不是对共享模型的普适全面领先，而是在未见损伤干预上的选择性提升。
 \todo{补充真机D3效果、失败模式与最终sim-to-real结论。}
 
+\renewcommand{\refname}{参考文献}
+\nocite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
 \end{document}
