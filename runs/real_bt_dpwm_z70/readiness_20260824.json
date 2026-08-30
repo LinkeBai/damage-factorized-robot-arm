@@ -1,0 +1,26 @@
+{
+  "ready_for_low_amplitude_smoke": false,
+  "motion_executed": false,
+  "checks": {
+    "hardware_configuration": {
+      "ok": true,
+      "detail": "present"
+    },
+    "servo_serial": {
+      "ok": false,
+      "detail": "{'detected': [], 'expected': 'COM3'}"
+    },
+    "opencv_aruco": {
+      "ok": true,
+      "detail": "5.0.0"
+    },
+    "camera_calibration": {
+      "ok": false,
+      "detail": "missing config\\deployment\\eye_in_hand_aruco_calibrated.yaml"
+    },
+    "live_vision_pose": {
+      "ok": false,
+      "detail": "missing runs\\real_bt_dpwm_z70\\live_vision_pose.json"
+    }
+  }
+}

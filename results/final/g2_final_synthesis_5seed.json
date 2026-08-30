@@ -1,0 +1,140 @@
+{
+  "generated_from_frozen_artifacts": true,
+  "date": "2026-08-21",
+  "seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "protocol_sha256": "bfb43ff804f91b538efdcd7c8a22bf5812de901b344d8603afad88eddfe73055",
+  "primary_conclusion": "Ordinary ensemble averaging and selective rejection are supported; a distinct G2 topology-conditioning advantage is not supported.",
+  "prediction": {
+    "g1_corrected_ensemble_vs_parameter_matched": {
+      "mean": 30.7391,
+      "bootstrap_95_ci": [
+        15.0592,
+        42.6161
+      ],
+      "positive_seeds": 5
+    },
+    "g2_structured_vs_ordinary": {
+      "mean_improvement_pct": 2.4701700994631404,
+      "bootstrap_95_ci": [
+        -1.8278564635362486,
+        6.378296602844483
+      ],
+      "positive_seeds": 4,
+      "decision": "NO DISTINCT STRUCTURED ADVANTAGE"
+    },
+    "heldout_d3": {
+      "mean_improvement_pct": 0.019859411990284136,
+      "bootstrap_95_ci": [
+        -3.37645245681304,
+        3.700576032954565
+      ],
+      "positive_seeds": 2,
+      "decision": "NO HELD-OUT TOPOLOGY ADVANTAGE"
+    },
+    "member_ablation_d3": {
+      "one_member_rmse": 0.6782755494117737,
+      "three_member_rmse": 0.4507167160511017,
+      "three_vs_one_improvement_pct": 33.549614689490085
+    }
+  },
+  "uncertainty": {
+    "coverage_70": {
+      "coverage": 0.7,
+      "n_seeds": 5,
+      "mean_rmse": 0.31015572571771866,
+      "std_rmse": 0.04848767106108778,
+      "mean_reduction_pct": 30.95605317098594,
+      "std_reduction_pct": 2.925290724504397
+    },
+    "coverage_50": {
+      "coverage": 0.5,
+      "n_seeds": 5,
+      "mean_rmse": 0.2218462257019481,
+      "std_rmse": 0.03184391001978629,
+      "mean_reduction_pct": 50.5040275252541,
+      "std_reduction_pct": 2.975191545838304
+    },
+    "all_seeds_coverage_curve_monotone": true,
+    "global_spearman": {
+      "values": {
+        "7": 0.9046458724843316,
+        "17": 0.9577979924920847,
+        "27": 0.9108272550540021,
+        "37": 0.9270400528653717,
+        "47": 0.9730873931320118
+      },
+      "mean": 0.9346797132055604,
+      "std": 0.029744497276622064
+    },
+    "depth_stratified_spearman": {
+      "values": {
+        "7": 0.3813934815383406,
+        "17": 0.7555760402036794,
+        "27": 0.778033509097019,
+        "37": 0.6585528034483663,
+        "47": 0.7980644646626083
+      },
+      "mean": 0.6743240597900027,
+      "std": 0.1722833989363109
+    },
+    "decision": "USE FOR SELECTIVE PREDICTION WITH DEPTH-CONFOUND CAVEAT"
+  },
+  "compute": {
+    "structured_ensemble": {
+      "parameters": 450906,
+      "train_seconds_mean": 97.04254098000237,
+      "train_seconds_std": 14.450126620083223,
+      "train_seconds_per_seed": {
+        "7": 122.50629269998171,
+        "17": 86.88265990000218,
+        "27": 90.04662990002544,
+        "37": 92.61936399998376,
+        "47": 93.15775840001879
+      }
+    },
+    "ordinary_deep_ensemble": {
+      "parameters": 450906,
+      "train_seconds_mean": 87.60512949999539,
+      "train_seconds_std": 3.8337824271052416,
+      "train_seconds_per_seed": {
+        "7": 94.02473840001039,
+        "17": 86.46879149999586,
+        "27": 86.49897839999176,
+        "37": 83.73595549998572,
+        "47": 87.29718369999318
+      }
+    }
+  },
+  "structural_branch": {
+    "ft_gwm_k0": "PASS: exact fixed-SE(3) kinematics",
+    "ft_gwm_k1": "TWO-SEED PROVISIONAL PASS: zero violation and <=5% D3 free-arm regression",
+    "ft_gwm_k2": "NO-GO: object +986.08%, free-arm +22.11% versus object-aware baseline"
+  },
+  "claim_boundary": {
+    "supported": [
+      "Three-member ordinary ensemble improves prediction over one member.",
+      "Ensemble disagreement supports a coverage-accuracy tradeoff on the evaluated rollout mixture.",
+      "FT-GWM K1 provides exact lock satisfaction with provisional free-joint fidelity."
+    ],
+    "not_supported": [
+      "Topology conditioning outperforms an ordinary deep ensemble.",
+      "Uncertainty is fully instance-calibrated at fixed rollout depth.",
+      "FT-GWM is a complete Push object/contact world model.",
+      "Prediction gains produce statistically established control gains."
+    ]
+  },
+  "source_artifacts": [
+    "results/final/g1_robust_zero_shot_5seed_summary.json",
+    "results/final/g2_structured_vs_ordinary_5seed.json",
+    "results/final/g2_heldout_topology_5seed.json",
+    "results/final/g2_member_ablation_5seed.json",
+    "results/analysis/selective_prediction_5seed.json",
+    "results/analysis/depth_stratified_calibration_5seed.json"
+  ]
+}

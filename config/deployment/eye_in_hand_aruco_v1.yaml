@@ -1,0 +1,13 @@
+version: eye_in_hand_aruco_v1
+camera_index: 0
+aruco_dictionary: DICT_4X4_50
+reference_marker_id: 0
+object_marker_id: 1
+marker_size_m: null  # REQUIRED: measured printed black-square side length
+camera_matrix: null  # REQUIRED: calibrated 3x3 matrix
+distortion_coefficients: null  # REQUIRED: calibrated vector (often length 5)
+planar_axes: [0, 1]
+planar_signs: [1.0, 1.0]
+velocity_smoothing: 0.65
+maximum_detection_gap_s: 0.5
+output_file: runs/real_bt_dpwm_z70/live_vision_pose.json

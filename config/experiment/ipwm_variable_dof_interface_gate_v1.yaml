@@ -1,0 +1,26 @@
+experiment: ipwm_variable_dof_interface_gate_v1
+status: passed_interface_only
+robots:
+  genkiarm:
+    dof: 5
+    model: sim/assets/genkiarm_push.xml
+  panda:
+    dof: 7
+    model: sim/assets/panda_push_grasp.xml
+requirements:
+  one_shared_parameter_set: true
+  exact_locked_position_and_velocity_projection: true
+  invalid_padding_has_zero_effect_on_valid_nodes: true
+  no_joint_dropping: true
+  no_robot_identity_embedding: true
+  no_per_robot_transition_head: true
+promotion_rule: >-
+  Passing proves only that the original analytic-intervention/shared-chain
+  mechanism has a valid cross-DoF interface. It does not prove prediction,
+  control, task, or cross-robot generalization and does not raise paper score.
+result:
+  same_parameter_instance_accepts_5_and_7_dof: true
+  exact_lock_projection: true
+  padding_invariance_atol: 1.0e-7
+  full_joint_sets_used: true
+  decision: interface_pass_prediction_unproven

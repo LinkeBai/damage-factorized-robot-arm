@@ -53,9 +53,11 @@ def test_g1_mechanism_minimal_train_and_few_shot_eval():
         latent_steps=2,
         device=torch.device("cpu"),
     )
-    assert len(rows) == 8
+    assert len(rows) == 12
     assert {row["model"] for row in rows} == {
         "topology_only",
+        "history_encoder",
+        "parameter_matched",
         "residual_only",
         "monolithic_matched",
         "dfwm",

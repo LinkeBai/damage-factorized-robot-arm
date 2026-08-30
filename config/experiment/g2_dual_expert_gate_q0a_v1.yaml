@@ -1,0 +1,22 @@
+version: g2_dual_expert_gate_q0a_v1
+status: frozen_2026-08-21
+protocol: config/splits/g2_topology_leave_one_joint_out_v1.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+seeds: [7, 17]
+extension_seeds: [27, 37, 47]  # train identical frozen experts for Q0-B only
+ordinary_members: 3
+ordinary_epochs: 20
+ft_epochs: 60
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_test_domain: 3
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+goal_exploration_std: 0.08
+hidden_dim: 128
+ft_learning_rate: 0.001
+primary_domain: D3__mixed_composition
+gate:
+  maximum_object_rmse_regression_pct: 2.0
+  maximum_free_arm_rmse_regression_pct: 5.0
+  maximum_constraint_violation_rms: 1.0e-7

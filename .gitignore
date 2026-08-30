@@ -6,6 +6,7 @@ __pycache__/
 build/
 dist/
 .venv/
+.venv-cuda/
 venv/
 .pytest_cache/
 
@@ -19,6 +20,7 @@ datasets/
 checkpoints/
 results/*
 !results/final/
+output/
 *.jsonl
 *.npz
 *.npy
@@ -33,11 +35,21 @@ external/*
 .idea/
 .DS_Store
 Thumbs.db
+Microsoft/Windows/PowerShell/ModuleAnalysisCache
 
 # Logs and caches
 *.log
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.xdv
 tmp/
 .cache/
+
+# Local reference checkout; the authoritative project is this repository.
+ponytail-main/
 
 # Credentials
 *.pem

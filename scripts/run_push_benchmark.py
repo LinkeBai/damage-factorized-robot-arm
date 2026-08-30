@@ -1,0 +1,526 @@
+"""Push-task prediction benchmark: does DFWM recover its advantage?
+
+Push (contact dynamics) makes residual physics (friction, actuator loss,
+backlash) affect the state far more than free-space Reach. This script reuses
+the DFWM training/eval machinery but collects trajectories with the block-aware
+arm_push.xml environment, so the state is 14-D (5 qpos + 5 qvel + block pos/vel).
+
+The hypothesis: with a harder residual channel, factorizing topology vs residual
+shows a real prediction advantage over topology-only.
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+import numpy as np
+import torch
+
+from robotarm.envs.mujoco_env import MujocoArmEnv
+from robotarm.training.g1_mechanism import (
+    encode_damage_batch,
+    evaluate_test_domain,
+    residual_descriptor,
+    train_mechanism_models,
+)
+from robotarm.models.residual_correction import ResidualCorrection
+from robotarm.models.residual_film import ResidualFiLMWorldModel
+from robotarm.training.residual_correction import correction_metrics, train_residual_correction
+from robotarm.training.residual_film import residual_film_metrics, train_residual_film
+from robotarm.training.sim_data import SimTrajectory
+from robotarm.training.sim_protocol import build_g1_protocol, DomainSpec
+from robotarm.training.sim_protocol import load_g1_protocol
+from robotarm.training.target_split import load_target_split
+from robotarm.training.controllers import solve_reach_reference, joint_reference_action
+
+PUSH_XML = "sim/assets/arm_push.xml"
+PUSH_WAYPOINT_OFFSET = np.array([0.03, 0.0, 0.0])
+
+
+def active_probe_action(step: int, sequence_index: int) -> np.ndarray:
+    """Deterministic, complementary excitation for residual identification."""
+    active_joint = (sequence_index + step // 20) % 5
+    sign = 1.0 if ((step // 10) + sequence_index) % 2 == 0 else -1.0
+    action = np.zeros(5, dtype=np.float64)
+    action[active_joint] = 0.7 * sign
+    action[(active_joint + 2) % 5] = 0.25 * np.sin(
+        2.0 * np.pi * step / (25.0 + 5.0 * sequence_index)
+    )
+    return action
+
+
+def collect_push_trajectory(
+    domain: DomainSpec,
+    *,
+    steps: int,
+    seed: int,
+    target: np.ndarray,
+    excitation: str = "random",
+    goal_exploration_std: float = 0.0,
+    sequence_index: int = 0,
+    block_initial_xy: np.ndarray | None = None,
+    xml_path: str | Path = PUSH_XML,
+) -> SimTrajectory:
+    env = MujocoArmEnv(
+        xml_path=xml_path,
+        residual_physics=domain.residual,
+        block_initial_xy=block_initial_xy,
+    )
+    obs = env.reset(target=target, damage_config=domain.damage)
+    rng = np.random.default_rng(seed)
+    action = np.zeros(5, dtype=np.float64)
+    goal_noise = np.zeros(5, dtype=np.float64)
+    states = [obs["state"].copy()]
+    commanded: list[np.ndarray] = []
+    applied: list[np.ndarray] = []
+    contacts: list[bool] = []
+    contact_impulses: list[np.ndarray] = []
+    table_impulses: list[np.ndarray] = []
+    contact_records: list[list[dict[str, object]]] = []
+    contact_steps = 0
+    initial_block = env.block_pos().copy()
+    try:
+        env.model.geom("tool_geom")
+        tool_geom = "tool_geom"
+        pusher_geom = "pusher_geom"
+    except KeyError:
+        tool_geom = "tool_collision"
+        pusher_geom = "pusher_collision"
+    locked = {i: domain.damage.lock_angle_of(i) for i in domain.damage.locked}
+    approach_reference = push_reference = None
+    if excitation == "goal":
+        approach = np.array([initial_block[0] - 0.03, initial_block[1], 0.025])
+        approach_reference, _ = solve_reach_reference(
+            approach, env.joint_ranges, locked_joints=locked
+        )
+        push_reference, _ = solve_reach_reference(
+            target + PUSH_WAYPOINT_OFFSET,
+            env.joint_ranges,
+            locked_joints=locked,
+        )
+    for step in range(steps):
+        if excitation == "active":
+            # Complementary square-wave probes expose motor scale, damping,
+            # delay, deadband and reversal effects. K is nested over distinct
+            # phase/joint combinations instead of repeated random walks.
+            action = active_probe_action(step, sequence_index)
+        elif excitation == "random":
+            random_probe = rng.uniform(-0.45, 0.45, size=5)
+            action = 0.75 * action + 0.25 * random_probe
+        elif excitation == "goal":
+            reference = approach_reference if step < steps * 0.4 else push_reference
+            action = joint_reference_action(
+                states[-1][:10],
+                reference,
+                locked_joints=tuple(domain.damage.locked),
+            )
+            if goal_exploration_std > 0.0:
+                goal_noise = 0.8 * goal_noise + 0.2 * rng.normal(
+                    0.0, goal_exploration_std, size=5
+                )
+                action = np.clip(action + goal_noise, -1.0, 1.0)
+        else:
+            raise ValueError(f"unknown excitation mode: {excitation}")
+        action[domain.damage.locked] = 0.0
+        result = env.step(action)
+        commanded.append(action.copy())
+        applied.append(env.last_applied_action)
+        states.append(result["observation"]["state"].copy())
+        contact = (
+            env.last_has_contact(tool_geom, "block_geom")
+            or env.last_has_contact(pusher_geom, "block_geom")
+        )
+        contacts.append(contact)
+        contact_impulses.append(
+            env.contact_impulse_xy(tool_geom, "block_geom")
+            + env.contact_impulse_xy(pusher_geom, "block_geom")
+        )
+        table_impulses.append(env.contact_impulse_xy("table_geom", "block_geom"))
+        contact_records.append(
+            env.contact_records(tool_geom, "block_geom")
+            + env.contact_records(pusher_geom, "block_geom")
+        )
+        contact_steps += int(contact)
+    return SimTrajectory(
+        domain_id=domain.domain_id,
+        states=torch.as_tensor(np.stack(states), dtype=torch.float32),
+        actions=torch.as_tensor(np.stack(commanded), dtype=torch.float32),
+        applied_actions=torch.as_tensor(np.stack(applied), dtype=torch.float32),
+        contact_mask=torch.as_tensor(contacts, dtype=torch.bool),
+        contact_impulses=torch.as_tensor(np.stack(contact_impulses), dtype=torch.float32),
+        table_impulses=torch.as_tensor(np.stack(table_impulses), dtype=torch.float32),
+        contact_records=contact_records,
+        metadata={
+            "tool_block_contact_steps": contact_steps,
+            "block_displacement_m": float(np.linalg.norm(env.block_pos() - initial_block)),
+        },
+    )
+
+
+def collect_push_domains(
+    domains: tuple[DomainSpec, ...],
+    *,
+    trajectories_per_domain: int,
+    steps: int,
+    seed: int,
+    targets: tuple[np.ndarray, ...],
+    excitation: str = "random",
+    goal_exploration_std: float = 0.0,
+    block_initial_xy: np.ndarray | None = None,
+    xml_path: str | Path = PUSH_XML,
+) -> list[SimTrajectory]:
+    trajs = []
+    for di, domain in enumerate(domains):
+        for ti in range(trajectories_per_domain):
+            trajs.append(
+                collect_push_trajectory(
+                    domain,
+                    steps=steps,
+                    seed=seed + di * 1000 + ti,
+                    target=targets[(di + ti) % len(targets)],
+                    excitation=excitation,
+                    goal_exploration_std=goal_exploration_std,
+                    sequence_index=ti,
+                    block_initial_xy=block_initial_xy,
+                    xml_path=xml_path,
+                )
+            )
+    return trajs
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--seeds", type=str, default=None,
+                    help="Comma-separated seeds, e.g. 7,17,27,42,51")
+    ap.add_argument("--epochs", type=int, default=60)
+    ap.add_argument("--output-dir", type=Path, default=None)
+    ap.add_argument("--calibration-excitation", choices=("random", "active"), default="active")
+    ap.add_argument("--latent-steps", type=int, default=50)
+    ap.add_argument("--gate-only", action="store_true", help="Evaluate only topology-only and DFWM")
+    ap.add_argument("--latent-lr", type=float, default=0.01)
+    ap.add_argument("--latent-l2", type=float, default=0.1)
+    ap.add_argument("--latent-max-abs", type=float, default=1.0)
+    ap.add_argument("--latent-patience", type=int, default=5)
+    ap.add_argument("--train-active-probes", type=int, default=0)
+    ap.add_argument("--split", type=Path, default=Path("config/splits/g1_5dof_v1.yaml"))
+    ap.add_argument("--shots", type=str, default=None)
+    ap.add_argument("--train-excitation", choices=("random", "goal"), default="random")
+    ap.add_argument("--evaluation-excitation", choices=("random", "goal"), default="random")
+    ap.add_argument("--steps", type=int, default=100)
+    ap.add_argument("--block-initial-xy", type=str, default="0.24,0.10")
+    ap.add_argument("--target-split", type=Path, default=Path("config/splits/push_targets_5dof_v1.yaml"))
+    ap.add_argument("--residual-supervision-weight", type=float, default=0.0)
+    ap.add_argument("--residual-consistency-weight", type=float, default=0.0)
+    ap.add_argument("--history-supervision-weight", type=float, default=0.0)
+    ap.add_argument("--include-oracle", action="store_true")
+    ap.add_argument("--correction-oracle", action="store_true")
+    ap.add_argument("--correction-epochs", type=int, default=40)
+    ap.add_argument(
+        "--correction-sweep",
+        type=str,
+        default=None,
+        help="Comma-separated rollout_weight:delta_limit candidates",
+    )
+    ap.add_argument("--film-oracle", action="store_true")
+    ap.add_argument("--film-ranks", type=str, default="4,8,16")
+    ap.add_argument("--film-scales", type=str, default="0.1")
+    ap.add_argument("--film-epochs", type=int, default=12)
+    args = ap.parse_args()
+    seeds = tuple(int(s) for s in args.seeds.split(",")) if args.seeds else (args.seed,)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    output_dir = args.output_dir or Path("runs") / "g1_push_6methods_5seeds" / datetime.now().strftime("%Y%m%d-%H%M%S")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    results_path = output_dir / "push_results.csv"
+    manifest = {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "seeds": list(seeds),
+        "epochs": args.epochs,
+        "device": str(device),
+        "torch_version": torch.__version__,
+        "push_xml": PUSH_XML,
+        "methods": ["dfwm", "topology_only", "history_encoder", "parameter_matched", "monolithic_matched", "residual_only"],
+        "calibration_shots": [0, 1, 2, 5],
+        "calibration_excitation": args.calibration_excitation,
+        "latent_steps": args.latent_steps,
+        "gate_only": args.gate_only,
+        "latent_lr": args.latent_lr,
+        "latent_l2": args.latent_l2,
+        "latent_max_abs": args.latent_max_abs,
+        "latent_patience": args.latent_patience,
+        "train_active_probes": args.train_active_probes,
+        "split": str(args.split),
+        "shots": args.shots,
+        "train_excitation": args.train_excitation,
+        "evaluation_excitation": args.evaluation_excitation,
+        "steps": args.steps,
+        "target_split": str(args.target_split),
+        "residual_supervision_weight": args.residual_supervision_weight,
+        "residual_consistency_weight": args.residual_consistency_weight,
+        "history_supervision_weight": args.history_supervision_weight,
+        "include_oracle": args.include_oracle,
+        "correction_oracle": args.correction_oracle,
+        "correction_epochs": args.correction_epochs,
+        "correction_sweep": args.correction_sweep,
+        "film_oracle": args.film_oracle,
+        "film_ranks": args.film_ranks,
+        "film_scales": args.film_scales,
+        "film_epochs": args.film_epochs,
+    }
+    (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(f"Output: {output_dir}", flush=True)
+    probe = MujocoArmEnv(xml_path=PUSH_XML)
+    probe_obs = probe.reset(target=np.array([0.25, 0.15, 0.02]))
+    print(f"Push state dim: {probe_obs['state'].shape[0]}", flush=True)
+
+    all_rows = []
+    for seed in seeds:
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+        protocol = load_g1_protocol(args.split)
+        requested_shots = (
+            tuple(int(value) for value in args.shots.split(","))
+            if args.shots else protocol.calibration_shots
+        )
+        block_initial_xy = np.asarray(
+            [float(value) for value in args.block_initial_xy.split(",")],
+            dtype=np.float64,
+        )
+        split = load_target_split(args.target_split)
+        cal = tuple(t.as_array() for t in split.calibration)
+        targets = tuple(t.as_array() for t in split.evaluation)
+        ranges = MujocoArmEnv(xml_path=PUSH_XML).joint_ranges
+
+        train = collect_push_domains(
+            protocol.train, trajectories_per_domain=2, steps=args.steps,
+            seed=seed * 10_000, targets=cal,
+            excitation=args.train_excitation,
+            block_initial_xy=block_initial_xy,
+        )
+        if args.train_active_probes:
+            train += collect_push_domains(
+                protocol.train,
+                trajectories_per_domain=args.train_active_probes,
+                steps=args.steps,
+                seed=seed * 10_000 + 5_000,
+                targets=cal,
+                excitation="active",
+                block_initial_xy=block_initial_xy,
+            )
+        models = train_mechanism_models(
+            protocol.train,
+            train,
+            ranges,
+            epochs=args.epochs,
+            device=device,
+            residual_supervision_weight=args.residual_supervision_weight,
+            residual_consistency_weight=args.residual_consistency_weight,
+            history_supervision_weight=args.history_supervision_weight,
+        )
+        print(f"seed {seed}: models trained", flush=True)
+
+        corrections = []
+        films = []
+        if args.correction_oracle or args.film_oracle:
+            train_states = torch.stack([t.states for t in train]).to(device)
+            train_actions = torch.stack([t.actions for t in train]).to(device)
+            domain_by_id = {domain.domain_id: domain for domain in protocol.train}
+            train_domains = [domain_by_id[t.domain_id] for t in train]
+            with torch.no_grad():
+                train_topology = encode_damage_batch(
+                    models.topology_encoder,
+                    [domain.damage for domain in train_domains],
+                    ranges,
+                    device,
+                )
+            train_residual = torch.stack([
+                residual_descriptor(
+                    domain.residual_name,
+                    device=device,
+                    dtype=train_states.dtype,
+                )
+                for domain in train_domains
+            ])
+            if args.correction_oracle:
+                candidates = [(0.1, 0.1)]
+                if args.correction_sweep:
+                    candidates = [
+                        tuple(float(value) for value in item.split(":"))
+                        for item in args.correction_sweep.split(",")
+                    ]
+                for rollout_weight, delta_limit in candidates:
+                    correction = ResidualCorrection(
+                        state_dim=train_states.shape[-1],
+                        action_dim=train_actions.shape[-1],
+                        delta_limit=delta_limit,
+                    ).to(device)
+                    correction_history = train_residual_correction(
+                        correction,
+                        models.topology_world_model,
+                        train_states,
+                        train_actions,
+                        train_topology,
+                        train_residual,
+                        epochs=args.correction_epochs,
+                        rollout_weight=rollout_weight,
+                    )
+                    label = f"rw{rollout_weight:g}_dl{delta_limit:g}"
+                    corrections.append((label, correction))
+                    (output_dir / f"seed_{seed}_correction_{label}_history.json").write_text(
+                        json.dumps(correction_history, indent=2), encoding="utf-8"
+                    )
+                    print(f"seed {seed}: residual correction {label} trained", flush=True)
+            if args.film_oracle:
+                for rank in (int(value) for value in args.film_ranks.split(",")):
+                    for scale in (float(value) for value in args.film_scales.split(",")):
+                        film = ResidualFiLMWorldModel(
+                            models.topology_world_model,
+                            rank=rank,
+                            modulation_scale=scale,
+                        ).to(device)
+                        film_history = train_residual_film(
+                            film,
+                            train_states,
+                            train_actions,
+                            train_topology,
+                            train_residual,
+                            epochs=args.film_epochs,
+                        )
+                        label = f"rank{rank}_scale{scale:g}"
+                        films.append((label, film))
+                        (output_dir / f"seed_{seed}_film_{label}_history.json").write_text(
+                            json.dumps(film_history, indent=2), encoding="utf-8"
+                        )
+                        print(f"seed {seed}: residual FiLM {label} trained", flush=True)
+
+        for di, domain in enumerate(protocol.test):
+            calib = collect_push_domains(
+                (domain,), trajectories_per_domain=6, steps=args.steps,
+                seed=seed * 100_000 + di * 1000, targets=cal,
+                excitation=args.calibration_excitation,
+                block_initial_xy=block_initial_xy,
+            )
+            evald = collect_push_domains(
+                (domain,), trajectories_per_domain=3, steps=args.steps,
+                seed=seed * 100_000 + di * 1000 + 500, targets=targets,
+                excitation=args.evaluation_excitation,
+                block_initial_xy=block_initial_xy,
+            )
+            rows = evaluate_test_domain(
+                models, domain, calib, evald, ranges,
+                shots=requested_shots,
+                latent_steps=args.latent_steps,
+                device=device,
+                include_baselines=not args.gate_only,
+                calibration_validation=[calib[-1]],
+                latent_lr=args.latent_lr,
+                latent_l2=args.latent_l2,
+                latent_max_abs=args.latent_max_abs,
+                latent_patience=args.latent_patience,
+                include_oracle=args.include_oracle,
+            )
+            coverage = {
+                "evaluation_contact_steps": sum(int(t.metadata.get("tool_block_contact_steps", 0)) for t in evald),
+                "evaluation_block_displacement_m": float(np.mean([float(t.metadata.get("block_displacement_m", 0.0)) for t in evald])),
+            }
+            for row in rows:
+                row.update(coverage)
+            if corrections:
+                eval_states = torch.stack([t.states for t in evald]).to(device)
+                eval_actions = torch.stack([t.actions for t in evald]).to(device)
+                with torch.no_grad():
+                    eval_topology = encode_damage_batch(
+                        models.topology_encoder,
+                        [domain.damage] * len(evald),
+                        ranges,
+                        device,
+                    )
+                eval_residual = residual_descriptor(
+                    domain.residual_name,
+                    device=device,
+                    dtype=eval_states.dtype,
+                ).unsqueeze(0).expand(len(evald), -1)
+                for label, correction in corrections:
+                    correction_one, correction_multi = correction_metrics(
+                        correction,
+                        models.topology_world_model,
+                        eval_states,
+                        eval_actions,
+                        eval_topology,
+                        eval_residual,
+                    )
+                    rows.append({
+                        "domain": domain.domain_id,
+                        "topology": domain.topology,
+                        "residual": domain.residual_name,
+                        "model": f"residual_correction_oracle_{label}",
+                        "shots": 0,
+                        "eval_nll": float("nan"),
+                        "eval_rmse": correction_one,
+                        "multi_step_rmse": correction_multi,
+                        **coverage,
+                    })
+            if films:
+                if not corrections:
+                    eval_states = torch.stack([t.states for t in evald]).to(device)
+                    eval_actions = torch.stack([t.actions for t in evald]).to(device)
+                    with torch.no_grad():
+                        eval_topology = encode_damage_batch(
+                            models.topology_encoder,
+                            [domain.damage] * len(evald),
+                            ranges,
+                            device,
+                        )
+                    eval_residual = residual_descriptor(
+                        domain.residual_name,
+                        device=device,
+                        dtype=eval_states.dtype,
+                    ).unsqueeze(0).expand(len(evald), -1)
+                for label, film in films:
+                    film_one, film_multi = residual_film_metrics(
+                        film,
+                        eval_states,
+                        eval_actions,
+                        eval_topology,
+                        eval_residual,
+                    )
+                    rows.append({
+                        "domain": domain.domain_id,
+                        "topology": domain.topology,
+                        "residual": domain.residual_name,
+                        "model": f"residual_film_oracle_{label}",
+                        "shots": 0,
+                        "eval_nll": float("nan"),
+                        "eval_rmse": film_one,
+                        "multi_step_rmse": film_multi,
+                        **coverage,
+                    })
+            for r in rows:
+                r["seed"] = seed
+            all_rows += rows
+        print(f"seed {seed}: done", flush=True)
+        fieldnames = sorted({key for row in all_rows for key in row})
+        with results_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(all_rows)
+        print(f"progress {len({int(r['seed']) for r in all_rows})}/{len(seeds)} seeds saved", flush=True)
+
+    # Summarize K=5 one-step and multi-step RMSE
+    print("\n=== K=5 results (Push, {} seeds) ===".format(len(seeds)))
+    for model in ("dfwm", "topology_only", "history_encoder", "parameter_matched",
+                  "monolithic_matched", "residual_only"):
+        one = [float(r["eval_rmse"]) for r in all_rows if r["model"] == model and int(r["shots"]) == 5]
+        multi = [float(r["multi_step_rmse"]) for r in all_rows
+                 if r["model"] == model and int(r["shots"]) == 5 and "multi_step_rmse" in r]
+        if one:
+            m = f"  multi-step={np.mean(multi):.4f}" if multi else ""
+            print(f"{model:20s} one-step={np.mean(one):.4f}{m}")
+
+
+if __name__ == "__main__":
+    main()

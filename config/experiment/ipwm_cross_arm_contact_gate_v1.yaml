@@ -1,0 +1,38 @@
+experiment: ipwm_cross_arm_contact_gate_v1
+status: no_go
+robots: [genkiarm_5dof, panda_7dof]
+prefixes_per_robot: 80
+locks:
+  genkiarm: {train: [j2, j4], heldout: j3}
+  panda: {train: [joint2, joint6], heldout: joint4}
+integrity:
+  require_current_robot_object_contact: true
+  maximum_prefix_state_difference: 0.0
+  same_candidate_action_before_fault_projection: true
+  minimum_rows_per_robot: 120
+  report_post_step_contact_fraction: true
+labels: [free_joint_counterfactual_delta, object_position_twist_counterfactual_delta]
+deployment_inputs_for_next_gate:
+  - full_variable_joint_state
+  - normalized_action
+  - lock_mask_angle
+  - local_axis_origin
+  - object_pose_twist
+  - end_effector_object_relative_position
+forbidden_inputs: [robot_id, solver_force, future_contact, future_state]
+comparison:
+  structured: shared_variable_chain_encoder_plus_object_delta_head
+  baseline: parameter_matched_flat_mlp_on_identical_observables
+  maximum_parameter_difference: 0.05
+go:
+  minimum_relative_object_delta_rmse_improvement: 0.10
+  minimum_positive_seeds: 2
+  require_both_robots_improve_per_positive_seed: true
+result:
+  positive_seeds: 0
+  total_seeds: 3
+  relative_pooled_improvement:
+    seed7: -0.27999
+    seed17: -0.63583
+    seed27: -0.13177
+  decision: stop_without_object_head_or_loss_tuning

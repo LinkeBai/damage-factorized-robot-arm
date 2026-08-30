@@ -1,0 +1,14 @@
+version: g2_bt_dpwm_context_encoder_z65_v1
+status: active_uncertainty_consistency
+parent_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
+trajectories_per_domain: 6
+transition_budgets: [2, 3, 5, 6, 10, 15, 25, 30]
+nested_training_budgets: [3, 6, 15, 30]
+hidden_dim: 96
+uncertainty: true
+learning_rate: 0.001
+epochs: 500
+validation_interval: 10
+nll_weight: 0.1
+consistency_weight: 0.25
+uncertainty_monotonic_weight: 0.15

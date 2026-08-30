@@ -1,0 +1,97 @@
+{
+  "protocol_sha256": "bfb43ff804f91b538efdcd7c8a22bf5812de901b344d8603afad88eddfe73055",
+  "seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "per_seed_mean_improvement_pct": {
+    "7": 2.756977753879624,
+    "17": 6.361020407018999,
+    "27": 0.2900815322471436,
+    "37": 8.206232223152398,
+    "47": -5.263461418982462
+  },
+  "mean_improvement_pct": 2.4701700994631404,
+  "bootstrap_95_ci": [
+    -1.8278564635362486,
+    6.378296602844483
+  ],
+  "positive_seeds": 4,
+  "bootstrap_samples": 50000,
+  "bootstrap_unit": "seed",
+  "rows": [
+    {
+      "seed": 17,
+      "domain": "D2__mixed_composition",
+      "structured_rmse": 0.44138047099113464,
+      "ordinary_rmse": 0.46456074714660645,
+      "improvement_pct": 4.989719062113647
+    },
+    {
+      "seed": 17,
+      "domain": "D3__mixed_composition",
+      "structured_rmse": 0.38556498289108276,
+      "ordinary_rmse": 0.41787654161453247,
+      "improvement_pct": 7.732321751924351
+    },
+    {
+      "seed": 27,
+      "domain": "D2__mixed_composition",
+      "structured_rmse": 0.5009239912033081,
+      "ordinary_rmse": 0.5043966174125671,
+      "improvement_pct": 0.6884713515869252
+    },
+    {
+      "seed": 27,
+      "domain": "D3__mixed_composition",
+      "structured_rmse": 0.49042898416519165,
+      "ordinary_rmse": 0.4898983836174011,
+      "improvement_pct": -0.1083082870926379
+    },
+    {
+      "seed": 37,
+      "domain": "D2__mixed_composition",
+      "structured_rmse": 0.46821120381355286,
+      "ordinary_rmse": 0.4905409812927246,
+      "improvement_pct": 4.5520717596980385
+    },
+    {
+      "seed": 37,
+      "domain": "D3__mixed_composition",
+      "structured_rmse": 0.38805070519447327,
+      "ordinary_rmse": 0.44026824831962585,
+      "improvement_pct": 11.860392686606758
+    },
+    {
+      "seed": 47,
+      "domain": "D2__mixed_composition",
+      "structured_rmse": 0.6531263589859009,
+      "ordinary_rmse": 0.6226473450660706,
+      "improvement_pct": -4.895068478385004
+    },
+    {
+      "seed": 47,
+      "domain": "D3__mixed_composition",
+      "structured_rmse": 0.5871500968933105,
+      "ordinary_rmse": 0.5558456778526306,
+      "improvement_pct": -5.631854359579919
+    },
+    {
+      "seed": 7,
+      "domain": "D2__mixed_composition",
+      "structured_rmse": 0.40726137161254883,
+      "ordinary_rmse": 0.42230087518692017,
+      "improvement_pct": 3.5613242732955515
+    },
+    {
+      "seed": 7,
+      "domain": "D3__mixed_composition",
+      "structured_rmse": 0.3428664803504944,
+      "ordinary_rmse": 0.34969472885131836,
+      "improvement_pct": 1.9526312344636967
+    }
+  ]
+}

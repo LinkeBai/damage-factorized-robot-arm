@@ -1,0 +1,32 @@
+version: push_targets_5dof_v2
+status: preregistered_2d_contact_state_expansion_2026-08-28
+source: systematic_left_push_grid_disjoint_by_xy
+block_initial_xy: [0.240, 0.100]
+
+calibration:
+  - {id: push2_cal_00, xyz: [0.185, 0.090, 0.025]}
+  - {id: push2_cal_01, xyz: [0.185, 0.110, 0.025]}
+  - {id: push2_cal_02, xyz: [0.190, 0.095, 0.025]}
+  - {id: push2_cal_03, xyz: [0.190, 0.105, 0.025]}
+  - {id: push2_cal_04, xyz: [0.200, 0.090, 0.025]}
+  - {id: push2_cal_05, xyz: [0.200, 0.110, 0.025]}
+  - {id: push2_cal_06, xyz: [0.210, 0.095, 0.025]}
+  - {id: push2_cal_07, xyz: [0.210, 0.105, 0.025]}
+  - {id: push2_cal_08, xyz: [0.220, 0.090, 0.025]}
+  - {id: push2_cal_09, xyz: [0.220, 0.110, 0.025]}
+  - {id: push2_cal_10, xyz: [0.225, 0.095, 0.025]}
+  - {id: push2_cal_11, xyz: [0.225, 0.105, 0.025]}
+
+validation:
+  - {id: push2_val_00, xyz: [0.1925, 0.0925, 0.025]}
+  - {id: push2_val_01, xyz: [0.1925, 0.1075, 0.025]}
+  - {id: push2_val_02, xyz: [0.2125, 0.0925, 0.025]}
+  - {id: push2_val_03, xyz: [0.2125, 0.1075, 0.025]}
+
+evaluation:
+  - {id: push2_eval_00, xyz: [0.1875, 0.1000, 0.025]}
+  - {id: push2_eval_01, xyz: [0.1975, 0.0975, 0.025]}
+  - {id: push2_eval_02, xyz: [0.1975, 0.1025, 0.025]}
+  - {id: push2_eval_03, xyz: [0.2075, 0.1000, 0.025]}
+  - {id: push2_eval_04, xyz: [0.2175, 0.0975, 0.025]}
+  - {id: push2_eval_05, xyz: [0.2175, 0.1025, 0.025]}

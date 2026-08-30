@@ -128,7 +128,7 @@ class DamageConfig:
 
 
 # Pre-built canonical failure modes used across the plan's task splits.
-# D1..D4 label the damaged deployments in the experiments (D2/D3 are the ones
+# D1..D5 label the damaged deployments in the experiments (D2/D3 are the ones
 # G0 must show share a reachable region).
 D0 = DamageConfig.intact
 
@@ -149,9 +149,13 @@ def D4(dof: int = 5) -> DamageConfig:
     return DamageConfig.lock_single(3, 0.9, dof=dof)
 
 
-def make_damage(style: str | Literal["intact", "D1", "D2", "D3", "D4"], dof: int = 5) -> DamageConfig:
+def D5(dof: int = 5) -> DamageConfig:
+    return DamageConfig.lock_single(4, -0.9, dof=dof)
+
+
+def make_damage(style: str | Literal["intact", "D1", "D2", "D3", "D4", "D5"], dof: int = 5) -> DamageConfig:
     """Build a canonical damage config by name (used by configs/tests)."""
-    table = {"intact": D0, "D1": D1, "D2": D2, "D3": D3, "D4": D4}
+    table = {"intact": D0, "D1": D1, "D2": D2, "D3": D3, "D4": D4, "D5": D5}
     try:
         return table[style](dof)
     except KeyError:

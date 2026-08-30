@@ -1,0 +1,16 @@
+version: bt_dpwm_real_calibration_v1
+topologies:
+  D2: {locked_joint_index: 1}
+  D3: {locked_joint_index: 2}
+transition_budgets: [0, 5, 10, 25, 50]
+collection_transitions: 50  # collect once; all budgets are nested prefixes
+frequency_hz: 10.0
+action_amplitude_rad: 0.04
+maximum_vision_age_ms: 150
+abort_current_raw: 400
+abort_temperature_c: 50
+maximum_lock_drift_deg: 3.5
+repetitions: 3
+required_telemetry: [position, velocity, current_raw, temperature_c]
+required_vision: [object_x_m, object_y_m, object_vx_m_s, object_vy_m_s]
+force_sensor_required: false

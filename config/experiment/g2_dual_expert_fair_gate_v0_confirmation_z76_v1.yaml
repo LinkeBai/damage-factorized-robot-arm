@@ -1,0 +1,18 @@
+version: g2_dual_expert_fair_gate_v0_confirmation_z76_v1
+status: frozen_before_any_seed57_67_checkpoint
+q0a_config: config/experiment/g2_dual_expert_gate_q0a_v1.yaml
+seeds: [57, 67]
+learning_rate: 0.001
+rollout_training_horizon: 5
+independent_hidden_dim: 96
+independent_epochs_per_expert: 60
+shared_parameter_matched_hidden_dim: 136
+shared_parameter_matched_epochs: 60
+shared_compute_matched_hidden_dim: 96
+shared_compute_matched_epochs: 120
+primary_domain: D3__mixed_composition
+gate:
+  minimum_free_improvement_vs_shared_parameter_matched_pct: 10.0
+  minimum_free_improvement_vs_shared_compute_matched_pct: 10.0
+  maximum_object_regression_vs_best_shared_pct: 2.0
+  maximum_constraint_violation_rms: 1.0e-7

@@ -1,0 +1,5 @@
+version: g2_bt_dpwm_z82_ablation_no_analytic_projection_v1
+status: frozen_structural_ablation
+base_evaluation_config: config/experiment/g2_bt_dpwm_z75_nested_support_gate_v1.yaml
+bt_disable_analytic_projection: true
+bt_unprojected_evaluation: true

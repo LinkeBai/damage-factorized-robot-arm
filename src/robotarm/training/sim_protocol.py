@@ -9,7 +9,7 @@ from typing import Literal
 
 import yaml
 
-from robotarm.envs.damage import D2, D3, D4, DamageConfig
+from robotarm.envs.damage import D1, D2, D3, D4, D5, DamageConfig
 from robotarm.envs.residual_physics import ResidualPhysicsConfig, residual_profile
 
 SplitName = Literal["train", "validation", "test"]
@@ -20,9 +20,11 @@ DEFAULT_G1_SPLIT = _ROOT / "config" / "splits" / "g1_5dof_v1.yaml"
 def damage_from_name(name: str) -> DamageConfig:
     table = {
         "intact": DamageConfig.intact,
+        "D1": D1,
         "D2": D2,
         "D3": D3,
         "D4": D4,
+        "D5": D5,
     }
     try:
         return table[name]()

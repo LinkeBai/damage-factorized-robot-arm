@@ -1,0 +1,62 @@
+experiment: ipwm_contact_action_effect_gate_v1
+status: no_go_2026-08-29
+hypothesis: >-
+  The arm-invariant quantity needed after a diagnosed lock is the projected
+  end-effector candidate-action response expressed at the current contact,
+  followed by a low-rank contact transfer operator; directly regressing the
+  same observables with a flat network should generalize less well to a held-out
+  middle lock.
+robots: [calibrated_genkiarm_5dof, official_panda_7dof]
+task_scope: current_contact_one_step_development_gate
+data:
+  prefixes_per_robot: 80
+  actions_per_prefix: 6
+  current_contact_required: true
+  same_prefix_for_all_candidate_actions_and_locks: true
+  group_split_unit: [robot, prefix_id]
+  heldout_locks:
+    genkiarm: j3
+    panda: joint4
+  train_locks:
+    genkiarm: [j2, j4]
+    panda: [joint2, joint6]
+inputs:
+  - current_object_pose_twist
+  - current_end_effector_object_relative_position
+  - analytic_lock_projected_end_effector_action_response
+  - analytic_removed_end_effector_action_response
+  - normalized_lock_depth_and_angle
+forbidden_inputs: [robot_id, solver_force, future_contact, future_state, target_label]
+target: locked_branch_next_object_position_and_twist_change
+comparison:
+  structured: low_rank_contact_action_transfer_operator
+  baseline: parameter_matched_flat_mlp_on_identical_inputs
+  maximum_parameter_difference: 0.05
+metrics:
+  prediction: heldout_lock_object_response_rmse
+  action_ranking: mean_spearman_over_prefix_lock_and_fixed_xy_goal_directions
+  regret: normalized_top1_regret
+development_seeds: [7, 17, 27]
+go:
+  minimum_positive_seeds: 2
+  require_both_robots_prediction_improve_in_each_positive_seed: true
+  minimum_pooled_rmse_improvement: 0.10
+  minimum_spearman_absolute_improvement: 0.10
+  require_lower_top1_regret: true
+decision_rule: >-
+  No architecture, feature, loss, rank, threshold, or seed tuning after the
+  first result. Failure stops this mechanism and does not authorize the
+  Push/Grasp five-seed matrix.
+result:
+  positive_seeds: 0
+  total_seeds: 3
+  relative_pooled_rmse_improvement:
+    seed7: -0.250891
+    seed17: 0.047473
+    seed27: 0.063226
+  spearman_absolute_improvement:
+    seed7: -0.011905
+    seed17: -0.263095
+    seed27: -0.278571
+  lower_top1_regret: {seed7: false, seed17: false, seed27: false}
+  decision: no_go_stop_without_tuning

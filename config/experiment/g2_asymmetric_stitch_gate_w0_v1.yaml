@@ -1,0 +1,11 @@
+version: g2_asymmetric_stitch_gate_w0_v1
+status: frozen_2026-08-21
+v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
+seeds: [7]
+primary_domain: D3__mixed_composition
+gate:
+  maximum_free_regression_vs_shared_compute_pct: 2.0
+  minimum_object_improvement_vs_shared_compute_pct: 10.0
+  minimum_overall_improvement_vs_shared_compute_pct: 5.0
+  minimum_overall_improvement_vs_independent_pct: 5.0
+  maximum_constraint_violation_rms: 1.0e-7

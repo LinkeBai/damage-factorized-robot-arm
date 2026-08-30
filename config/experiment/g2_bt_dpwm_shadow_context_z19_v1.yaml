@@ -1,0 +1,29 @@
+version: g2_bt_dpwm_shadow_context_z19_v1
+status: frozen_2026-08-22
+v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
+seeds: [7, 17, 27]
+hidden_dim: 136
+object_hidden_dim: 32
+shadow_object_rank: 8
+baseline_hidden_dim: 136
+external_baseline_model_template: runs/g2_bt_dpwm_param_match_z1/seed{seed}_v1/shared_model.pt
+initialize_robot_from_baseline: true
+contact_conditioned_robot: true
+independent_object_encoder: true
+block_coordinate_training: true
+train_baseline: false
+epochs: 160
+robot_epochs: 0
+shadow_epochs: 40
+object_epochs: 120
+learning_rate: 0.001
+shadow_learning_rate: 0.0001
+joint_refinement_epochs: 0
+robot_rollout_training_horizon: 10
+object_rollout_training_horizon: 5
+primary_domain: D3__mixed_composition
+gate:
+  minimum_object_improvement_pct: 2.0
+  maximum_free_arm_regression_pct: 0.0
+  minimum_overall_improvement_pct: 5.0
+  maximum_constraint_violation_rms: 1.0e-7

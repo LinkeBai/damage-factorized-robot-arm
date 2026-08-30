@@ -1,0 +1,140 @@
+{
+  "version": "bt_dpwm_final_g2_synthesis_v1",
+  "source_artifacts": {
+    "z75": "runs/g2_bt_dpwm_z75_nested_support/five_seed_development_v1/summary.json",
+    "z76": "runs/g2_bt_dpwm_z76_confirmation/two_seed_confirmation_v1/summary.json",
+    "z77": "runs/g2_bt_dpwm_z77_robustness/two_seed_summary_v1/summary.json",
+    "z78": "runs/g2_bt_dpwm_z78_compute_failure_ledger/summary.json",
+    "z79": "runs/g2_bt_dpwm_z79_uncertainty_counterfactual/calibration_v1/summary.json",
+    "z80": "runs/g2_bt_dpwm_z80_context_posterior_calibration/summary.json",
+    "z81": "runs/g2_bt_dpwm_z81_conformal_context_calibration/summary.json",
+    "z82_z85": "runs/g2_bt_dpwm_z82_structural_ablations/two_seed_summary_v1/summary.json"
+  },
+  "claims": [
+    {
+      "claim": "safe nonnegative few-shot adaptation",
+      "status": "PASS",
+      "evidence": "Z76 all own gains nonnegative; max violation 0"
+    },
+    {
+      "claim": "paired equivalence to shared at K25/K50",
+      "status": "FAIL",
+      "evidence": "Z76 K50 lower CI -1.191 pp < -1 pp"
+    },
+    {
+      "claim": "strict robustness monotonicity",
+      "status": "FAIL",
+      "evidence": "Z77 aggregate and every-seed monotonic gates failed"
+    },
+    {
+      "claim": "support gate rejects observed harmful proposals",
+      "status": "PASS",
+      "evidence": "Z79 3 / 0 harmful proposed/accepted"
+    },
+    {
+      "claim": "raw posterior spread ranks rollout risk",
+      "status": "FAIL",
+      "evidence": "Z79 Spearman -0.734"
+    },
+    {
+      "claim": "conformal physical-context coverage",
+      "status": "PASS",
+      "evidence": "Z81 dimensionwise MACE 0.0289"
+    },
+    {
+      "claim": "analytic projection enforces topology safety",
+      "status": "PASS",
+      "evidence": "Z82 no-projection violation RMSE up to 0.14454"
+    },
+    {
+      "claim": "block-triangular object bridge is performance-dominant",
+      "status": "NOT SUPPORTED",
+      "evidence": "Z84 max paired object-RMSE effect 1.97e-5"
+    }
+  ],
+  "curve_rows": [
+    {
+      "split": "development",
+      "budget": 0,
+      "bt_own_gain_pct": 0.0
+    },
+    {
+      "split": "development",
+      "budget": 5,
+      "bt_own_gain_pct": 0.5038899100058958
+    },
+    {
+      "split": "development",
+      "budget": 10,
+      "bt_own_gain_pct": 0.5038899100058958
+    },
+    {
+      "split": "development",
+      "budget": 25,
+      "bt_own_gain_pct": 3.3570690943806043
+    },
+    {
+      "split": "development",
+      "budget": 50,
+      "bt_own_gain_pct": 3.3570690943806043
+    },
+    {
+      "split": "confirmation",
+      "budget": 0,
+      "bt_own_gain_pct": 0.0
+    },
+    {
+      "split": "confirmation",
+      "budget": 5,
+      "bt_own_gain_pct": 3.87973919122119
+    },
+    {
+      "split": "confirmation",
+      "budget": 10,
+      "bt_own_gain_pct": 3.87973919122119
+    },
+    {
+      "split": "confirmation",
+      "budget": 25,
+      "bt_own_gain_pct": 8.065034807097279
+    },
+    {
+      "split": "confirmation",
+      "budget": 50,
+      "bt_own_gain_pct": 8.065034807097279
+    },
+    {
+      "split": "robustness",
+      "budget": 0,
+      "bt_own_gain_pct": 0.0
+    },
+    {
+      "split": "robustness",
+      "budget": 5,
+      "bt_own_gain_pct": 2.1047633901438645
+    },
+    {
+      "split": "robustness",
+      "budget": 10,
+      "bt_own_gain_pct": 2.2335180251179185
+    },
+    {
+      "split": "robustness",
+      "budget": 25,
+      "bt_own_gain_pct": 5.31625297366986
+    },
+    {
+      "split": "robustness",
+      "budget": 50,
+      "bt_own_gain_pct": 5.275557294578289
+    }
+  ],
+  "verdict": {
+    "g2_artifact_delivery_complete": true,
+    "narrow_safe_adaptation_claim": "PASS",
+    "performance_superiority_claim": "FAIL",
+    "rollout_risk_calibration_claim": "FAIL",
+    "physical_context_coverage_claim": "PASS",
+    "advance_to_g3": "CONDITIONAL_NO_GO_PENDING_HARDWARE_READINESS_AND_CLAIM_DECISION"
+  }
+}

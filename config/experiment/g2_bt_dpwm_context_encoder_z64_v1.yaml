@@ -1,0 +1,9 @@
+version: g2_bt_dpwm_context_encoder_z64_v1
+status: active_seed7_inference_gate
+parent_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
+trajectories_per_domain: 6
+hidden_dim: 96
+epochs: 400
+learning_rate: 0.0005
+validation_interval: 10
+transition_budgets: [2, 3, 5, 6, 10, 15, 25, 30]

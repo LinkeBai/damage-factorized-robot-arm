@@ -21,6 +21,7 @@ class ResidualPhysicsConfig:
     damping_scale: float = 1.0
     friction_scale: float = 1.0
     armature_scale: float = 1.0
+    backlash: tuple[float, ...] = (0.0, 0.0, 0.0, 0.0, 0.0)
     control_delay_steps: int = 0
     action_deadband: float = 0.0
     observation_noise_std: float = 0.0
@@ -32,6 +33,10 @@ class ResidualPhysicsConfig:
             raise ValueError(f"actuator_scale must have {N_JOINTS} values")
         if any(value <= 0 for value in self.actuator_scale):
             raise ValueError("actuator_scale values must be positive")
+        if len(self.backlash) != N_JOINTS:
+            raise ValueError(f"backlash must have {N_JOINTS} values")
+        if any(value < 0 for value in self.backlash):
+            raise ValueError("backlash values must be non-negative")
         for field_name in ("damping_scale", "friction_scale", "armature_scale"):
             if getattr(self, field_name) <= 0:
                 raise ValueError(f"{field_name} must be positive")
@@ -45,6 +50,10 @@ class ResidualPhysicsConfig:
     @property
     def actuator_scale_array(self) -> np.ndarray:
         return np.asarray(self.actuator_scale, dtype=np.float64)
+
+    @property
+    def backlash_array(self) -> np.ndarray:
+        return np.asarray(self.backlash, dtype=np.float64)
 
     def as_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -90,6 +99,7 @@ RESIDUAL_PROFILES: dict[str, ResidualPhysicsConfig] = {
         damping_scale=1.7,
         friction_scale=2.0,
         armature_scale=1.3,
+        backlash=(0.03, 0.03, 0.03, 0.03, 0.03),
         control_delay_steps=2,
         action_deadband=0.06,
         observation_noise_std=0.003,

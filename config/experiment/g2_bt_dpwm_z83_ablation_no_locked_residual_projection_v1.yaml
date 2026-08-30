@@ -1,0 +1,4 @@
+version: g2_bt_dpwm_z83_ablation_no_locked_residual_projection_v1
+status: frozen_structural_ablation
+base_evaluation_config: config/experiment/g2_bt_dpwm_z75_nested_support_gate_v1.yaml
+bt_disable_locked_residual_projection: true

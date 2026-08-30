@@ -1,0 +1,38 @@
+version: g2_ipwm_deployable_terminal_ranker_v3
+status: preregistered_after_privileged_sequence_audit_2026-08-28
+parent: config/experiment/g2_ipwm_terminal_action_ranker_v2.yaml
+development_seed: 27
+trigger: first_observable_contact
+base_sequence:
+  source: one_shot_carrier_cem_from_current_observable_state
+  candidates: 16
+  horizon: 10
+  iterations: 1
+  uses_realized_future_state: false
+candidate_generation:
+  candidate_zero: deployable_one_shot_carrier_sequence
+  candidates: 16
+  perturbation_std: 0.10
+  locked_joint_actions_zero: true
+label:
+  primary: final_object_to_goal_distance_at_push_step_90
+  continuation_after_h10: frozen_carrier_mpc
+  uses_true_cost_only_for_offline_supervision: true
+  short_horizon_proxy_prohibited: true
+splits:
+  training: calibration_targets_only
+  validation: validation_targets_only
+  development_test: evaluation_targets_only
+gate:
+  validation_mean_spearman_min: 0.5
+  validation_positive_fraction_min: 0.75
+  development_mean_improvement_over_strong_carrier_pct_min: 5.0
+  development_positive_target_fraction_min: 0.8
+  catastrophic_regression_m: 0.003
+  catastrophic_regression_fraction_max: 0.0
+integrity:
+  receding_future_carrier_sequence_is_privileged_and_prohibited: true
+  evaluation_results_cannot_change_architecture_or_hyperparameters: true
+decision_boundary:
+  pass: freeze_and_expand_to_new_training_seeds
+  fail: preserve_no_go_and_do_not_claim_control_improvement

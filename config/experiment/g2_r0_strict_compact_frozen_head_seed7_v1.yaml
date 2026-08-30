@@ -1,0 +1,38 @@
+version: g2_r0_strict_compact_frozen_head_seed7_v1
+status: frozen_zero_training_diagnostic
+v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
+q0a_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
+seeds: [7]
+hidden_dim: 136
+baseline_hidden_dim: 136
+train_baseline: false
+external_baseline_model_template: runs/g2_bt_dpwm_meta_train_z32/seed{seed}_v1/baseline_model.pt
+initialize_candidate_model_template: runs/g2_r0_strict_pusher_robot/seed{seed}_v1/model.pt
+initialize_object_from_baseline: true
+initialize_robot_from_baseline: false
+zero_topology_input_weights: true
+contact_conditioned_robot: false
+independent_object_encoder: false
+compact_bridge_object_head: true
+internal_topology_conditioning: true
+block_coordinate_training: true
+geometric_object_rank: 16
+robot_epochs: 0
+robot_rollout_training_horizon: 10
+geometric_object_only_training: true
+object_epochs: 0
+object_learning_rate: 0.001
+object_rollout_training_horizon: 25
+object_validation_selection: true
+object_validation_every: 2
+object_group_robust_weight: 0.5
+epochs: 0
+learning_rate: 0.001
+joint_refinement_epochs: 0
+selection_scaffold_epochs: 0
+primary_domain: D3__mixed_composition
+gate:
+  minimum_object_improvement_pct: -1000.0
+  maximum_free_arm_regression_pct: 1000.0
+  minimum_overall_improvement_pct: -1000.0
+  maximum_constraint_violation_rms: 1.0e-7

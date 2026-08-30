@@ -1,0 +1,43 @@
+version: g2_ipwm_contact_action_ranker_v1
+status: preregistered_development_only_2026-08-28
+parent_contract: config/experiment/icra_2027_evidence_contract_v1.yaml
+development_seed: 27
+policy_distribution: carrier_guarded_mpc
+trigger: first_observable_tool_or_pusher_block_contact
+candidate_generation:
+  candidate_zero: carrier_optimized_h10_sequence
+  candidates: 64
+  horizon: 10
+  perturbation_std: 0.10
+  locked_joint_actions_zero: true
+training_targets: calibration_only
+model:
+  kind: pairwise_contact_action_ranker
+  hidden_dims: [64, 32]
+  inputs:
+    - current_state
+    - carrier_predicted_terminal_cost
+    - selective_predicted_terminal_cost
+    - candidate_minus_carrier_sequence_summary
+    - tool_block_distance
+    - object_speed
+    - carrier_selective_disagreement
+  loss:
+    pairwise_logistic_weight: 1.0
+    realized_cost_regression_weight: 0.25
+    candidate_zero_conservatism_weight: 0.10
+validation:
+  targets: validation_only
+  minimum_mean_spearman: 0.5
+  minimum_fraction_better_than_candidate_zero: 0.75
+  maximum_mean_regret_m: 0.001
+closed_loop_development_gate:
+  targets: evaluation_only
+  baseline: carrier_guarded_mpc
+  minimum_mean_improvement_pct: 5.0
+  minimum_positive_target_fraction: 0.8
+  catastrophic_regression_threshold_m: 0.003
+  maximum_catastrophic_regression_fraction: 0.0
+decision_boundary:
+  pass: freeze_model_and_controller_then_train_new_confirmation_seeds
+  fail: no_confirmation_expansion_and_preserve_no_go

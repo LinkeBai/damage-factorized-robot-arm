@@ -10,6 +10,8 @@ from torch import nn
 from torch.nn import functional as F
 
 from robotarm.envs.damage import DamageConfig
+from robotarm.envs.residual_physics import residual_profile
+from robotarm.models.history_encoder import HistoryEncoder
 from robotarm.models.residual_context import (
     LatentOptConfig,
     compose_context,
@@ -25,6 +27,22 @@ TOPOLOGY_DIM = 64
 RESIDUAL_DIM = 8
 
 
+def residual_descriptor(name: str, *, device: torch.device, dtype: torch.dtype) -> torch.Tensor:
+    """Normalized simulator residual parameters used only for oracle/supervision."""
+    cfg = residual_profile(name)
+    values = [
+        1.0 - float(np.mean(cfg.actuator_scale)),
+        float(np.log(cfg.damping_scale)),
+        float(np.log(cfg.friction_scale)),
+        cfg.control_delay_steps / 2.0,
+        cfg.action_deadband / 0.1,
+        float(np.mean(cfg.backlash)) / 0.05,
+        cfg.payload_mass_delta_kg / 0.05,
+        cfg.observation_noise_std / 0.005,
+    ]
+    return torch.tensor(values, dtype=dtype, device=device)
+
+
 @dataclass
 class TrainedMechanismModels:
     topology_encoder: TopologyEncoder
@@ -38,6 +56,11 @@ class TrainedMechanismModels:
     monolithic_world_model: WorldModel
     monolithic_projection: nn.Linear
     monolithic_codes: nn.Embedding
+    history_topology_encoder: TopologyEncoder
+    history_encoder: HistoryEncoder
+    history_world_model: WorldModel
+    pm_encoder: TopologyEncoder
+    pm_world_model: WorldModel
     domain_to_index: dict[str, int]
     history: list[dict[str, float]]
 
@@ -109,6 +132,37 @@ def teacher_forced_metrics(
     return nll, rmse
 
 
+def multi_step_rollout_rmse(
+    wm: WorldModel,
+    states: torch.Tensor,
+    actions: torch.Tensor,
+    context: torch.Tensor,
+    *,
+    horizon: int = 10,
+) -> torch.Tensor:
+    """Mean multi-step rollout RMSE using the model's own predictions.
+
+    Unlike teacher-forcing (which feeds the true state at every step), this
+    rolls the model out from each start point using its predicted mean as the
+    next input. Residual-dynamics errors compound over the horizon, so this
+    metric better reflects the value of an accurate residual context.
+    """
+    horizon = min(horizon, actions.shape[1])
+    sq_errs = []
+    for start in range(0, actions.shape[1] - horizon + 1, horizon):
+        pred_state = states[:, start]
+        hidden = None
+        for h in range(horizon):
+            prediction, hidden = wm.step(
+                pred_state, actions[:, start + h], context, hidden
+            )
+            pred_state = prediction["mean"]
+            true_state = states[:, start + h + 1]
+            sq_errs.append((pred_state - true_state).pow(2).mean(dim=-1))
+    rmse = torch.stack(sq_errs, dim=1).mean().sqrt()
+    return rmse
+
+
 def rssm_training_loss(
     wm: WorldModel,
     states: torch.Tensor,
@@ -162,8 +216,22 @@ def train_mechanism_models(
     epochs: int,
     device: torch.device,
     lr: float = 3e-3,
+    validation_domains: tuple[DomainSpec, ...] | None = None,
+    validation_trajectories: list[SimTrajectory] | None = None,
+    lr_min_ratio: float = 0.1,
+    early_stop_every: int = 5,
+    residual_supervision_weight: float = 0.0,
+    residual_consistency_weight: float = 0.0,
+    history_supervision_weight: float = 0.0,
 ) -> TrainedMechanismModels:
-    """Train matched topology-only and DFWM predictors on identical data."""
+    """Train matched topology-only and DFWM predictors on identical data.
+
+    Uses a cosine learning-rate schedule and optional validation-based early
+    stopping. When ``validation_domains``/``validation_trajectories`` are given,
+    the DFWM zero-shot NLL on the validation set is evaluated every
+    ``early_stop_every`` epochs; the checkpoint with the lowest validation NLL
+    is restored at the end, guarding against late-epoch overfitting.
+    """
     domain_to_index = {
         domain.domain_id: index for index, domain in enumerate(train_domains)
     }
@@ -178,30 +246,66 @@ def train_mechanism_models(
     )
     states, actions = _stack_trajectories(trajectories, device)
 
+    residual_targets = torch.stack([
+        residual_descriptor(
+            trajectory.domain_id.split("__", 1)[1],
+            device=device,
+            dtype=states.dtype,
+        )
+        for trajectory in trajectories
+    ])
+    domain_residual_names = [domain.residual_name for domain in train_domains]
+    domain_residual_targets = torch.stack([
+        residual_descriptor(name, device=device, dtype=states.dtype)
+        for name in domain_residual_names
+    ])
+
     topology_encoder = TopologyEncoder().to(device)
     topology_wm = WorldModel(
-        WorldModelConfig(context_dim=TOPOLOGY_DIM)
+        WorldModelConfig(state_dim=states.shape[-1], context_dim=TOPOLOGY_DIM)
     ).to(device)
     dfwm_encoder = TopologyEncoder().to(device)
     dfwm_wm = WorldModel(
-        WorldModelConfig(context_dim=TOPOLOGY_DIM + RESIDUAL_DIM)
+        WorldModelConfig(state_dim=states.shape[-1], context_dim=TOPOLOGY_DIM + RESIDUAL_DIM)
     ).to(device)
     train_residuals = nn.Embedding(len(train_domains), RESIDUAL_DIM).to(device)
     nn.init.zeros_(train_residuals.weight)
     residual_only_wm = WorldModel(
-        WorldModelConfig(context_dim=RESIDUAL_DIM)
+        WorldModelConfig(state_dim=states.shape[-1], context_dim=RESIDUAL_DIM)
     ).to(device)
     residual_only_codes = nn.Embedding(len(train_domains), RESIDUAL_DIM).to(device)
     nn.init.zeros_(residual_only_codes.weight)
     monolithic_encoder = TopologyEncoder().to(device)
     monolithic_wm = WorldModel(
-        WorldModelConfig(context_dim=TOPOLOGY_DIM)
+        WorldModelConfig(state_dim=states.shape[-1], context_dim=TOPOLOGY_DIM)
     ).to(device)
     monolithic_projection = nn.Linear(
         RESIDUAL_DIM, TOPOLOGY_DIM, bias=False
     ).to(device)
     monolithic_codes = nn.Embedding(len(train_domains), RESIDUAL_DIM).to(device)
     nn.init.zeros_(monolithic_codes.weight)
+
+    # History encoder (amortized residual inference): outputs an 8-dim residual
+    # context conditioned on the same topology encoder as DFWM, so it is a fair
+    # amortized counterpart to latent optimization (§4.3B).
+    history_topology_encoder = TopologyEncoder().to(device)
+    history_encoder = HistoryEncoder(
+        state_dim=states.shape[-1],
+        action_dim=actions.shape[-1],
+        hidden_dim=64,
+        out_dim=RESIDUAL_DIM,
+    ).to(device)
+    history_wm = WorldModel(
+        WorldModelConfig(state_dim=states.shape[-1], context_dim=TOPOLOGY_DIM + RESIDUAL_DIM)
+    ).to(device)
+
+    # Parameter-matched baseline: identical DFWM structure (72-dim context) but
+    # the residual channel is fixed to zero during training, so the WM never
+    # learns structured use of the 8 extra parameters until deployment.
+    pm_encoder = TopologyEncoder().to(device)
+    pm_wm = WorldModel(
+        WorldModelConfig(state_dim=states.shape[-1], context_dim=TOPOLOGY_DIM + RESIDUAL_DIM)
+    ).to(device)
 
     parameters = (
         list(topology_encoder.parameters())
@@ -215,8 +319,52 @@ def train_mechanism_models(
         + list(monolithic_wm.parameters())
         + list(monolithic_projection.parameters())
         + list(monolithic_codes.parameters())
+        + list(history_topology_encoder.parameters())
+        + list(history_encoder.parameters())
+        + list(history_wm.parameters())
+        + list(pm_encoder.parameters())
+        + list(pm_wm.parameters())
     )
     optimizer = torch.optim.Adam(parameters, lr=lr)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=epochs, eta_min=lr * lr_min_ratio
+    )
+
+    # Early-stopping bookkeeping: all trainable modules, plus the DFWM
+    # zero-shot validation NLL used to pick the best epoch.
+    val_use = (
+        validation_domains is not None and validation_trajectories is not None
+    )
+    if val_use:
+        val_damages = [
+            damage_from_name(t.domain_id.split("__", 1)[0])
+            for t in validation_trajectories
+        ]
+        val_states, val_actions = _stack_trajectories(
+            validation_trajectories, device
+        )
+
+    all_models = {
+        "topology_encoder": topology_encoder,
+        "topology_wm": topology_wm,
+        "dfwm_encoder": dfwm_encoder,
+        "dfwm_wm": dfwm_wm,
+        "train_residuals": train_residuals,
+        "residual_only_wm": residual_only_wm,
+        "residual_only_codes": residual_only_codes,
+        "monolithic_encoder": monolithic_encoder,
+        "monolithic_wm": monolithic_wm,
+        "monolithic_projection": monolithic_projection,
+        "monolithic_codes": monolithic_codes,
+        "history_topology_encoder": history_topology_encoder,
+        "history_encoder": history_encoder,
+        "history_wm": history_wm,
+        "pm_encoder": pm_encoder,
+        "pm_wm": pm_wm,
+    }
+    best_val_nll = float("inf")
+    best_state: dict[str, dict] | None = None
+
     history = []
     for epoch in range(epochs):
         optimizer.zero_grad()
@@ -260,21 +408,106 @@ def train_mechanism_models(
             actions,
             monolithic_context,
         )
+
+        # History encoder: amortized residual (8-dim) conditioned on topology,
+        # mirroring DFWM's [topology, z] context but with a single forward pass
+        # instead of gradient optimization (§4.3B).
+        history_topology_all = encode_damage_batch(
+            history_topology_encoder, damages, joint_ranges, device
+        )
+        history_nll = torch.zeros((), device=device)
+        history_supervision = torch.zeros((), device=device)
+        for domain_idx in range(len(train_domains)):
+            mask = domain_indices == domain_idx
+            if not mask.any():
+                continue
+            domain_states = states[mask]
+            domain_actions = actions[mask]
+            domain_topology = history_topology_all[mask.nonzero()[0][0]]
+            history_z = history_encoder(
+                domain_states[:, :-1], domain_actions
+            )
+            # Each trajectory must identify the same residual independently.
+            # Supervising only the pooled mixture lets goal and probe histories
+            # cancel each other and fails when deployment contains probes only.
+            per_trajectory_supervision = torch.zeros((), device=device)
+            for trajectory_idx in range(domain_states.shape[0]):
+                trajectory_z = history_encoder(
+                    domain_states[trajectory_idx : trajectory_idx + 1, :-1],
+                    domain_actions[trajectory_idx : trajectory_idx + 1],
+                )
+                per_trajectory_supervision = per_trajectory_supervision + F.mse_loss(
+                    trajectory_z, domain_residual_targets[domain_idx]
+                )
+            history_supervision = history_supervision + (
+                per_trajectory_supervision / domain_states.shape[0]
+            )
+            domain_context = compose_context(
+                domain_topology,
+                history_z,
+                context_dim=history_wm.cfg.context_dim,
+            )
+            context_batch = domain_context.unsqueeze(0).expand(
+                domain_states.shape[0], -1
+            )
+            history_nll = history_nll + rssm_training_loss(
+                history_wm, domain_states, domain_actions, context_batch
+            )
+        history_nll = history_nll / len(train_domains)
+        history_supervision = history_supervision / len(train_domains)
+
+        # Parameter-matched: same 72-dim context structure as DFWM but the
+        # residual channel is pinned to zero during training.
+        pm_topology = encode_damage_batch(
+            pm_encoder, damages, joint_ranges, device
+        )
+        pm_residual = torch.zeros(
+            pm_topology.shape[0], RESIDUAL_DIM, device=device
+        )
+        pm_context = compose_context(
+            pm_topology, pm_residual, context_dim=pm_wm.cfg.context_dim
+        )
+        pm_nll = rssm_training_loss(
+            pm_wm, states, actions, pm_context
+        )
+
         latent_prior = 1e-3 * (
             residual.pow(2).mean()
             + residual_only.pow(2).mean()
             + monolithic_residual.pow(2).mean()
         )
+        residual_supervision = F.mse_loss(residual, residual_targets)
+        residual_consistency = torch.zeros((), device=device)
+        consistency_groups = 0
+        for residual_name in sorted(set(domain_residual_names)):
+            indices = [
+                index for index, name in enumerate(domain_residual_names)
+                if name == residual_name
+            ]
+            if len(indices) < 2:
+                continue
+            codes = train_residuals.weight[indices]
+            residual_consistency = residual_consistency + (
+                codes - codes.mean(dim=0, keepdim=True)
+            ).pow(2).mean()
+            consistency_groups += 1
+        residual_consistency = residual_consistency / max(consistency_groups, 1)
         loss = (
             topology_nll
             + dfwm_nll
             + residual_only_nll
             + monolithic_nll
+            + history_nll
+            + pm_nll
             + latent_prior
+            + residual_supervision_weight * residual_supervision
+            + residual_consistency_weight * residual_consistency
+            + history_supervision_weight * history_supervision
         )
         loss.backward()
         torch.nn.utils.clip_grad_norm_(parameters, 10.0)
         optimizer.step()
+        scheduler.step()
         history.append(
             {
                 "epoch": float(epoch),
@@ -282,8 +515,43 @@ def train_mechanism_models(
                 "dfwm_nll": float(dfwm_nll.detach()),
                 "residual_only_nll": float(residual_only_nll.detach()),
                 "monolithic_nll": float(monolithic_nll.detach()),
+                "history_nll": float(history_nll.detach()),
+                "pm_nll": float(pm_nll.detach()),
+                "residual_supervision": float(residual_supervision.detach()),
+                "residual_consistency": float(residual_consistency.detach()),
+                "history_supervision": float(history_supervision.detach()),
             }
         )
+
+        # Early stopping: evaluate DFWM zero-shot NLL on the validation set and
+        # keep the best checkpoint (guards against late-epoch overfitting).
+        if val_use and (epoch + 1) % early_stop_every == 0:
+            with torch.no_grad():
+                val_topology = encode_damage_batch(
+                    dfwm_encoder, val_damages, joint_ranges, device
+                )
+                val_residual = torch.zeros(
+                    val_topology.shape[0], RESIDUAL_DIM, device=device
+                )
+                val_context = compose_context(
+                    val_topology, val_residual,
+                    context_dim=dfwm_wm.cfg.context_dim,
+                )
+                val_nll, _ = teacher_forced_metrics(
+                    dfwm_wm, val_states, val_actions, val_context
+                )
+            val_nll_f = float(val_nll.detach())
+            if val_nll_f < best_val_nll:
+                best_val_nll = val_nll_f
+                best_state = {
+                    name: {k: v.detach().clone() for k, v in model.state_dict().items()}
+                    for name, model in all_models.items()
+                }
+
+    # Restore the best-validation checkpoint if early stopping selected one.
+    if best_state is not None:
+        for name, model in all_models.items():
+            model.load_state_dict(best_state[name])
 
     return TrainedMechanismModels(
         topology_encoder=topology_encoder,
@@ -297,6 +565,11 @@ def train_mechanism_models(
         monolithic_world_model=monolithic_wm,
         monolithic_projection=monolithic_projection,
         monolithic_codes=monolithic_codes,
+        history_topology_encoder=history_topology_encoder,
+        history_encoder=history_encoder,
+        history_world_model=history_wm,
+        pm_encoder=pm_encoder,
+        pm_world_model=pm_wm,
         domain_to_index=domain_to_index,
         history=history,
     )
@@ -312,9 +585,21 @@ def evaluate_test_domain(
     shots: tuple[int, ...],
     latent_steps: int,
     device: torch.device,
+    include_baselines: bool = True,
+    calibration_validation: list[SimTrajectory] | None = None,
+    latent_lr: float = 0.1,
+    latent_l2: float = 1e-3,
+    latent_max_abs: float = 5.0,
+    latent_patience: int | None = None,
+    include_oracle: bool = False,
 ) -> list[dict[str, float | int | str]]:
     """Evaluate on trajectories disjoint from latent calibration data."""
     eval_states, eval_actions = _stack_trajectories(evaluation, device)
+    validation_states = validation_actions = None
+    if calibration_validation:
+        validation_states, validation_actions = _stack_trajectories(
+            calibration_validation, device
+        )
     damage = domain.damage
     with torch.no_grad():
         topology_context = encode_damage_batch(
@@ -325,6 +610,12 @@ def evaluate_test_domain(
         ).squeeze(0)
         topology_batch = topology_context.unsqueeze(0).expand(eval_states.shape[0], -1)
         top_nll, top_rmse = teacher_forced_metrics(
+            models.topology_world_model,
+            eval_states,
+            eval_actions,
+            topology_batch,
+        )
+        top_multi_rmse = multi_step_rollout_rmse(
             models.topology_world_model,
             eval_states,
             eval_actions,
@@ -343,6 +634,18 @@ def evaluate_test_domain(
             joint_ranges,
             device,
         ).squeeze(0)
+        history_topology = encode_damage_batch(
+            models.history_topology_encoder,
+            [damage],
+            joint_ranges,
+            device,
+        ).squeeze(0)
+        pm_topology = encode_damage_batch(
+            models.pm_encoder,
+            [damage],
+            joint_ranges,
+            device,
+        ).squeeze(0)
 
     rows: list[dict[str, float | int | str]] = []
     for shot in shots:
@@ -355,6 +658,7 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(top_nll),
                 "eval_rmse": float(top_rmse),
+                "multi_step_rmse": float(top_multi_rmse),
                 "residual_norm": 0.0,
                 "adaptation_seconds": 0.0,
             }
@@ -377,8 +681,14 @@ def evaluate_test_domain(
                 LatentOptConfig(
                     d=RESIDUAL_DIM,
                     steps=latent_steps,
-                    lr=0.1,
+                    lr=latent_lr,
+                    l2=latent_l2,
+                    max_abs=latent_max_abs,
+                    grad_clip=1.0,
+                    patience=latent_patience,
                 ),
+                validation_states=validation_states,
+                validation_actions=validation_actions,
             )
             z = inferred.z.detach()
             dfwm_adaptation_seconds = time.perf_counter() - started
@@ -395,6 +705,12 @@ def evaluate_test_domain(
                 eval_actions,
                 context_batch,
             )
+            dfwm_multi_rmse = multi_step_rollout_rmse(
+                models.dfwm_world_model,
+                eval_states,
+                eval_actions,
+                context_batch,
+            )
         rows.append(
             {
                 "domain": domain.domain_id,
@@ -404,10 +720,50 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(dfwm_nll),
                 "eval_rmse": float(dfwm_rmse),
+                "multi_step_rmse": float(dfwm_multi_rmse),
                 "residual_norm": float(z.norm()),
                 "adaptation_seconds": dfwm_adaptation_seconds,
+                "optimization_steps": inferred.optimization_steps if shot > 0 else 0,
+                "initial_validation_loss": inferred.initial_validation_loss if shot > 0 else "",
+                "best_validation_loss": inferred.best_validation_loss if shot > 0 else "",
+                "rolled_back": inferred.rolled_back if shot > 0 else False,
             }
         )
+
+        if include_oracle:
+            oracle_z = residual_descriptor(
+                domain.residual_name,
+                device=device,
+                dtype=eval_states.dtype,
+            )
+            oracle_context = compose_context(
+                dfwm_topology,
+                oracle_z,
+                context_dim=models.dfwm_world_model.cfg.context_dim,
+            )
+            oracle_batch = oracle_context.unsqueeze(0).expand(eval_states.shape[0], -1)
+            with torch.no_grad():
+                oracle_nll, oracle_rmse = teacher_forced_metrics(
+                    models.dfwm_world_model, eval_states, eval_actions, oracle_batch
+                )
+                oracle_multi_rmse = multi_step_rollout_rmse(
+                    models.dfwm_world_model, eval_states, eval_actions, oracle_batch
+                )
+            rows.append({
+                "domain": domain.domain_id,
+                "topology": domain.topology,
+                "residual": domain.residual_name,
+                "model": "dfwm_oracle",
+                "shots": shot,
+                "eval_nll": float(oracle_nll),
+                "eval_rmse": float(oracle_rmse),
+                "multi_step_rmse": float(oracle_multi_rmse),
+                "residual_norm": float(oracle_z.norm()),
+                "adaptation_seconds": 0.0,
+            })
+
+        if not include_baselines:
+            continue
 
         if shot == 0:
             residual_only_z = torch.zeros(RESIDUAL_DIM, device=device)
@@ -436,6 +792,12 @@ def evaluate_test_domain(
                 eval_actions,
                 residual_context,
             )
+            residual_multi_rmse = multi_step_rollout_rmse(
+                models.residual_only_world_model,
+                eval_states,
+                eval_actions,
+                residual_context,
+            )
         rows.append(
             {
                 "domain": domain.domain_id,
@@ -445,6 +807,7 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(residual_nll),
                 "eval_rmse": float(residual_rmse),
+                "multi_step_rmse": float(residual_multi_rmse),
                 "residual_norm": float(residual_only_z.norm()),
                 "adaptation_seconds": residual_adaptation_seconds,
             }
@@ -483,6 +846,12 @@ def evaluate_test_domain(
                 eval_actions,
                 monolithic_batch,
             )
+            monolithic_multi_rmse = multi_step_rollout_rmse(
+                models.monolithic_world_model,
+                eval_states,
+                eval_actions,
+                monolithic_batch,
+            )
         rows.append(
             {
                 "domain": domain.domain_id,
@@ -492,8 +861,112 @@ def evaluate_test_domain(
                 "shots": shot,
                 "eval_nll": float(monolithic_nll),
                 "eval_rmse": float(monolithic_rmse),
+                "multi_step_rmse": float(monolithic_multi_rmse),
                 "residual_norm": float(monolithic_z.norm()),
                 "adaptation_seconds": monolithic_adaptation_seconds,
+            }
+        )
+
+        # History encoder: amortized residual conditioned on topology. At K=0
+        # the residual is zero, matching DFWM's K=0 context exactly.
+        if shot == 0:
+            history_z = torch.zeros(RESIDUAL_DIM, device=device)
+            history_adaptation_seconds = 0.0
+        else:
+            started = time.perf_counter()
+            with torch.no_grad():
+                history_z = models.history_encoder(
+                    calibration_states[:, :-1], calibration_actions
+                )
+            history_adaptation_seconds = time.perf_counter() - started
+        history_context = compose_context(
+            history_topology,
+            history_z,
+            context_dim=models.history_world_model.cfg.context_dim,
+        )
+        history_batch = history_context.unsqueeze(0).expand(
+            eval_states.shape[0], -1
+        )
+        with torch.no_grad():
+            history_nll, history_rmse = teacher_forced_metrics(
+                models.history_world_model,
+                eval_states,
+                eval_actions,
+                history_batch,
+            )
+            history_multi_rmse = multi_step_rollout_rmse(
+                models.history_world_model,
+                eval_states,
+                eval_actions,
+                history_batch,
+            )
+        rows.append(
+            {
+                "domain": domain.domain_id,
+                "topology": domain.topology,
+                "residual": domain.residual_name,
+                "model": "history_encoder",
+                "shots": shot,
+                "eval_nll": float(history_nll),
+                "eval_rmse": float(history_rmse),
+                "multi_step_rmse": float(history_multi_rmse),
+                "residual_norm": float(history_z.norm()),
+                "adaptation_seconds": history_adaptation_seconds,
+            }
+        )
+
+        # Parameter-matched: identical DFWM structure, residual channel frozen
+        # to zero during training but optimized at deployment.
+        if shot == 0:
+            pm_z = torch.zeros(RESIDUAL_DIM, device=device)
+            pm_adaptation_seconds = 0.0
+        else:
+            started = time.perf_counter()
+            pm_z = latent_optimize(
+                models.pm_world_model,
+                pm_topology,
+                calibration_states,
+                calibration_actions,
+                LatentOptConfig(
+                    d=RESIDUAL_DIM,
+                    steps=latent_steps,
+                    lr=0.1,
+                ),
+            ).z.detach()
+            pm_adaptation_seconds = time.perf_counter() - started
+        pm_context = compose_context(
+            pm_topology,
+            pm_z,
+            context_dim=models.pm_world_model.cfg.context_dim,
+        )
+        pm_batch = pm_context.unsqueeze(0).expand(
+            eval_states.shape[0], -1
+        )
+        with torch.no_grad():
+            pm_nll, pm_rmse = teacher_forced_metrics(
+                models.pm_world_model,
+                eval_states,
+                eval_actions,
+                pm_batch,
+            )
+            pm_multi_rmse = multi_step_rollout_rmse(
+                models.pm_world_model,
+                eval_states,
+                eval_actions,
+                pm_batch,
+            )
+        rows.append(
+            {
+                "domain": domain.domain_id,
+                "topology": domain.topology,
+                "residual": domain.residual_name,
+                "model": "parameter_matched",
+                "shots": shot,
+                "eval_nll": float(pm_nll),
+                "eval_rmse": float(pm_rmse),
+                "multi_step_rmse": float(pm_multi_rmse),
+                "residual_norm": float(pm_z.norm()),
+                "adaptation_seconds": pm_adaptation_seconds,
             }
         )
     return rows

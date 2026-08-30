@@ -1,0 +1,17 @@
+version: g2_ipwm_d3_physics_spectrum_q0a_targets_v2
+status: development_target_expansion_2026-08-28
+protocol: config/splits/g2_ipwm_d3_physics_spectrum_audit_v1.yaml
+targets: config/splits/push_targets_5dof_v2.yaml
+seeds: [27]
+ordinary_members: 3
+ordinary_epochs: 20
+ft_epochs: 60
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_test_domain: 10
+rollout_horizon: 10
+block_initial_xy: [0.24, 0.10]
+goal_exploration_std: 0.08
+hidden_dim: 128
+ft_learning_rate: 0.001
+primary_domain: D3__mixed_composition

@@ -1,0 +1,207 @@
+{
+  "version": "g2_bt_dpwm_z78_compute_ledger_v1",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU 8 GiB",
+    "cpu": "Intel Family 6 Model 183",
+    "warp": "1.16.0",
+    "cuda_toolkit": "12.9"
+  },
+  "measurement_note": "Wall-clock boundaries are reconstructed from captured process start times and adjacent artifact timestamps in the uninterrupted 2026-08-23 confirmation session. Treat values as engineering measurements with about one minute boundary uncertainty, not isolated hardware benchmarks.",
+  "parameters": {
+    "shared_h136": 338102,
+    "bt_base": 336910,
+    "projected_adapter": 10224,
+    "uncertain_context_encoder": 51664,
+    "shared_deployment_total": 399990,
+    "bt_deployment_total": 398798,
+    "bt_vs_shared_total_pct": -0.29800745018625463
+  },
+  "wall_clock_stages": {
+    "seed57": {
+      "v0_fair_baselines": {
+        "wall_clock_s": 655,
+        "source": "captured_process_start_to_summary"
+      },
+      "z32_base_and_scaffold": {
+        "wall_clock_s": 1625,
+        "source": "adjacent_summary_boundaries"
+      },
+      "z69_topology_column_recovery": {
+        "wall_clock_s": 424,
+        "source": "adjacent_summary_boundaries"
+      },
+      "z70_goal_queries_and_adapters": {
+        "wall_clock_s": 1467,
+        "source": "captured_process_start_to_artifact"
+      },
+      "z65_uncertain_encoder": {
+        "wall_clock_s": 48,
+        "source": "adjacent_artifact_boundaries"
+      },
+      "z75_evaluation": {
+        "wall_clock_s": 67,
+        "source": "adjacent_artifact_boundaries"
+      }
+    },
+    "seed67": {
+      "v0_fair_baselines": {
+        "wall_clock_s": 775,
+        "source": "adjacent_summary_boundaries"
+      },
+      "z32_base_and_scaffold": {
+        "wall_clock_s": 1648,
+        "source": "adjacent_summary_boundaries"
+      },
+      "z69_topology_column_recovery": {
+        "wall_clock_s": 424,
+        "source": "adjacent_summary_boundaries"
+      },
+      "z70_goal_queries_and_adapters": {
+        "wall_clock_s": 1512,
+        "source": "adjacent_summary_boundaries"
+      },
+      "z65_uncertain_encoder": {
+        "wall_clock_s": 53,
+        "source": "adjacent_artifact_boundaries"
+      },
+      "z75_evaluation": {
+        "wall_clock_s": 75,
+        "source": "adjacent_artifact_boundaries"
+      }
+    }
+  },
+  "wall_clock_total_s": {
+    "seed57": 4286,
+    "seed67": 4487
+  },
+  "known_bottleneck": {
+    "stage": "z70_goal_queries_and_adapters",
+    "observation": "67 domains x 4 CPU goal queries dominate before GPU adapter epochs",
+    "mitigation_already_active": "MuJoCo Warp CUDA batch stepping and trajectory caches"
+  },
+  "failure_runs": [
+    {
+      "run": "z71",
+      "source": "runs/g2_bt_dpwm_z71_five_seed/five_seed_gate_v1/summary.json",
+      "passed": false,
+      "gate": {
+        "complete_five_seed_matrix": true,
+        "failures_recorded": [],
+        "passed": false,
+        "all_bt_own_gains_nonnegative": false,
+        "aggregate_bt_curve_monotonic": false,
+        "k10_k25_sample_efficiency_exceeds_shared": true,
+        "final_mean_relative_shared_pct": -0.4295694562399032,
+        "maximum_constraint_violation_rmse": 0.0
+      }
+    },
+    {
+      "run": "z75",
+      "source": "runs/g2_bt_dpwm_z75_nested_support/five_seed_development_v1/summary.json",
+      "passed": false,
+      "gate": {
+        "complete_five_seed_matrix": true,
+        "failures_recorded": [],
+        "passed": false,
+        "all_bt_own_gains_nonnegative": true,
+        "aggregate_bt_curve_monotonic": true,
+        "k10_k25_sample_efficiency_exceeds_shared": false,
+        "final_mean_relative_shared_pct": -0.7780369411530131,
+        "maximum_constraint_violation_rmse": 0.0
+      }
+    },
+    {
+      "run": "z76",
+      "source": "runs/g2_bt_dpwm_z76_confirmation/two_seed_confirmation_v1/summary.json",
+      "passed": false,
+      "gate": {
+        "complete_five_seed_matrix": true,
+        "failures_recorded": [],
+        "passed": false,
+        "all_bt_own_gains_nonnegative": true,
+        "aggregate_bt_curve_monotonic": true,
+        "k10_k25_sample_efficiency_exceeds_shared": false,
+        "final_mean_relative_shared_pct": 0.09211530694764095,
+        "maximum_constraint_violation_rmse": 0.0,
+        "paired_equivalence_margin_pct_points": 1.0,
+        "paired_delta_ci_lower_bounds": {
+          "25": -0.05052184836418583,
+          "50": -1.1905568753701967
+        },
+        "k25_k50_sample_efficiency_equivalent": false,
+        "minimum_k25_bt_own_gain_passed": true,
+        "minimum_k50_bt_own_gain_passed": true
+      }
+    },
+    {
+      "run": "z77",
+      "source": "runs/g2_bt_dpwm_z77_robustness/two_seed_summary_v1/summary.json",
+      "passed": false,
+      "gate": {
+        "complete_matrix": true,
+        "failures": [],
+        "passed": false,
+        "all_bt_own_gains_nonnegative": true,
+        "every_seed_curve_monotonic": false,
+        "aggregate_curve_monotonic": false,
+        "maximum_constraint_violation_rmse": 0.0,
+        "safety_gate_passed": true
+      }
+    },
+    {
+      "run": "v0",
+      "seed": 57,
+      "source": "runs/g2_dual_expert_fair_gate_v0/seed57_v1/summary.json",
+      "passed": false,
+      "free_improvement_pct": 6.142219760578482,
+      "object_improvement_pct": -2.8156916015694375,
+      "overall_improvement_pct": null
+    },
+    {
+      "run": "z32",
+      "seed": 57,
+      "source": "runs/g2_bt_dpwm_meta_train_z32/seed57_v1/summary.json",
+      "passed": false,
+      "free_improvement_pct": 40.6059897207927,
+      "object_improvement_pct": -29.39291188250941,
+      "overall_improvement_pct": 39.87801549545368
+    },
+    {
+      "run": "z69",
+      "seed": 57,
+      "source": "runs/g2_bt_dpwm_zero_topology_columns_z69/seed57_v1/summary.json",
+      "passed": false,
+      "free_improvement_pct": 2.214978002056375,
+      "object_improvement_pct": -20.418967956988176,
+      "overall_improvement_pct": 2.04894147802789
+    },
+    {
+      "run": "v0",
+      "seed": 67,
+      "source": "runs/g2_dual_expert_fair_gate_v0/seed67_v1/summary.json",
+      "passed": false,
+      "free_improvement_pct": -25.979685204327314,
+      "object_improvement_pct": 0.47741200810160034,
+      "overall_improvement_pct": null
+    },
+    {
+      "run": "z32",
+      "seed": 67,
+      "source": "runs/g2_bt_dpwm_meta_train_z32/seed67_v1/summary.json",
+      "passed": false,
+      "free_improvement_pct": -16.05589107767906,
+      "object_improvement_pct": -13.138006662599393,
+      "overall_improvement_pct": -16.003851960261137
+    },
+    {
+      "run": "z69",
+      "seed": 67,
+      "source": "runs/g2_bt_dpwm_zero_topology_columns_z69/seed67_v1/summary.json",
+      "passed": false,
+      "free_improvement_pct": 0.4679158073435173,
+      "object_improvement_pct": -10.20633636223852,
+      "overall_improvement_pct": 0.2661087705340821
+    }
+  ],
+  "all_failures_retained": true
+}

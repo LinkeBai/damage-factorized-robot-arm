@@ -1,0 +1,617 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb,booktabs,graphicx,multirow,tikz,balance}
+\usetikzlibrary{arrows.meta,positioning,fit}
+\newcommand{\method}{SI-IPWM}
+\title{State-Isolated Intervention World Models for\\Prediction under Unseen Joint-Locking Failures}
+\author{Anonymous Authors}
+\begin{document}\maketitle
+\begin{abstract}
+A diagnosed joint lock changes a robot's feasible state manifold, while contact
+dynamics remain uncertain. We study whether a state-isolated
+intervention-projected world model (\method{}) can adapt object prediction
+without corrupting unaffected robot coordinates. Analytic projection enforces
+the locked position and velocity, a carrier publishes trusted robot state, and
+a selective intervention is allowed to publish only object coordinates, with
+fallback outside its support. Earlier development experiments on a simplified
+arm model showed large object gains, but an audit found that those results do
+not establish performance on the calibrated-kinematic five-DoF GenkiArm model.
+We therefore preregistered five fresh training seeds and report the first three
+completed seeds (107/117/127). Relative to the mechanism-matched carrier,
+routed object-RMSE changes are +0.604\%, -0.784\%, and +0.718\% (mean
++0.179\%; 2/3 positive; the hierarchical paired-bootstrap interval crosses
+zero). Raw selective changes average +0.684\%. In every completed seed,
+free-state regression and locked-coordinate violation are exactly zero. Thus
+the current evidence supports analytic feasibility and the state-isolation
+invariant, but does not support object-prediction or closed-loop superiority.
+All No-Go results are retained; two preregistered seeds and real-robot
+validation remain.
+\end{abstract}
+
+\section{Introduction}
+A robot that loses one joint does not merely acquire a new continuous dynamics
+parameter. Its feasible state manifold changes discretely. Diagnosis may
+provide the locked joint and angle, yet contact outcomes remain uncertain
+because damping, actuation delay, deadband, friction, and payload are only
+partially observed. Re-fitting a complete dynamics model after failure is
+data-intensive, while unconstrained adaptation can violate the diagnosed lock
+or degrade unaffected coordinates.
+
+Prior damage-recovery methods adapt policies or behavior repertoires
+\cite{cully2015robots,yang2021fault}; rapid adaptation infers latent physical
+properties from recent transitions \cite{kumar2021rma,allevato2020tunenet}; and
+learned pushing models capture uncertain contact dynamics
+\cite{finn2017visual,bauza2018data,kim2023se2}. Their combination leaves a
+practical question: how should a model change its object prediction after a
+known topological intervention without rewriting robot coordinates that are
+already predicted by a validated mechanism-matched model?
+
+Our starting point is a disclosed failure. A full-state intervention model
+improves object rollout error on an unseen lock but increases free-joint H50
+RMSE by 6.01\% in one mixed-unseen regime; 93.3\% of paired terminal windows
+are worse. We therefore separate the state used internally by the intervention
+model from the state published to downstream users.
+
+The contributions are:
+\begin{itemize}
+\item a diagnosis-conditioned projection that enforces locked position and
+velocity coordinates exactly;
+\item a dual-rollout construction that preserves the full coupled
+intervention trajectory internally while publishing robot coordinates from a
+mechanism-matched carrier;
+\item a frozen physical-support router that falls back exactly outside the
+regimes where context provides evidence for intervention; and
+\item an audit covering a systematic failure, physics-spectrum controls,
+multi-horizon prediction, structural invariants, and a negative closed-loop
+result.
+\end{itemize}
+
+\section{Related Work}
+\textbf{Damage adaptation.} Repertoire search \cite{cully2015robots},
+fault-aware reinforcement learning \cite{yang2021fault}, latent extrinsics
+\cite{kumar2021rma}, simulator tuning \cite{allevato2020tunenet}, and
+meta-learned adaptive control \cite{richards2021adaptive} address recovery
+under changed dynamics. We instead assume a diagnosed discrete lock and adapt
+a predictive interaction model while enforcing the resulting constraint.
+
+\textbf{Contact dynamics.} Learned forward models support visual and
+model-based planning \cite{finn2017visual,nagabandi2018neural}; few-sample GP
+models \cite{bauza2018data}, online identification \cite{gao2019online}, and
+equivariant pushing models \cite{kim2023se2} improve data efficiency. Recent
+systems infer physical properties in graph or physics-informed world models
+\cite{zhang2024adaptigraph,li2025pinwm} or combine residual physics with active
+planning \cite{zhong2026activepusher}. Interaction networks encode relational
+structure \cite{battaglia2016interaction,sanchezgonzalez2020learning}. Our
+focus is complementary: isolating an object-specific learned correction from
+robot coordinates whose feasible manifold is known after diagnosis.
+
+\begin{table}[t]\centering
+\caption{Mechanism-level scope relative to representative adaptation work.
+``Exact'' denotes construction rather than a learned penalty.}
+\resizebox{\columnwidth}{!}{\begin{tabular}{lccc}\toprule
+Method&Robot topology&Object physics&Exact state isolation\\\midrule
+RMA \cite{kumar2021rma}&continuous latent&limited&no\\
+TuneNet \cite{allevato2020tunenet}&no&identified&no\\
+AdaptiGraph \cite{zhang2024adaptigraph}&no&few-shot&no\\
+PIN-WM \cite{li2025pinwm}&no&few-shot&no\\
+\method{}&held-out lock&few-shot&yes\\\bottomrule
+\end{tabular}}\label{tab:related}
+\end{table}
+
+Table~\ref{tab:related} is a scope comparison, not a global-superiority claim.
+The closest methods model richer object families or active data acquisition;
+our narrower novelty is the interface between diagnosed robot topology and an
+object correction that cannot rewrite published robot state.
+
+\section{Problem Formulation}
+The state is $s_t=[r_t,o_t]$, where
+$r_t=[q_t,\dot q_t]\in\mathbb R^{10}$ and planar object position/velocity
+$o_t\in\mathbb R^4$; action $a_t\in\mathbb R^5$. Diagnosis
+$d=(m,\bar q)$ supplies a binary lock mask and lock angle. Unknown physical
+context $z\in\mathbb R^8$ is inferred from $K=25$ safe transitions. Joint D3
+is absent from training and validation and is combined at test time with seven
+continuous-physics conditions.
+
+We evaluate autonomous rollouts at $H\in\{10,25,50\}$. Object RMSE is the
+primary metric. Free-joint RMSE excludes locked coordinates; pusher-position
+RMSE evaluates forward-kinematic propagation; and lock violation measures
+deviation from $q^j=\bar q^j,\dot q^j=0$. Calibration and evaluation
+trajectories are disjoint.
+
+\section{Method}
+\subsection{Projection and base dynamics}
+For each joint,
+\begin{align}
+\Pi_d(q)_j&=(1-m_j)q_j+m_j\bar q_j,\\
+\Pi_d(\dot q)_j&=(1-m_j)\dot q_j,\qquad
+\Pi_d(a)_j=(1-m_j)a_j.
+\end{align}
+Projection is applied before and after prediction. A contact-aware recurrent
+base predicts robot and object state; forward kinematics supplies pusher
+geometry. The intervention branch adds geometry and low-rank latent object
+residuals modulated by observable context. Base checkpoints and the robot
+block are frozen before intervention training.
+
+\textbf{Proposition 1 (analytic feasibility).}
+$\Pi_d$ is idempotent. After every projected transition, each locked joint
+satisfies $q^j=\bar q^j$, $\dot q^j=0$, and $a^j=0$, independently of learned
+parameters and rollout depth.
+
+\emph{Proof.} Substituting the binary mask twice leaves locked entries at
+$(\bar q^j,0,0)$ and leaves free entries unchanged, hence
+$\Pi_d\circ\Pi_d=\Pi_d$. Applying this identity after each transition gives
+the finite-depth statement by induction. \hfill$\square$
+
+\subsection{Physical-support routing}
+An amortized encoder estimates context from the K25 transition sequence. A
+centered modulation $g(z)=h(z)-h(0)$ gives exact recovery at zero context. A
+development audit showed that topology membership alone activates harmful
+corrections in nominal-like physics. We therefore route intervention only if
+$\|z\|_2\ge1.2$, a threshold frozen after seed 27; otherwise the method is the
+carrier exactly. This rule activates on high damping, mixed composition, and
+mixed unseen physics in the reported audit and falls back on nominal, weak
+motor, delay, and noisy-deadband conditions.
+
+\begin{figure}[t]\centering
+\resizebox{\columnwidth}{!}{\begin{tikzpicture}[font=\scriptsize,>=Latex,node distance=5mm,
+ box/.style={draw,rounded corners,align=center,minimum height=8mm,
+ minimum width=29mm,fill=blue!6},learned/.style={box,fill=orange!13},
+ fixed/.style={box,fill=gray!13},arr/.style={->,thick}]
+\node[fixed] (state) {projected state $s_t$};
+\node[learned,below left=8mm and 2mm of state] (carrier) {carrier rollout\\$\tilde s^c_{t+1}$};
+\node[learned,below right=8mm and 2mm of state] (inter) {intervention rollout\\$\tilde s^i_{t+1}$};
+\node[fixed,below=13mm of state] (merge) {publish $[\tilde r^c_{t+1},\tilde o^i_{t+1}]$\\then project $\Pi_d$};
+\draw[arr] (state)--(carrier); \draw[arr] (state)--(inter);
+\draw[arr] (carrier)--node[left]{robot}(merge);
+\draw[arr] (inter)--node[right]{object}(merge);
+\end{tikzpicture}}
+\caption{State isolation. Both models retain private recurrent and predicted
+physical states. Only the published state mixes carrier robot coordinates with
+intervention object coordinates.}\label{fig:isolation}
+\end{figure}
+
+\subsection{State-isolated rollout}
+Let $F_c$ be the no-intervention carrier and $F_i$ the full intervention model.
+Each maintains private hidden and physical states:
+\begin{align}
+(\tilde s^c_{t+1},h^c_{t+1}) &= F_c(\tilde s^c_t,a_t,d,h^c_t),\\
+(\tilde s^i_{t+1},h^i_{t+1}) &= F_i(\tilde s^i_t,a_t,d,z,h^i_t).
+\end{align}
+The externally visible prediction is
+\begin{equation}
+\hat s_{t+1}=\Pi_d([\tilde r^c_{t+1},\tilde o^i_{t+1}]).
+\label{eq:publish}
+\end{equation}
+Crucially, $\hat s_{t+1}$ is not fed back into either private dynamics path.
+Thus the intervention preserves the robot--object feedback it learned, while
+Eq.~\eqref{eq:publish} makes published robot coordinates identical to the
+carrier for any action sequence. Pusher position, being a deterministic
+function of $q$, is also identical. Projection gives zero lock violation.
+
+This guarantee is relative to the chosen carrier, not ground truth: state
+isolation prevents collateral prediction change but cannot correct a bad
+carrier. It also does not guarantee that planning with the improved object
+prediction produces better actions.
+
+\textbf{Proposition 2 (published-state isolation).}
+For identical initial state, actions, diagnosis, and carrier parameters, the
+published robot trajectory of \method{} equals the standalone carrier
+trajectory at every depth. Its pusher trajectory is therefore identical, and
+locked-coordinate violation is zero.
+
+\emph{Proof.} At depth zero both carrier states are identical. Assuming
+equality at depth $t$, both standalone and internal carriers apply the same
+deterministic $F_c$, action, diagnosis, hidden state, and projection, so their
+robot states and next hidden states agree. Equation~\eqref{eq:publish} copies
+that robot state without modification except the same $\Pi_d$. Induction gives
+equality for all depths. Pusher pose is deterministic forward kinematics of
+$q$, and $\Pi_d$ fixes locked position and velocity. \hfill$\square$
+
+\textbf{Proposition 3 (conditional guarded fallback).}
+Let $A$ be proposal acceptance, $S$ certificate validity, and $J$ finite-horizon
+cost. If valid accepted proposals satisfy
+$J(\pi_i)-J(\pi_c)\le L\epsilon_H$ and every false acceptance has excess cost
+at most $C$, exact carrier fallback gives
+\begin{equation}
+\mathbb E[J(\pi_g)-J(\pi_c)]\le
+L\mathbb E[\epsilon_H\mathbf 1_{A\cap S}]+C\Pr(A\cap S^c).
+\end{equation}
+Rejection contributes zero because the published action is exactly $\pi_c$.
+This is a conditional decomposition, not a numerical safety claim: the present
+experiments do not yet establish a sufficiently small false-accept term.
+
+\subsection{Training objective and deployment}
+The intervention is trained after freezing the shared base and robot block.
+For rollout depths $\mathcal H$, the optimized loss is
+\begin{equation}
+\mathcal L=\sum_{H\in\mathcal H}w_H
+(\lambda_r\mathcal L_r^H+\lambda_o\mathcal L_o^H+
+\lambda_p\mathcal L_p^H)+\lambda_T\mathcal L_o^{50}.
+\end{equation}
+The terminal term exposes long-horizon object drift. Feasibility and isolation
+are absent from this penalty because they are enforced by projection and
+Eq.~\eqref{eq:publish}. Leave-one-lock-out meta-training treats each supported
+lock as pseudo-unseen; D3 is never observed.
+
+Deployment performs six fixed operations: (1) project diagnosis and action;
+(2) collect one nested 25-transition active probe; (3) infer $z$; (4) load the
+matched rank-8 projected adapter; (5) route by the frozen context norm; and
+(6) if active, advance the two private trajectories and publish their isolated
+state blocks. No test-domain name or simulator parameter enters routing.
+
+Both recurrent bases have hidden width 136. Geometry, latent intervention, and
+context-modulation ranks are 16, 32, and 16; the context encoder has hidden
+width 96 and an eight-dimensional output. Object intervention trains for 60
+epochs at learning rate $3\times10^{-3}$ with H50 terminal weight 5. The online
+adapter performs 12 trust-region/backtracking steps shared by all methods.
+One projected model has 353,458 parameters; the literal dual-rollout wrapper
+stores 706,916, a 2$\times$ inference-memory cost. Weight sharing or a
+specialized carrier head is not evaluated.
+
+\section{Experimental Protocol}
+Experiments use MuJoCo planar pushing with a five-joint serial arm and a
+four-dimensional object state. Training contains intact and D1/D2/D4/D5
+locks under nominal, weak-motor, high-damping, delay, and noisy-deadband
+physics. D3 is held out. Test physics comprises nominal, weak motor, high
+damping, one-step delay, noisy deadband, a held-out composition, and a more
+severe mixed-unseen condition.
+
+Carrier and intervention models use identical trajectories, hidden width 136,
+K25 context, rank-8 projected adapters, optimization budget, and evaluation
+actions. Each reported domain has 10 held-out trajectories. Seeds 27/37/47
+share the protocol. The support threshold was fixed after seed 27, and the
+state-isolation repair was designed after inspecting failures on the original
+seed-specific query sets. We therefore generated a post-design query seed (57)
+with new calibration and evaluation trajectories and evaluated all three frozen
+checkpoints on it. This is an untouched trajectory confirmation, not a new
+training initialization.
+
+\begin{table}[t]\centering
+\caption{Physics-spectrum routing and evidential role.}
+\begin{tabular}{lll}\toprule
+Condition&Route&Reported comparison\\\midrule
+Nominal&carrier&exact fallback tie\\
+Weak motor&carrier&exact fallback tie\\
+Delay 1&carrier&exact fallback tie\\
+Noisy deadband&carrier&exact fallback tie\\
+High damping&intervention&object gain + invariant\\
+Mixed composition&intervention&object gain + invariant\\
+Mixed unseen&intervention&object gain + invariant\\\bottomrule
+\end{tabular}\label{tab:routing}
+\end{table}
+
+The main baseline is mechanism matched: it uses the same architecture,
+projection, adapter, and inferred context, with geometry and latent
+intervention heads zeroed. This isolates the contribution of object
+intervention beyond constraint handling. We retain the original full-state
+intervention as a failure baseline. Improvement is
+$100(e_c-e_i)/e_c$, where $e_c$ and $e_i$ are carrier and intervention object
+RMSE. Bootstrap intervals resample the three seed means 50,000 times; with
+only three seeds they are descriptive.
+
+\section{Results}
+\subsection{Calibrated GenkiArm confirmation is currently No-Go}
+The earlier 27/37/47 checkpoint matrix below was generated on the simplified
+\texttt{arm\_push.xml} development model. It is retained to explain the origin
+of state isolation, but it is not the paper's calibrated-model performance
+evidence. The authoritative confirmation uses
+\texttt{genkiarm\_push.xml}, disjoint query seeds, and fresh training seeds
+107/117/127/137/147 frozen before the first run.
+
+\begin{table}[t]\centering
+\caption{Interim calibrated-GenkiArm object-RMSE improvement (\%) over the
+mechanism-matched carrier. Three of five preregistered seeds are complete.}
+\begin{tabular}{lrrrr}\toprule
+Method&107&117&127&Mean\\\midrule
+Routed selective&0.604&-0.784&0.718&0.179\\
+Raw selective&1.420&-1.913&2.546&0.684\\\bottomrule
+\end{tabular}\label{tab:genki-interim}
+\end{table}
+
+For routed selective \method{}, only 2/3 seeds are positive and the
+hierarchical paired-bootstrap 95\% interval is [-0.745\%, 0.797\%]. The raw
+selective interval is [-1.870\%, 2.502\%]. Both fail the preregistered +5\%
+mean, 4/5 positive-seed, and positive-lower-bound gates. Free-state regression
+and locked-coordinate violation are exactly zero in all three seeds. The
+current decision is therefore performance No-Go and mechanism-only support;
+seeds 137/147 remain mandatory.
+
+\subsection{Historical simplified-model diagnosis}
+\subsection{The full-state intervention has a systematic failure}
+On seed 7, D3 mixed-unseen, H50, the original intervention has free-joint RMSE
+0.808 versus 0.762 for the shared projected baseline, a 6.01\% regression.
+The paired MSE-difference interval is [0.06885, 0.07538], and 93.3\% of terminal
+windows regress. Object RMSE improves 36.49\% and lock violation remains zero.
+The failure therefore exposes a real tradeoff: object correction feeds back
+into unaffected robot prediction even though feasibility is projected.
+
+The post-design query set makes the repair comparison direct
+(Table~\ref{tab:isolation}). Full-state and isolated methods have exactly the
+same object RMSE in every cell because the intervention keeps its private
+physical trajectory. Full-state rollout nevertheless regresses free-joint
+RMSE in 3/27 cells, with a 6.20\% worst case. Isolation removes those changes
+without changing object prediction.
+
+\begin{table}[t]\centering
+\caption{Isolation ablation on the post-design query set. Object gain is the
+mean over checkpoint-seed means; free regression is the worst cell.}
+\begin{tabular}{lrrr}\toprule
+Method&Object gain&Free regress.&Positive free regress.\\\midrule
+Carrier&0&0&0/27\\
+Full-state IPWM&16.74\%&6.20\%&3/27\\
+\method{}&16.74\%&0&0/27\\\bottomrule
+\end{tabular}\label{tab:isolation}
+\end{table}
+
+\subsection{State isolation removes collateral regression}
+Table~\ref{tab:main} reports the post-design query-set cells. Object RMSE
+improves in 27/27 cells. The smallest gain is 1.58\% (checkpoint seed 37,
+mixed unseen, H50), and the largest is 38.86\%. Mean improvement over the three
+checkpoint-seed means is 16.74\%, with descriptive bootstrap interval
+[6.97\%, 25.59\%]. The original seed-specific query sets independently retain
+27/27 positive cells, 1.34--39.97\% range, and 17.04\% mean. Across all cells,
+free-joint and pusher changes relative to the carrier are numerically exactly
+zero, as predicted by Eq.~\eqref{eq:publish}; lock violation RMSE is zero.
+
+\begin{table}[t]\centering
+\caption{Object RMSE improvement (\%) over the mechanism-matched carrier in
+active physical-OOD routes.}
+\begin{tabular}{clrrr}\toprule
+Seed&Condition&H10&H25&H50\\\midrule
+27&high damping&7.05&3.06&7.58\\
+27&composition&7.70&2.03&19.54\\
+27&mixed unseen&9.08&3.26&3.43\\
+37&high damping&7.31&21.64&37.41\\
+37&composition&8.52&20.93&30.23\\
+37&mixed unseen&10.39&21.00&1.58\\
+47&high damping&8.57&34.68&33.00\\
+47&composition&10.63&35.53&30.52\\
+47&mixed unseen&12.53&38.86&25.95\\\bottomrule
+\end{tabular}\label{tab:main}
+\end{table}
+
+\begin{table}[t]\centering
+\caption{Aggregate prediction audit. ``Change'' is relative to carrier.}
+\begin{tabular}{lr}\toprule
+Statistic&Result\\\midrule
+Positive object cells&27/27\\
+Object improvement range&1.58--38.86\%\\
+Mean over checkpoint-seed means&16.74\%\\
+Seed-bootstrap 95\% interval&[6.97, 25.59]\%\\
+Maximum $|$free-joint change$|$&0\\
+Maximum $|$pusher change$|$&0\\
+Maximum lock violation RMSE&0\\\bottomrule
+\end{tabular}\label{tab:aggregate}
+\end{table}
+
+The four low-context conditions route to the carrier and therefore tie it
+exactly. This is intentionally conservative: an earlier topology-only router
+improved severe physical shifts but degraded nominal-like H25/H50 cells by as
+much as 32.73\%. A K25 support-validation selector was also rejected because
+the short active probe contained insufficient object contact and would reject
+every useful intervention. These negative controls motivate physical-context
+routing but do not establish that norm thresholding is optimal.
+
+\subsection{Routing margins and query replication}
+Table~\ref{tab:norms} reports context-norm ranges across the three checkpoints
+on the original physics spectrum. Nominal, noisy-deadband, and weak-motor
+conditions have wide margins below 1.2. Delay is closer (maximum 1.12), and
+mixed unseen is the closest active condition (minimum 1.26). Thus the observed
+decisions are stable on these checkpoints, although the 0.06 mixed-unseen
+margin is too small to call the router calibrated under arbitrary shift.
+
+\begin{table}[t]\centering
+\caption{Context norm range and frozen route across checkpoint seeds.}
+\begin{tabular}{lrrl}\toprule
+Condition&Minimum&Maximum&Route\\\midrule
+Nominal&0.49&0.52&carrier\\
+Noisy deadband&0.48&0.52&carrier\\
+Weak motor&0.77&0.83&carrier\\
+Delay 1&1.07&1.12&carrier\\
+High damping&1.33&1.54&intervention\\
+Composition&1.45&1.50&intervention\\
+Mixed unseen&1.26&1.45&intervention\\\bottomrule
+\end{tabular}\label{tab:norms}
+\end{table}
+
+The post-design query set changes both calibration and evaluation trajectories
+while leaving weights, K, scale, threshold, and domains frozen. Its 16.74\%
+mean is close to the original 17.04\%; both have 27/27 positive active cells.
+This replication argues against memorization of one action/initialization set.
+It does not test a new object geometry, simulator, or training seed, and is
+labelled accordingly throughout.
+
+\subsection{Prediction gain does not imply control gain}
+We evaluated a frozen guarded CEM planner using 60 approach and 90 push steps,
+horizon 3, eight candidates, one CEM update, and a fixed 0.85 action-deviation
+guard. The prior 50 mm success tolerance is invalid for this target split:
+targets start only 30--40 mm from the object, so zero-contact episodes count as
+success. We instead report terminal distance, contact, and displacement.
+
+\begin{table}[t]\centering
+\caption{D3 high-damping mean terminal distance (mm) over three held-out
+targets. Lower is better.}
+\begin{tabular}{crrr}\toprule
+Seed&Nominal IK&Carrier MPC&\method{} MPC\\\midrule
+27&16.99&13.75&19.45\\
+37&16.99&18.77&15.67\\
+47&16.99&34.25&39.11\\\bottomrule
+\end{tabular}\label{tab:control}
+\end{table}
+
+All audited episodes make contact, but \method{} improves on carrier MPC for
+only one of three seeds. The closed-loop improvement claim is therefore
+No-Go. This result is consistent with the method's guarantee: isolation
+controls which state is published, not how a finite-sample optimizer converts
+prediction differences into actions.
+
+\subsection{Reproducibility}
+Frozen YAML files define domain splits, context scaling, adapters, and routing.
+Evaluation artifacts include aggregate and per-window squared errors. The
+original selective audit contains 5,040 raw rows per seed, and the post-design
+query audit contains 2,160 per seed; a separate script regenerates
+Table~\ref{tab:aggregate} and its bootstrap interval. Unit tests verify exact
+projection, carrier publication, and preservation of private intervention
+feedback with a robot-coupled toy model. Failed gates and protocol corrections
+are retained in the repository rather than overwritten.
+
+\subsection{Threats to validity}
+\emph{Post-hoc structure.} State isolation was invented after the original
+free-state failure; only query seed 57 is post-design. \emph{Dependence.} The
+27 cells share three checkpoints and three domains, so they are not treated as
+27 independent replicates. \emph{Baseline scope.} Carrier matching isolates
+the intervention effect, but comparisons to AdaptiGraph or PIN-WM are
+conceptual rather than reproduced. \emph{Metric scope.} RMSE weights all object
+coordinates uniformly and does not imply useful action ranking. The No-Go MPC
+result makes this boundary visible. \emph{Router scope.} Context norm is an
+engineering support heuristic, not a calibrated probability of harm.
+\emph{Simulation scope.} The shared variable-node transition Gate improves
+both GenkiArm and Panda in 2/3 seeds, but the downstream object/contact Gate is
+No-Go in 0/3 seeds. A no-weld scripted Panda grasp succeeds in 5/5 small pose
+perturbations, and both fixed eye-to-hand views retain object visibility under
+the frozen extrinsic perturbations; these are task/observability feasibility,
+not learned Grasp, RGB prediction, or contact-transfer evidence.
+
+\section{Failure Ledger and Decision Rules}
+The development history is part of the evidence because each accepted
+component corresponds to a measured failure (Table~\ref{tab:ledger}). We use
+``Pass'' only for a claim whose frozen metric succeeds; a method can pass
+prediction while remaining No-Go for control. This prevents the exact lock
+constraint, which is easy to satisfy by projection, from masking degradation
+of free coordinates or task outcomes.
+
+\begin{table}[t]\centering
+\caption{Retained failures and their consequence. Negative object values and
+positive free values are regressions.}
+\resizebox{\columnwidth}{!}{\begin{tabular}{lll}\toprule
+Attempt&Observed failure&Decision\\\midrule
+Topology-only routing&object to $-32.73\%$&add physical support\\
+K25 support validation&rejects every useful route&discard selector\\
+Full-state intervention&free to $+6.20\%$&isolate state blocks\\
+\method{} prediction&27/27 positive; invariants zero&prediction Pass\\
+Direct guarded MPC&improves 1/3 seeds&control No-Go\\
+Carrier-screen rerank&11.63 vs. 2.50 mm on development target&discard reranker\\\bottomrule
+\end{tabular}}\label{tab:ledger}
+\end{table}
+
+The last reranking attempt is reported only as development evidence. It let
+the intervention choose among the carrier's top-quartile candidate sequences,
+but failed against the carrier selector on the sole development target and was
+not expanded. It does not enter the main comparison. Its purpose in the ledger
+is to show that we did not search controller variants until one happened to
+win on the three evaluation targets.
+
+The claim acceptance rule is consequently block-specific. Locked coordinates
+must have zero violation; published free and pusher coordinates must equal the
+carrier; active-route object improvement must be positive on every post-design
+query cell; fallback routes must tie exactly; and control is claimed only if
+its direction is consistent across checkpoint seeds. The current artifact
+satisfies the prediction rules and fails the control rule.
+
+\subsection{Artifact-to-claim mapping}
+Three independently checkable artifacts underlie the paper: raw trajectory
+windows support object statistics, model outputs support isolation equality,
+and environment logs support contact and terminal-distance checks. Aggregate
+tables are regenerated rather than hand selected. The code path accepts an
+explicit query seed so that checkpoint initialization and evaluation queries
+can be varied separately. Hardware logs, photographs, and measurements are not
+inputs to any table in this submission.
+
+\section{Evaluation and Audit Details}
+\subsection{Window construction and aggregation}
+Each test trajectory contains 150 actions and 151 states. For horizon $H$,
+autonomous prediction starts at indices separated by $H$ and rolls for exactly
+$H$ actions; only the terminal prediction enters that window's statistic.
+Squared error is computed per trajectory/window, averaged, and square-rooted
+to obtain RMSE. Free-joint error masks position and velocity of the diagnosed
+coordinate. Object error averages four planar coordinates. Pusher error applies
+the same forward kinematics to predicted and true joint positions.
+
+The original spectrum audit stores 5,040 per-window/method rows per checkpoint.
+The post-design audit restricts generation to three active regimes and, after
+adding the full-state ablation, stores 2,880 rows per checkpoint. Carrier,
+full-state, isolated, and routed predictions use identical initial states and
+actions. Exact object equality between full-state and isolated rollouts is
+checked cell by cell rather than inferred from their aggregate.
+
+\subsection{Uncertainty and multiplicity}
+The bootstrap treats the mean across nine active cells within a checkpoint as
+one observation and resamples three checkpoint means. Correlated horizons and
+domains are therefore not presented as 27 independent seeds. With only three
+observations, the interval is a stability summary, not precise population
+inference. We consequently report every cell and the positive-cell count; no
+null-hypothesis threshold accepts the main claim.
+
+The seed-7 diagnostic interval has a different purpose: it bootstraps paired
+terminal-window MSE differences on one prespecified failure cell. It shows the
+free-state regression is systematic within that query set, not that it
+generalizes to a population of training seeds. Keeping the two analyses
+separate prevents trajectory count from inflating the effective number of
+model initializations.
+
+\begin{table}[t]\centering
+\caption{Frozen claim gates and current outcome.}
+\begin{tabular}{lll}\toprule
+Claim&Gate&Outcome\\\midrule
+Lock feasibility&violation RMSE $=0$&Pass\\
+State isolation&free/pusher change $=0$&Pass\\
+Active prediction&all post-design cells $>0$&Pass (27/27)\\
+Fallback safety&exact carrier equality&Pass\\
+Closed-loop benefit&consistent seed direction&No-Go (1/3)\\\bottomrule
+\end{tabular}\label{tab:gates}
+\end{table}
+
+\subsection{Controller audit protocol}
+All controller methods share analytic approach/push references, damage mask,
+action limits, initial block position, and held-out targets. Guarded CEM uses
+horizon 3, eight candidates, one update, and falls back to nominal IK when the
+proposal differs by more than 0.85 in Euclidean norm. Sixty approach steps
+precede 90 push steps; the earlier 30+40 protocol produced zero-contact
+episodes and remains only as a failed smoke test. Contact count and block
+displacement are required sanity metrics.
+
+We do not report the old 50 mm success indicator because initial target
+distance is at most 40 mm. A valid future success metric must be stricter than
+every initial distance and require contact and minimum displacement. The paper
+uses terminal distance for the completed controller matrix and refuses a
+binary success claim. This correction applies to all methods simultaneously.
+
+\subsection{Reproduction boundary}
+The evaluator records checkpoint and query seeds separately. Reproducing the
+main table requires three frozen checkpoints, matched adapters and context
+encoders, the physics-spectrum split, query seed 57, K25, and threshold 1.2.
+The summarizer consumes generated JSON and does not load weights. Tests cover
+the two-private-state recurrence, including an object update that depends on
+the intervention's private robot state; this catches the earlier bug where the
+published carrier was fed back into the intervention path.
+
+Training is not yet packaged as a single archival container, and checkpoints
+depend on staged predecessor runs. This limits reproduction convenience even
+though evaluation is scripted. A camera-ready artifact should add immutable
+hashes and one top-level command; we do not claim that packaging is complete.
+
+\section{Limitations and Conclusion}
+This study is simulation-only and contains no real-robot evidence. A future
+hardware study would use FIRA overhead vision together with an external
+horizontal camera; neither source is eye-in-hand. The present results must not
+be interpreted as sim-to-real validation.
+
+Only single locks and planar pushing are evaluated. Diagnosis must supply the
+correct lock identity and angle. The carrier can itself be wrong, and neither
+the historical simplified-model rollout gains nor the current calibrated-model
+predictions deliver stable guarded-MPC gains. Panda object/contact transfer is
+No-Go in 0/3 seeds; its scripted 5/5 grasp result and dual fixed eye-to-hand
+visibility audit establish feasibility only. No real-robot data are reported.
+
+The calibrated GenkiArm evidence currently supports two narrow properties:
+analytic projection enforces the diagnosed lock, and selective publication
+prevents learned object corrections from changing free robot coordinates.
+It does not support a practically or statistically significant object
+prediction advantage. The old simplified-model tables remain a disclosed
+development result, not confirmation. The manuscript must remain No-Go for a
+performance-superiority claim unless seeds 137/147 and subsequent independent
+evidence change that conclusion under the frozen protocol.
+
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+\end{document}

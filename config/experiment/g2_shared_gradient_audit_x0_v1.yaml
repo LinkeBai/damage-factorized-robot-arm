@@ -1,0 +1,9 @@
+version: g2_shared_gradient_audit_x0_v1
+status: frozen_2026-08-21
+v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
+seeds: [7]
+rollout_horizon: 5
+maximum_windows: 120
+conflict_gate:
+  minimum_negative_cosine_fraction_for_pcgrad: 0.25
+  maximum_mean_cosine_for_pcgrad: 0.10

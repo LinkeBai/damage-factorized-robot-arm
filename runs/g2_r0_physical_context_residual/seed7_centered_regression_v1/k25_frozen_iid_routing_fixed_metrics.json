@@ -1,0 +1,364 @@
+{
+  "version": "g2_r0_core_metrics_v1",
+  "seed": 7,
+  "residual_scale": 1.0,
+  "residual_relative_clip": null,
+  "residual_decay": null,
+  "context_strength": 1.0,
+  "context_ramp": 0.06,
+  "context_ramp_start": 8,
+  "context_delayed": true,
+  "context_budget": 25,
+  "context_shrink": 1.38,
+  "context_diagnostics": [
+    {
+      "domain": "intact__nominal",
+      "source": "Z65_K25",
+      "context": [
+        -0.012858225032687187,
+        0.2075648307800293,
+        0.14438949525356293,
+        -0.053246352821588516,
+        0.1871597319841385,
+        -0.016818225383758545,
+        -0.0035881223157048225,
+        0.18716271221637726
+      ],
+      "log_variance": [
+        -5.9609904289245605,
+        -7.0,
+        -7.0,
+        -6.978985786437988,
+        -2.8363053798675537,
+        -7.0,
+        -7.0,
+        -3.041335344314575
+      ]
+    },
+    {
+      "domain": "D2__nominal",
+      "source": "Z65_K25",
+      "context": [
+        -0.0047123911790549755,
+        0.2837628126144409,
+        0.18873095512390137,
+        -0.19836945831775665,
+        0.21705284714698792,
+        -0.028089068830013275,
+        -0.02018768899142742,
+        0.22732262313365936
+      ],
+      "log_variance": [
+        -6.118856906890869,
+        -6.847545146942139,
+        -7.0,
+        -7.0,
+        -2.7752301692962646,
+        -7.0,
+        -7.0,
+        -2.948695182800293
+      ]
+    },
+    {
+      "domain": "D4__nominal",
+      "source": "Z65_K25",
+      "context": [
+        -0.010064731352031231,
+        0.24172444641590118,
+        0.1641891598701477,
+        -0.07280081510543823,
+        0.22291330993175507,
+        -0.019391164183616638,
+        -0.006658052559942007,
+        0.2313215285539627
+      ],
+      "log_variance": [
+        -6.268998146057129,
+        -7.0,
+        -7.0,
+        -7.0,
+        -2.7926371097564697,
+        -7.0,
+        -7.0,
+        -3.0013327598571777
+      ]
+    }
+  ],
+  "horizons": [
+    10,
+    25,
+    50
+  ],
+  "rows": [
+    {
+      "domain": "intact__nominal",
+      "horizon": 10,
+      "method": "shared_projected",
+      "free_rmse": 0.13112308084964752,
+      "object_rmse": 0.07654006779193878,
+      "overall_rmse": 0.11813011765480042,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.004792789928615093
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 10,
+      "method": "strict_bt",
+      "free_rmse": 0.13112308084964752,
+      "object_rmse": 0.07654006779193878,
+      "overall_rmse": 0.11813011765480042,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.004792789928615093
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 10,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.13112308084964752,
+      "object_rmse": 0.07654006779193878,
+      "overall_rmse": 0.11813011765480042,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.004792789928615093
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 25,
+      "method": "shared_projected",
+      "free_rmse": 0.17678189277648926,
+      "object_rmse": 0.0938926711678505,
+      "overall_rmse": 0.15761202573776245,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.008669151924550533
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 25,
+      "method": "strict_bt",
+      "free_rmse": 0.17678189277648926,
+      "object_rmse": 0.0938926711678505,
+      "overall_rmse": 0.15761202573776245,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.008669151924550533
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 25,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.17678189277648926,
+      "object_rmse": 0.0938926711678505,
+      "overall_rmse": 0.15761202573776245,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.008669151924550533
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 50,
+      "method": "shared_projected",
+      "free_rmse": 0.15389007329940796,
+      "object_rmse": 0.11155489087104797,
+      "overall_rmse": 0.1430782824754715,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.019393034279346466
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 50,
+      "method": "strict_bt",
+      "free_rmse": 0.15389007329940796,
+      "object_rmse": 0.11155489087104797,
+      "overall_rmse": 0.1430782824754715,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.019393034279346466
+    },
+    {
+      "domain": "intact__nominal",
+      "horizon": 50,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.15389007329940796,
+      "object_rmse": 0.11155489087104797,
+      "overall_rmse": 0.1430782824754715,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.019393034279346466
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 10,
+      "method": "shared_projected",
+      "free_rmse": 0.22941070795059204,
+      "object_rmse": 0.07315801829099655,
+      "overall_rmse": 0.17777244746685028,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.004009113647043705
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 10,
+      "method": "strict_bt",
+      "free_rmse": 0.22941070795059204,
+      "object_rmse": 0.07315801829099655,
+      "overall_rmse": 0.17777244746685028,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.004009113647043705
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 10,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.22941070795059204,
+      "object_rmse": 0.07315801829099655,
+      "overall_rmse": 0.17777244746685028,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.004009113647043705
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 25,
+      "method": "shared_projected",
+      "free_rmse": 0.38288989663124084,
+      "object_rmse": 0.07031048834323883,
+      "overall_rmse": 0.29186734557151794,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.013617726974189281
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 25,
+      "method": "strict_bt",
+      "free_rmse": 0.38288989663124084,
+      "object_rmse": 0.07031048834323883,
+      "overall_rmse": 0.29186734557151794,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.013617726974189281
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 25,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.38288989663124084,
+      "object_rmse": 0.07031048834323883,
+      "overall_rmse": 0.29186734557151794,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.013617726974189281
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 50,
+      "method": "shared_projected",
+      "free_rmse": 0.3728305697441101,
+      "object_rmse": 0.0652187317609787,
+      "overall_rmse": 0.2839812636375427,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.034586597234010696
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 50,
+      "method": "strict_bt",
+      "free_rmse": 0.3728305697441101,
+      "object_rmse": 0.0652187317609787,
+      "overall_rmse": 0.2839812636375427,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.034586597234010696
+    },
+    {
+      "domain": "D2__nominal",
+      "horizon": 50,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.3728305697441101,
+      "object_rmse": 0.0652187317609787,
+      "overall_rmse": 0.2839812636375427,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.034586597234010696
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 10,
+      "method": "shared_projected",
+      "free_rmse": 0.21945324540138245,
+      "object_rmse": 0.03139476478099823,
+      "overall_rmse": 0.16673769056797028,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.0023621590808033943
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 10,
+      "method": "strict_bt",
+      "free_rmse": 0.21945324540138245,
+      "object_rmse": 0.03139476478099823,
+      "overall_rmse": 0.16673769056797028,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.0023621590808033943
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 10,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.21945324540138245,
+      "object_rmse": 0.03139476478099823,
+      "overall_rmse": 0.16673769056797028,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.0023621590808033943
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 25,
+      "method": "shared_projected",
+      "free_rmse": 0.3458614945411682,
+      "object_rmse": 0.04415334016084671,
+      "overall_rmse": 0.2625097930431366,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.009143835864961147
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 25,
+      "method": "strict_bt",
+      "free_rmse": 0.3458614945411682,
+      "object_rmse": 0.04415334016084671,
+      "overall_rmse": 0.2625097930431366,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.009143835864961147
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 25,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.3458614945411682,
+      "object_rmse": 0.04415334016084671,
+      "overall_rmse": 0.2625097930431366,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.009143835864961147
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 50,
+      "method": "shared_projected",
+      "free_rmse": 0.281349241733551,
+      "object_rmse": 0.05816052109003067,
+      "overall_rmse": 0.2149401605129242,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.023047301918268204
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 50,
+      "method": "strict_bt",
+      "free_rmse": 0.281349241733551,
+      "object_rmse": 0.05816052109003067,
+      "overall_rmse": 0.2149401605129242,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.023047301918268204
+    },
+    {
+      "domain": "D4__nominal",
+      "horizon": 50,
+      "method": "strict_bt_no_geometry",
+      "free_rmse": 0.281349241733551,
+      "object_rmse": 0.05816052109003067,
+      "overall_rmse": 0.2149401605129242,
+      "violation_rmse": 0.0,
+      "pusher_xy_rmse": 0.023047301918268204
+    }
+  ]
+}

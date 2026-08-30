@@ -1,0 +1,16 @@
+version: g2_ipwm_physical_support_gate_v1
+status: frozen_after_seed27_spectrum_2026-08-28
+development_seed: 27
+confirmation_seeds: [37, 47]
+observable: l2_norm_of_z65_k25_posterior_mean_after_scale_1_38
+enable_intervention_when: context_norm_gte_threshold
+threshold: 1.2
+fallback: bt_no_intervention_with_matched_adapter
+full_path: bt_matched_adapter
+locked_projection: always_enabled
+selection_uses_domain_label: false
+selection_uses_test_error: false
+gate:
+  minimum_object_improvement_pct_per_cell: 0.0
+  maximum_free_arm_regression_pct: 5.0
+  maximum_constraint_violation_rms: 1.0e-7

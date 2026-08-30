@@ -1,0 +1,43 @@
+version: g2_r0_intervention_geometric_seed7_smoke_v1
+status: frozen_before_r0_seed7_result
+v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
+q0a_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
+seeds: [7]
+
+# Reuse the exact compute-matched shared and frozen Z69 BT checkpoints.
+hidden_dim: 136
+baseline_hidden_dim: 136
+object_hidden_dim: 32
+train_baseline: false
+external_baseline_model_template: runs/g2_bt_dpwm_meta_train_z32/seed{seed}_v1/baseline_model.pt
+initialize_candidate_full_template: runs/g2_bt_dpwm_zero_topology_columns_z69/seed{seed}_v1/model.pt
+initialize_robot_from_baseline: false
+zero_topology_input_weights: true
+
+# Frozen BT structure; only the zero-initialized explicit geometry residual trains.
+contact_conditioned_robot: true
+independent_object_encoder: true
+internal_topology_conditioning: true
+block_coordinate_training: true
+geometric_object_rank: 16
+geometric_object_only_training: true
+robot_epochs: 0
+object_epochs: 40
+object_learning_rate: 0.001
+object_rollout_training_horizon: 10
+object_validation_selection: true
+object_validation_every: 2
+object_group_robust_weight: 0.25
+epochs: 40
+learning_rate: 0.001
+joint_refinement_epochs: 0
+robot_rollout_training_horizon: 5
+selection_scaffold_epochs: 0
+
+primary_domain: D3__mixed_composition
+gate:
+  # Smoke gates only determine whether a full R0 is scientifically warranted.
+  minimum_object_improvement_pct: 2.0
+  maximum_free_arm_regression_pct: 1.0
+  minimum_overall_improvement_pct: 0.0
+  maximum_constraint_violation_rms: 1.0e-7

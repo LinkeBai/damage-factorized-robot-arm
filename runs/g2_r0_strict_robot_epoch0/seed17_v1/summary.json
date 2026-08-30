@@ -1,0 +1,56 @@
+{
+  "config_version": "g2_r0_strict_robot_epoch0_diagnostic_v1",
+  "seed": 17,
+  "device": "cuda",
+  "parameters": 336642,
+  "shared_epochs": 0,
+  "joint_refinement_epochs": 0,
+  "block_coordinate_training": true,
+  "reaction_epochs": 0,
+  "baseline_history": null,
+  "swa_scaffold_history": null,
+  "swa_scaffold_count": 0,
+  "scaffold_selection": null,
+  "robot_selection": null,
+  "bridge_alignment_selection": null,
+  "object_selection": {
+    "selected_epoch": 0,
+    "selected_validation_loss": 0.0012895299587398767,
+    "validation_history": [
+      {
+        "epoch": 0,
+        "loss": 0.0012895299587398767,
+        "topology_losses": {
+          "D1": 0.00015965447528287768,
+          "D2": 0.0020828982815146446,
+          "D4": 0.0008913783240132034,
+          "D5": 0.0006621120264753699,
+          "intact": 0.0013293253723531961
+        }
+      }
+    ],
+    "group_robust_weight": 0.25
+  },
+  "robot_blend_selection": null,
+  "object_improvement_pct": -11.974689872482353,
+  "free_arm_improvement_pct": -10.912100360692207,
+  "overall_improvement_pct": -10.937831714987032,
+  "gate_passed": true,
+  "rows": [
+    {
+      "method": "shared_baseline",
+      "free_rmse": 0.19186434149742126,
+      "object_rmse": 0.04287697747349739,
+      "overall_rmse": 0.14683741331100464,
+      "violation_rmse": 0.0
+    },
+    {
+      "method": "bt_dpwm",
+      "free_rmse": 0.2128007709980011,
+      "object_rmse": 0.04801136255264282,
+      "overall_rmse": 0.1628982424736023,
+      "violation_rmse": 0.0
+    }
+  ],
+  "history": []
+}

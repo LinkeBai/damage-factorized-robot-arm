@@ -6,11 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "robotarm"
 version = "0.1.0"
 description = "DFWM for few-shot safe recovery of a low-cost 5-DoF arm"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.26",
     "mujoco>=3.0",
     "torch>=2.5",
+    "scipy>=1.14",
     "PyYAML>=6",
     "pyserial>=3.5",
 ]
@@ -18,9 +19,13 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8",
+    "mujoco-warp>=3.11",
 ]
 plot = [
     "Pillow>=10",
+]
+real = [
+    "opencv-contrib-python>=4.8,<6",
 ]
 
 [tool.setuptools.packages.find]

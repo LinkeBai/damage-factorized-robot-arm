@@ -1,0 +1,16 @@
+split,budget,bt_own_gain_pct
+development,0,0.0
+development,5,0.5038899100058958
+development,10,0.5038899100058958
+development,25,3.3570690943806043
+development,50,3.3570690943806043
+confirmation,0,0.0
+confirmation,5,3.87973919122119
+confirmation,10,3.87973919122119
+confirmation,25,8.065034807097279
+confirmation,50,8.065034807097279
+robustness,0,0.0
+robustness,5,2.1047633901438645
+robustness,10,2.2335180251179185
+robustness,25,5.31625297366986
+robustness,50,5.275557294578289

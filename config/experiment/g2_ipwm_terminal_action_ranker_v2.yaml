@@ -1,0 +1,38 @@
+version: g2_ipwm_terminal_action_ranker_v2
+status: preregistered_after_h10_label_mismatch_2026-08-28
+parent: config/experiment/g2_ipwm_contact_action_ranker_v1.yaml
+development_seed: 27
+policy_distribution: carrier_guarded_mpc
+trigger: first_observable_contact
+candidate_zero: carrier_optimized_sequence
+development_budget:
+  candidates_per_target: 16
+  carrier_planner_candidates: 16
+  horizon: 10
+  episode_push_steps: 90
+  perturbation_std: 0.10
+label:
+  primary: final_object_to_goal_distance_after_resuming_frozen_carrier_mpc
+  secondary:
+    - maximum_post_sequence_distance
+    - fallback_count
+    - contact_steps
+  prohibit_short_horizon_proxy: true
+splits:
+  training: calibration_targets_only
+  validation: validation_targets_only
+  development_test: evaluation_targets_only
+model:
+  kind: terminal_pairwise_action_ranker
+  hidden_dims: [64, 32]
+  loss: pairwise_terminal_cost_plus_regression
+gate:
+  validation_mean_spearman_min: 0.5
+  validation_positive_fraction_min: 0.75
+  closed_loop_mean_improvement_over_carrier_pct_min: 5.0
+  closed_loop_positive_target_fraction_min: 0.8
+  catastrophic_regression_m: 0.003
+  catastrophic_regression_fraction_max: 0.0
+decision_boundary:
+  pass: freeze_and_expand_to_new_training_seeds
+  fail: preserve_no_go_and_reconsider_control_claim

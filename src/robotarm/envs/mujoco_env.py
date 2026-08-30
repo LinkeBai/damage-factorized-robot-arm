@@ -61,6 +61,7 @@ class MujocoArmEnv:
         *,
         model_variant: str = "simple",
         residual_physics: ResidualPhysicsConfig | None = None,
+        block_initial_xy: npt.ArrayLike | None = None,
     ) -> None:
         if xml_path is None:
             try:
@@ -90,7 +91,24 @@ class MujocoArmEnv:
             ) from exc
         self._qpos_adr = self.model.jnt_qposadr[self._joint_ids]
         self._qvel_adr = self.model.jnt_dofadr[self._joint_ids]
+        # Optional pushable block (Push task): detect slide joints block_x/block_y.
+        self._block_qpos_adr = np.array([], dtype=np.int32)
+        self._block_qvel_adr = np.array([], dtype=np.int32)
+        for name in ("block_x", "block_y"):
+            try:
+                jid = self.model.joint(name).id
+                self._block_qpos_adr = np.append(
+                    self._block_qpos_adr, self.model.jnt_qposadr[jid]
+                )
+                self._block_qvel_adr = np.append(
+                    self._block_qvel_adr, self.model.jnt_dofadr[jid]
+                )
+            except KeyError:
+                pass
         self._residual_physics = residual_physics or ResidualPhysicsConfig()
+        self._block_initial_xy = None if block_initial_xy is None else np.asarray(
+            block_initial_xy, dtype=np.float64
+        ).reshape(2)
         self._ctrl_scale = np.asarray(
             ctrl_scale if ctrl_scale is not None else _DEFAULT_CTRL_SCALE,
             dtype=np.float64,
@@ -121,6 +139,11 @@ class MujocoArmEnv:
         self._rng = np.random.default_rng(self._residual_physics.seed)
         self._action_queue: deque[npt.NDArray[np.float64]] = deque()
         self._last_applied_action = np.zeros(self._dof, dtype=np.float64)
+        self._backlash = self._residual_physics.backlash_array.copy()
+        self._prev_qvel_sign = np.zeros(self._dof, dtype=np.int8)
+        self._last_contact_pairs: set[frozenset[int]] = set()
+        self._last_pair_impulses_xy: dict[tuple[int, int, int], npt.NDArray[np.float64]] = {}
+        self._last_contact_records: list[dict[str, object]] = []
 
     # ------------------------------------------------------------------
     # RobotEnv protocol
@@ -133,6 +156,9 @@ class MujocoArmEnv:
 
         self.model.body(self._goal_body).pos = self._target
         mujoco.mj_resetData(self.model, self.data)
+        if self._block_initial_xy is not None and len(self._block_qpos_adr) == 2:
+            block_origin = self.model.body("block").pos[:2]
+            self.data.qpos[self._block_qpos_adr] = self._block_initial_xy - block_origin
         self._rng = np.random.default_rng(
             self._residual_physics.seed + self._episode_index
         )
@@ -142,6 +168,10 @@ class MujocoArmEnv:
             for _ in range(self._residual_physics.control_delay_steps)
         )
         self._last_applied_action = np.zeros(self._dof, dtype=np.float64)
+        self._prev_qvel_sign = np.zeros(self._dof, dtype=np.int8)
+        self._last_contact_pairs = set()
+        self._last_pair_impulses_xy = {}
+        self._last_contact_records = []
 
         # If a joint is locked, pin it at its lock angle even in the initial pose.
         self._apply_damage()
@@ -166,7 +196,28 @@ class MujocoArmEnv:
             ctrl, ctrl_range[:, 0], ctrl_range[:, 1]
         )
 
+        # Backlash: on velocity sign reversal, the transmission gap absorbs the
+        # command and dissipates kinetic energy (loose gear / worn servo). This
+        # is a history-dependent, non-linear effect that simple topology
+        # conditioning cannot capture.
+        if np.any(self._backlash > 0):
+            qvel = self.data.qvel[self._qvel_adr]
+            for i in range(self._dof):
+                b = self._backlash[i]
+                if b <= 0:
+                    continue
+                cur_sign = 1 if qvel[i] > 1e-4 else (-1 if qvel[i] < -1e-4 else 0)
+                prev_sign = int(self._prev_qvel_sign[i])
+                if cur_sign != 0 and prev_sign != 0 and cur_sign != prev_sign:
+                    self.data.ctrl[self._actuator_ids[i]] = 0.0
+                    self.data.qvel[self._qvel_adr[i]] *= 0.5
+                if cur_sign != 0:
+                    self._prev_qvel_sign[i] = cur_sign
+
         mujoco.mj_step(self.model, self.data)
+        # Snapshot the forces that produced this transition before re-pinning
+        # and mj_forward recompute the constraints for the next state.
+        self._capture_contact_snapshot()
         # Re-pin locked joints after integration so damage is preserved exactly.
         self._apply_damage()
         mujoco.mj_forward(self.model, self.data)
@@ -200,8 +251,8 @@ class MujocoArmEnv:
 
     @property
     def observation_dim(self) -> int:
-        # state = joint positions (nq) + joint velocities (nv).
-        return 2 * self._dof
+        # state = joint positions (nq) + joint velocities (nv) + optional block.
+        return 2 * self._dof + 2 * len(self._block_qpos_adr)
 
     # ------------------------------------------------------------------
     # Damage handling
@@ -228,6 +279,8 @@ class MujocoArmEnv:
         qpos = self.data.qpos[self._qpos_adr].copy()
         qvel = self.data.qvel[self._qvel_adr].copy()
         state = np.concatenate([qpos, qvel])
+        if len(self._block_qpos_adr) > 0:
+            state = np.concatenate([state, self.block_state()])
         if self._residual_physics.observation_noise_std > 0:
             state += self._rng.normal(
                 0.0, self._residual_physics.observation_noise_std, state.shape
@@ -240,6 +293,102 @@ class MujocoArmEnv:
     def ee_pos(self) -> npt.NDArray[np.float64]:
         """Current end-effector position in world frame."""
         return self.data.site_xpos[self._ee_site].copy()
+
+    def block_state(self) -> npt.NDArray[np.float64]:
+        """Pushable-block world position and linear velocity, or empty if none."""
+        if len(self._block_qpos_adr) == 0:
+            return np.zeros(0, dtype=np.float64)
+        pos = self.data.body("block").xpos[:2].copy()
+        # MuJoCo spatial velocity is [angular(3), linear(3)].
+        vel = self.data.body("block").cvel[3:5].copy()
+        return np.concatenate([pos, vel])
+
+    def block_pos(self) -> npt.NDArray[np.float64]:
+        """Pushable-block world position (2-D in the table plane), or empty."""
+        if len(self._block_qpos_adr) == 0:
+            return np.zeros(0, dtype=np.float64)
+        return self.data.body("block").xpos[:2].copy()
+
+    def has_contact(self, geom_a: str, geom_b: str) -> bool:
+        """Return whether the named geom pair is in contact this step."""
+        first = self.model.geom(geom_a).id
+        second = self.model.geom(geom_b).id
+        pair = {first, second}
+        return any(
+            {int(contact.geom1), int(contact.geom2)} == pair
+            for contact in self.data.contact
+        )
+
+    def last_has_contact(self, geom_a: str, geom_b: str) -> bool:
+        """Whether the geom pair participated in the most recent integration."""
+        pair = frozenset((int(self.model.geom(geom_a).id), int(self.model.geom(geom_b).id)))
+        return pair in self._last_contact_pairs
+
+    def _capture_contact_snapshot(self) -> None:
+        self._last_contact_pairs = set()
+        self._last_pair_impulses_xy = {}
+        self._last_contact_records = []
+        time_step = float(self.model.opt.timestep)
+        for index, contact in enumerate(self.data.contact):
+            geom1, geom2 = int(contact.geom1), int(contact.geom2)
+            pair = frozenset((geom1, geom2))
+            self._last_contact_pairs.add(pair)
+            local_wrench = np.zeros(6, dtype=np.float64)
+            mujoco.mj_contactForce(self.model, self.data, index, local_wrench)
+            frame = np.asarray(contact.frame, dtype=np.float64).reshape(3, 3)
+            impulse_on_geom2 = (local_wrench[:3] @ frame)[:2] * time_step
+            self._last_contact_records.append({
+                "geom1": geom1,
+                "geom2": geom2,
+                "position_xy": np.asarray(contact.pos[:2], dtype=np.float64).copy(),
+                "normal_to_geom2_xy": frame[0, :2].copy(),
+                "impulse_on_geom2_xy": impulse_on_geom2.copy(),
+            })
+            low, high = sorted((geom1, geom2))
+            for target, impulse in (
+                (geom2, impulse_on_geom2),
+                (geom1, -impulse_on_geom2),
+            ):
+                key = (low, high, target)
+                self._last_pair_impulses_xy[key] = (
+                    self._last_pair_impulses_xy.get(key, np.zeros(2)) + impulse
+                )
+
+    def contact_impulse_xy(self, geom_a: str, geom_b: str) -> npt.NDArray[np.float64]:
+        """Net planar impulse applied to ``geom_b`` by ``geom_a`` this step.
+
+        Values are snapshotted immediately after the most recent ``mj_step``;
+        they are not recomputed from the post-projection state.
+        """
+        first = int(self.model.geom(geom_a).id)
+        second = int(self.model.geom(geom_b).id)
+        low, high = sorted((first, second))
+        return self._last_pair_impulses_xy.get(
+            (low, high, second), np.zeros(2, dtype=np.float64)
+        ).copy()
+
+    def contact_records(self, geom_a: str, geom_b: str) -> list[dict[str, object]]:
+        """Per-contact records standardized as force/normal acting on geom_b."""
+        first = int(self.model.geom(geom_a).id)
+        second = int(self.model.geom(geom_b).id)
+        result: list[dict[str, object]] = []
+        for record in self._last_contact_records:
+            geom1, geom2 = int(record["geom1"]), int(record["geom2"])
+            if {geom1, geom2} != {first, second}:
+                continue
+            normal = np.asarray(record["normal_to_geom2_xy"], dtype=np.float64)
+            impulse = np.asarray(record["impulse_on_geom2_xy"], dtype=np.float64)
+            if geom2 != second:
+                normal = -normal
+                impulse = -impulse
+            result.append({
+                "source_geom": geom_a,
+                "target_geom": geom_b,
+                "position_xy": np.asarray(record["position_xy"], dtype=np.float64).copy(),
+                "normal_xy": normal.copy(),
+                "impulse_xy": impulse.copy(),
+            })
+        return result
 
     def _ee_target_error(self, obs: Observation | None = None) -> float:
         return float(np.linalg.norm(self.ee_pos() - self._target))

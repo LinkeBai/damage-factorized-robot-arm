@@ -1,0 +1,78 @@
+experiment: ipwm_active_contact_identifiability_v1
+status: no_go_2026-08-29
+purpose: >-
+  Test whether a short deployable active-contact history identifies the
+  residual contact/actuation physics needed for heldout-lock H10 candidate
+  response prediction on both robot structures.
+robots: [calibrated_genkiarm_5dof, official_panda_7dof]
+task: push_current_contact
+data:
+  prefixes_per_robot: 80
+  probe_steps: 8
+  candidate_actions_per_probe: 6
+  candidate_horizon: 10
+  locks:
+    genkiarm: [j2, j3, j4]
+    panda: [joint2, joint4, joint6]
+physics_profiles:
+  nominal: {damping_scale: 1.0, friction_scale: 1.0, actuator_scale: 1.0}
+  high_damping: {damping_scale: 3.0, friction_scale: 1.0, actuator_scale: 1.0}
+  high_friction: {damping_scale: 1.0, friction_scale: 1.8, actuator_scale: 1.0}
+  weak_actuator: {damping_scale: 1.0, friction_scale: 1.0, actuator_scale: 0.65}
+  heldout_mixed: {damping_scale: 2.2, friction_scale: 1.35, actuator_scale: 0.8}
+probe:
+  policy: deterministic_multisine_around_source_action
+  amplitude: 0.18
+  uses_target_or_future_state: false
+observables:
+  - joint_state_and_delta
+  - applied_normalized_action
+  - object_pose_twist_and_delta
+  - binary_robot_object_contact
+  - diagnosed_lock_mask_and_angle
+forbidden_observables: [robot_id_for_shared_context, solver_force, simulator_parameter, future_state]
+integrity:
+  exact_same_initial_prefix_across_physics: true
+  exact_lock_projection_each_step: true
+  group_split_by: [robot, prefix_id]
+  raw_physics_labels_used_only_for_diagnostic_targets: true
+next_gate_requirements:
+  physics_or_response_identifiability_above_no_history_baseline: true
+  positive_on_both_robots: true
+  heldout_mixed_profile: true
+  heldout_middle_lock: true
+  minimum_positive_seeds: 2
+  total_development_seeds: 3
+diagnostic:
+  estimator: closed_form_ridge
+  ridge_alpha: 1.0
+  split_seeds: [7, 17, 27]
+  comparisons:
+    - current_state_only
+    - current_plus_ordered_probe_history
+    - current_plus_permuted_probe_history_same_dimension
+    - current_plus_oracle_physics_upper_bound
+  primary_test: heldout_mixed_profile_and_heldout_middle_lock_and_heldout_prefix
+  go:
+    minimum_history_rmse_improvement_over_current: 0.10
+    minimum_history_spearman_improvement_over_current: 0.10
+    require_lower_regret: true
+    require_both_robots: true
+    require_ordered_history_better_than_permuted_history: true
+    minimum_positive_split_seeds: 2
+decision_rule: >-
+  Collection and integrity checks do not count as a method result. If probe
+  history cannot improve heldout response prediction on both robots without
+  robot identity, stop the simulation mechanism route rather than add another
+  encoder or head.
+result:
+  valid_dataset: runs/ipwm_active_contact_identifiability_v1/dataset_v2_seed20260829.npz
+  invalid_superseded_dataset: runs/ipwm_active_contact_identifiability_v1/dataset_seed20260829.npz
+  rows: 14400
+  rows_per_robot: 7200
+  maximum_lock_violation: 0.0
+  split_seed7: {pooled_rmse_improvement: 0.350216, spearman_improvement: 0.384226, both_robots: false}
+  split_seed17: {pooled_rmse_improvement: 0.384350, spearman_improvement: 0.555655, both_robots: false}
+  split_seed27: {pooled_rmse_improvement: 0.412848, spearman_improvement: 0.453869, both_robots: false}
+  positive_split_seeds: 0
+  decision: no_go_stop_without_new_encoder_or_head

@@ -1,0 +1,83 @@
+version: icra_2027_genkiarm_confirmation_v2
+status: frozen_before_any_v2_training_or_evaluation_2026-08-29
+target_venue: IEEE_ICRA_2027_contributed_paper
+
+purpose:
+  primary: confirm_the_narrow_SI_IPWM_prediction_claim_on_the_calibrated_GenkiArm_model
+  secondary: map_failure_boundaries_without_claiming_closed_loop_superiority
+
+integrity:
+  supersedes_confirmation_seed_list_in: config/experiment/icra_2027_evidence_contract_v1.yaml
+  reason: seeds_57_67_77_87_were_used_in_later_BT_DPWM_development_or_calibration
+  method_and_thresholds_frozen_before_first_v2_seed: true
+  no_hyperparameter_change_after_first_v2_seed: true
+  preserve_all_no_go_results: true
+  do_not_count_arm_push_xml_as_actual_GenkiArm_evidence: true
+
+training:
+  fresh_seeds: [107, 117, 127, 137, 147]
+  minimum_completed_seeds: 5
+  simulator: sim/assets/genkiarm_push.xml
+  initialization_and_training_recipe: frozen_existing_SI_IPWM_recipe
+  adapter_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
+  base_model_config: config/experiment/g2_ipwm_genkiarm_base_train_v2.yaml
+  context_encoder_config: config/experiment/g2_ipwm_genkiarm_context_encoder_v2.yaml
+  zero_topology_config: config/experiment/g2_ipwm_genkiarm_zero_topology_v2.yaml
+  contact_residual_config: config/experiment/g2_ipwm_genkiarm_contact_residual_v2.yaml
+  physical_context_config: config/experiment/g2_ipwm_genkiarm_physical_context_v2.yaml
+  evaluation_config: config/experiment/g2_ipwm_genkiarm_evaluation_v2.yaml
+  required_cli_override: --xml sim/assets/genkiarm_push.xml
+  note: these_seeds_had_no_literal_seed_directory_hits_at_freeze_time
+
+evaluation:
+  simulator: sim/assets/genkiarm_push.xml
+  cameras:
+    architecture: dual_fixed_eye_to_hand
+    required_views: [eye_to_hand_left, eye_to_hand_right]
+  trajectory_seed_rule: deterministic_and_disjoint_from_training_seeds
+  trajectories_per_condition: 10
+  horizons: [10, 25, 50]
+  minimum_lock_locations: 3
+  minimum_physics_families: 4
+  methods:
+    - nominal_or_shared_world_model
+    - mechanism_matched_carrier
+    - full_state_ipwm
+    - selective_ipwm
+    - guarded_selective_ipwm
+    - strongest_frozen_robust_or_adaptive_baseline
+  ablations:
+    - no_state_isolation
+    - no_physical_context
+    - no_routing
+    - parameter_matched_baseline
+
+primary_gates:
+  primary_method: routed_selective_ipwm
+  diagnostic_method: selective_ipwm
+  object_rmse_mean_improvement_over_carrier_pct_min: 5.0
+  object_rmse_seed_level_positive_fraction_min: 0.8
+  hierarchical_paired_bootstrap_ci_lower_bound_pct_min: 0.0
+  free_joint_regression_pct_max: 0.0
+  locked_coordinate_violation_rms_max: 1.0e-7
+
+closed_loop_boundary:
+  status: diagnostic_only_until_a_predeclared_gate_passes
+  do_not_claim: closed_loop_control_superiority
+  primary_metric: terminal_object_to_goal_distance_m
+  report_even_if_negative:
+    - action_rank_correlation
+    - top1_regret
+    - terminal_distance
+    - contact_steps
+    - object_displacement_m
+    - fallback_rate
+  gate:
+    seed_level_positive_fraction_min: 0.8
+    mean_improvement_over_carrier_pct_min: 5.0
+    hierarchical_paired_bootstrap_ci_lower_bound_pct_min: 0.0
+
+paper_decision:
+  if_open_loop_passes_and_closed_loop_fails: retain_prediction_and_invariant_claim_only
+  if_open_loop_fails: no_go_for_current_SI_IPWM_empirical_core
+  real_robot_and_sim_to_real_claims: prohibited_until_hardware_data_exist

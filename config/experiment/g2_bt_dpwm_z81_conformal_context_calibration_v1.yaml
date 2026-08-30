@@ -1,0 +1,13 @@
+version: g2_bt_dpwm_z81_conformal_context_calibration_v1
+status: frozen_before_seed77_87_encoder_training
+encoder_config: config/experiment/g2_bt_dpwm_context_encoder_z65_v1.yaml
+encoder_run_template: runs/g2_bt_dpwm_context_encoder_z65/seed{seed}_v1
+development_seeds: [7, 17, 27, 37, 47]
+confirmation_seeds: [77, 87]
+collection_seed_offset: 81640
+trajectories_per_domain: 2
+transition_budgets: [3, 6, 15, 30]
+nominal_coverages: [0.50, 0.80, 0.90, 0.95]
+maximum_overall_dimensionwise_mace: 0.10
+maximum_per_nominal_dimensionwise_mace: 0.10
+maximum_per_budget_dimensionwise_mace: 0.10

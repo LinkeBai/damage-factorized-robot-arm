@@ -1,0 +1,40 @@
+version: g2_bt_dpwm_joint_nonreg_z56_v1
+status: active_seed7_oracle_gate
+base_config: config/experiment/g2_bt_dpwm_meta_train_z32_v1.yaml
+seeds: [7]
+train_trajectories_per_domain: 6
+goal_query_training: true
+goal_query_trajectories_per_domain: 4
+goal_validation_trajectories_per_domain: 1
+goal_query_cache_dir: runs/cache/bt_dpwm_goal_queries_corrected_v1
+validation_interval: 5
+non_regression_weight: 0.10
+worst_domain_weight: 0.10
+outer_epochs: 180
+outer_learning_rate: 0.0003
+inner_steps: 8
+inner_learning_rate: 0.15
+inner_l2: 0.001
+adapter_rank: 8
+adapter_hidden_dim: 48
+factorized_context: true
+joint_factorized_basis: true
+oracle_context_training: true
+training_transition_budgets: [5, 10, 25, 50]
+correction_position_limit: 0.0015
+correction_velocity_limit: 0.025
+calibration_shots: [0, 1, 2, 5]
+rollout_horizon: 5
+compositional_training_profiles:
+  - name: train_combo_motor_damping
+    topologies: [intact, D1, D2, D4, D5]
+    physics: {actuator_scale: [0.86, 0.88, 0.84, 0.87, 0.90], damping_scale: 1.55, friction_scale: 1.25, seed: 101}
+  - name: train_combo_delay_deadband
+    topologies: [intact, D1, D2, D4, D5]
+    physics: {control_delay_steps: 1, action_deadband: 0.025, observation_noise_std: 0.001, seed: 102}
+  - name: train_combo_motor_delay
+    topologies: [intact, D1, D2, D4, D5]
+    physics: {actuator_scale: [0.88, 0.90, 0.86, 0.89, 0.91], control_delay_steps: 1, seed: 103}
+  - name: train_combo_damping_deadband
+    topologies: [intact, D1, D2, D4, D5]
+    physics: {damping_scale: 1.45, friction_scale: 1.30, action_deadband: 0.03, observation_noise_std: 0.0015, seed: 104}

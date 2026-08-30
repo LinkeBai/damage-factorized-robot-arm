@@ -1,0 +1,14 @@
+version: g2_bt_dpwm_selected_scaffold_audit_z23_v1
+status: frozen_2026-08-22
+v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
+seeds: [7, 17, 27]
+hidden_dim: 136
+object_hidden_dim: 32
+baseline_hidden_dim: 136
+candidate_model_template: runs/g2_bt_dpwm_selected_scaffold_z23/seed{seed}_v1/model.pt
+external_baseline_model_template: runs/g2_bt_dpwm_param_match_z1/seed{seed}_v1/shared_model.pt
+contact_conditioned_robot: true
+independent_object_encoder: true
+reaction_rank: 0
+shadow_object_rank: 0
+robot_expert_count: 1

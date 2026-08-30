@@ -1,0 +1,62 @@
+{
+  "experiment": "route2_topo_id",
+  "seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "k_shots": [
+    0,
+    1,
+    2,
+    5
+  ],
+  "summary": {
+    "D2__mixed_composition_K0": {
+      "mean_rmse": 0.49429664611816404,
+      "mean_improvement_pct": 0.0,
+      "identification_accuracy": null
+    },
+    "D2__mixed_composition_K1": {
+      "mean_rmse": 0.4941806733608246,
+      "mean_improvement_pct": 0.0161149293672784,
+      "identification_accuracy": 1.0
+    },
+    "D2__mixed_composition_K2": {
+      "mean_rmse": 0.4941806733608246,
+      "mean_improvement_pct": 0.0161149293672784,
+      "identification_accuracy": 1.0
+    },
+    "D2__mixed_composition_K5": {
+      "mean_rmse": 0.4941806733608246,
+      "mean_improvement_pct": 0.0161149293672784,
+      "identification_accuracy": 1.0
+    },
+    "D3__mixed_composition_K0": {
+      "mean_rmse": 0.43875088095664977,
+      "mean_improvement_pct": 0.0,
+      "identification_accuracy": null
+    },
+    "D3__mixed_composition_K1": {
+      "mean_rmse": 0.438812255859375,
+      "mean_improvement_pct": 0.004008869894836115,
+      "identification_accuracy": 1.0
+    },
+    "D3__mixed_composition_K2": {
+      "mean_rmse": 0.438812255859375,
+      "mean_improvement_pct": 0.004008869894836115,
+      "identification_accuracy": 1.0
+    },
+    "D3__mixed_composition_K5": {
+      "mean_rmse": 0.438812255859375,
+      "mean_improvement_pct": 0.004008869894836115,
+      "identification_accuracy": 1.0
+    }
+  },
+  "mean_k5_improvement_pct": 0.010061899631057258,
+  "mean_k5_id_accuracy": 1.0,
+  "gate": "PARTIAL",
+  "rationale": "\u8bc6\u522b\u51c6\u786e\u7387 100.0% \u4f46\u9884\u6d4b\u6539\u5584\u4e0d\u663e\u8457\uff0c\u9700\u8fdb\u4e00\u6b65\u5206\u6790"
+}
