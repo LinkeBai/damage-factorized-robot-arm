@@ -7,6 +7,7 @@ build/
 dist/
 .venv/
 .venv-cuda/
+third_party/reproductions/
 venv/
 .pytest_cache/
 
@@ -20,6 +21,9 @@ datasets/
 checkpoints/
 results/*
 !results/final/
+!results/analysis/
+!results/diagnostics/
+!results/reproductions/
 output/
 *.jsonl
 *.npz
@@ -29,6 +33,10 @@ output/
 # Full upstream/reference projects are archived locally only
 external/*
 !external/README.md
+
+# Locally downloaded literature is indexed in papers/related/README.md.
+papers/related/*.pdf
+papers/related/*.txt
 
 # Editors and operating systems
 .vscode/

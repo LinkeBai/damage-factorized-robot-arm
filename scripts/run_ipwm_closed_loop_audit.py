@@ -19,14 +19,17 @@ from robotarm.models.contact_action_ranker import ContactActionRanker
 from robotarm.models.projected_residual_innovation import FewShotProjectedModel
 from robotarm.models.selective_intervention_rollout import SelectiveInterventionRollout
 from robotarm.models.topology_surgery import TopologySurgery
-from robotarm.training.controllers import joint_reference_action, solve_reach_reference
+from robotarm.training.controllers import (
+    directional_push_waypoints,
+    joint_reference_action,
+    solve_reach_reference,
+)
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
 from robotarm.training.topology_surgery_gate import _damage_tensors
 from scripts.evaluate_ipwm_support_validation_gate import build_strict, make_adapter
 from scripts.run_bt_dpwm_gate_y0 import cached_collect
 from scripts.run_push_benchmark import (
-    PUSH_WAYPOINT_OFFSET,
     PUSH_XML,
     collect_push_domains,
 )
@@ -417,11 +420,13 @@ def main() -> None:
                 initial = env.block_pos().copy()
                 lock_map = {i: domain.damage.lock_angle_of(i) for i in locked}
                 approach_reference, _ = solve_reach_reference(
-                    np.array([initial[0] - 0.03, initial[1], 0.025]),
+                    directional_push_waypoints(initial, target[:2])[0],
                     env.joint_ranges, locked_joints=lock_map,
                 )
                 push_reference, _ = solve_reach_reference(
-                    target + PUSH_WAYPOINT_OFFSET, env.joint_ranges, locked_joints=lock_map,
+                    directional_push_waypoints(initial, target[:2])[1],
+                    env.joint_ranges,
+                    locked_joints=lock_map,
                 )
                 for _ in range(args.approach_steps):
                     action = joint_reference_action(

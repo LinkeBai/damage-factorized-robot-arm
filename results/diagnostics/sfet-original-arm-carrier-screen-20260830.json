@@ -1,0 +1,176 @@
+{
+  "diagnostic": "sfet_original_arm_analytic_carrier_screen",
+  "development_only": true,
+  "not_yet_tested": [
+    "three-trial Broyden",
+    "frozen IPWM response",
+    "ridge/BC",
+    "HCAR",
+    "action regret"
+  ],
+  "episodes_per_cell": 5,
+  "rows": [
+    {
+      "damage": "D2",
+      "seed": 7,
+      "method": "hard_mask",
+      "success_rate": 0.2,
+      "terminal_goal_distance_m_mean": 0.03332853030060089,
+      "contact_episode_rate": 0.2,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 7,
+      "method": "analytic_transport",
+      "success_rate": 0.2,
+      "terminal_goal_distance_m_mean": 0.02891068571979876,
+      "contact_episode_rate": 0.4,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 7,
+      "method": "oracle_ik",
+      "success_rate": 1.0,
+      "terminal_goal_distance_m_mean": 0.009549018470828355,
+      "contact_episode_rate": 1.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 17,
+      "method": "hard_mask",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.03780474547554842,
+      "contact_episode_rate": 0.2,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 17,
+      "method": "analytic_transport",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.039837218602434235,
+      "contact_episode_rate": 0.2,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 17,
+      "method": "oracle_ik",
+      "success_rate": 1.0,
+      "terminal_goal_distance_m_mean": 0.009270322566960903,
+      "contact_episode_rate": 1.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 27,
+      "method": "hard_mask",
+      "success_rate": 0.2,
+      "terminal_goal_distance_m_mean": 0.03605893905143401,
+      "contact_episode_rate": 0.4,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 27,
+      "method": "analytic_transport",
+      "success_rate": 0.2,
+      "terminal_goal_distance_m_mean": 0.03743962829500368,
+      "contact_episode_rate": 0.4,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D2",
+      "seed": 27,
+      "method": "oracle_ik",
+      "success_rate": 1.0,
+      "terminal_goal_distance_m_mean": 0.00926350012037995,
+      "contact_episode_rate": 1.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 7,
+      "method": "hard_mask",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.04270441444468347,
+      "contact_episode_rate": 0.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 7,
+      "method": "analytic_transport",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.04270441444468347,
+      "contact_episode_rate": 0.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 7,
+      "method": "oracle_ik",
+      "success_rate": 0.8,
+      "terminal_goal_distance_m_mean": 0.013418100012034407,
+      "contact_episode_rate": 1.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 17,
+      "method": "hard_mask",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.046403494567169704,
+      "contact_episode_rate": 0.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 17,
+      "method": "analytic_transport",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.046403494567169704,
+      "contact_episode_rate": 0.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 17,
+      "method": "oracle_ik",
+      "success_rate": 1.0,
+      "terminal_goal_distance_m_mean": 0.009636320166094954,
+      "contact_episode_rate": 1.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 27,
+      "method": "hard_mask",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.05454125579432456,
+      "contact_episode_rate": 0.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 27,
+      "method": "analytic_transport",
+      "success_rate": 0.0,
+      "terminal_goal_distance_m_mean": 0.05454125579432456,
+      "contact_episode_rate": 0.0,
+      "max_locked_action_abs": 0.0
+    },
+    {
+      "damage": "D3",
+      "seed": 27,
+      "method": "oracle_ik",
+      "success_rate": 1.0,
+      "terminal_goal_distance_m_mean": 0.009712923226865835,
+      "contact_episode_rate": 1.0,
+      "max_locked_action_abs": 0.0
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "seed": 17,
+  "domain": "D3__mixed_composition",
+  "global_spearman": 0.9577979924920847,
+  "depth_stratified_mean_spearman": 0.7555760402036794,
+  "depth_stats": {
+    "0": {
+      "n": 45,
+      "mean_uncertainty": 0.04083321077956094,
+      "mean_error": 0.04541303010450469,
+      "std_uncertainty": 0.014730602889302696,
+      "std_error": 0.020190237721045935,
+      "spearman": 0.8332179515250918
+    },
+    "1": {
+      "n": 45,
+      "mean_uncertainty": 0.08754786898692449,
+      "mean_error": 0.10206879849235216,
+      "std_uncertainty": 0.031183014219839864,
+      "std_error": 0.042228911767530034,
+      "spearman": 0.7994065907583637
+    },
+    "2": {
+      "n": 45,
+      "mean_uncertainty": 0.13641596900092232,
+      "mean_error": 0.1689088698890474,
+      "std_uncertainty": 0.044754870709004635,
+      "std_error": 0.06811537336738768,
+      "spearman": 0.7815364325750082
+    },
+    "3": {
+      "n": 45,
+      "mean_uncertainty": 0.18708928260538313,
+      "mean_error": 0.24159082074960073,
+      "std_uncertainty": 0.05562990526228861,
+      "std_error": 0.0881248782203952,
+      "spearman": 0.7506675934251145
+    },
+    "4": {
+      "n": 45,
+      "mean_uncertainty": 0.23939995533890193,
+      "mean_error": 0.3157795608043671,
+      "std_uncertainty": 0.06436593763404481,
+      "std_error": 0.10561226433354463,
+      "spearman": 0.7092647543686119
+    },
+    "5": {
+      "n": 45,
+      "mean_uncertainty": 0.29307105640570325,
+      "mean_error": 0.38807019028398726,
+      "std_uncertainty": 0.071453485802094,
+      "std_error": 0.12036652949099538,
+      "spearman": 0.6910577178713998
+    },
+    "6": {
+      "n": 45,
+      "mean_uncertainty": 0.34784886174731783,
+      "mean_error": 0.4581731888982985,
+      "std_uncertainty": 0.07727370786423807,
+      "std_error": 0.13293909980811375,
+      "spearman": 0.6875679986154671
+    },
+    "7": {
+      "n": 45,
+      "mean_uncertainty": 0.4035282618469662,
+      "mean_error": 0.5264940632714166,
+      "std_uncertainty": 0.08214720516918497,
+      "std_error": 0.14357372612014574,
+      "spearman": 0.7167161226508407
+    },
+    "8": {
+      "n": 45,
+      "mean_uncertainty": 0.45996663636631435,
+      "mean_error": 0.5918367822964986,
+      "std_uncertainty": 0.08634733022768241,
+      "std_error": 0.15410792171950752,
+      "spearman": 0.7936696340257172
+    },
+    "9": {
+      "n": 45,
+      "mean_uncertainty": 0.517065887980991,
+      "mean_error": 0.6554909328619639,
+      "std_uncertainty": 0.09010945959432101,
+      "std_error": 0.16493500743831654,
+      "spearman": 0.79265560622118
+    }
+  },
+  "n_records": 450
+}

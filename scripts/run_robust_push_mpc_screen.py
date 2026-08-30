@@ -14,11 +14,15 @@ from robotarm.models.planner import PlannerConfig, RobustPushCEMPlanner
 from robotarm.models.topology_encoder import TopologyEncoder
 from robotarm.models.world_model import WorldModel, WorldModelConfig
 from robotarm.training.g1_mechanism import encode_damage_batch
-from robotarm.training.controllers import joint_reference_action, solve_reach_reference
+from robotarm.training.controllers import (
+    directional_push_waypoints,
+    joint_reference_action,
+    solve_reach_reference,
+)
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
 from robotarm.training.topology_ensemble import TopologyMember
-from scripts.run_push_benchmark import PUSH_WAYPOINT_OFFSET, PUSH_XML
+from scripts.run_push_benchmark import PUSH_XML
 
 
 def load_ensemble(path: Path, device: torch.device) -> list[TopologyMember]:
@@ -81,12 +85,12 @@ def main() -> None:
             observation = env.reset(target=target, damage_config=domain.damage)
             initial = env.block_pos().copy()
             locked = {i: domain.damage.lock_angle_of(i) for i in domain.damage.locked}
-            approach = np.array([initial[0] - 0.03, initial[1], 0.025])
+            approach, push_endpoint = directional_push_waypoints(initial, target[:2])
             approach_reference, _ = solve_reach_reference(
                 approach, env.joint_ranges, locked_joints=locked
             )
             push_reference, _ = solve_reach_reference(
-                target + PUSH_WAYPOINT_OFFSET,
+                push_endpoint,
                 env.joint_ranges,
                 locked_joints=locked,
             )

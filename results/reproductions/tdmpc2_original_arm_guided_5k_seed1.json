@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "task": "original-arm-push-intact-guided",
+  "primary_platform": "sim/assets/arm_push.xml",
+  "seed": 1,
+  "steps_requested": 5000,
+  "model_size": 1,
+  "episodic": true,
+  "planner": {
+    "num_samples": 64,
+    "num_elites": 8,
+    "num_pi_trajs": 4
+  },
+  "seed_policy": "directional",
+  "evaluation": [
+    {"step": 0, "mean_return": -19.714466094970703, "success_rate": 0.0},
+    {"step": 2591, "mean_return": -18.035236358642578, "success_rate": 0.0}
+  ],
+  "interpretation": "Direction-aware seed collection reaches the contact manifold, but TD-MPC2 did not learn a successful evaluation policy at the matched 5k screening budget. This is a No-Go for claiming a learned-control gain at 5k, not a No-Go for the seed controller itself."
+}

@@ -1,0 +1,57 @@
+diff --git a/tdmpc2/envs/mujoco.py b/tdmpc2/envs/mujoco.py
+index 358775c..cb65239 100644
+--- a/tdmpc2/envs/mujoco.py
++++ b/tdmpc2/envs/mujoco.py
+@@ -1,6 +1,8 @@
+ import numpy as np
+ import gymnasium as gym
+ from envs.wrappers.timeout import Timeout
++from robotarm.envs.damage import D2, D3, D4, DamageConfig
++from robotarm.integrations.tdmpc2_env import OriginalArmPushEnv
+ 
+ 
+ MUJOCO_TASKS = {
+@@ -42,6 +44,22 @@ def make_env(cfg):
+     """
+     Make classic/MuJoCo environment.
+     """
++	arm_tasks = {
++		'original-arm-push-intact': (DamageConfig.intact, 'random'),
++		'original-arm-push-intact-guided': (DamageConfig.intact, 'directional'),
++		'original-arm-push-d2': (D2, 'random'),
++		'original-arm-push-d3': (D3, 'random'),
++		'original-arm-push-d4': (D4, 'random'),
++	}
++	if cfg.task in arm_tasks:
++		assert cfg.obs == 'state', 'OriginalArmPushEnv supports state observations.'
++		damage_factory, seed_policy = arm_tasks[cfg.task]
++		env = OriginalArmPushEnv(
++			damage=damage_factory(), seed_policy=seed_policy, seed=cfg.seed
++		)
++		cfg.discount_max = 0.99
++		cfg.rho = 0.7
++		return env
+     if not cfg.task in MUJOCO_TASKS:
+         raise ValueError('Unknown task:', cfg.task)
+     assert cfg.obs == 'state', 'This task only supports state observations.'
+diff --git a/tdmpc2/envs/wrappers/tensor.py b/tdmpc2/envs/wrappers/tensor.py
+index 4a6819a..a3ffa9d 100644
+--- a/tdmpc2/envs/wrappers/tensor.py
++++ b/tdmpc2/envs/wrappers/tensor.py
+@@ -14,7 +14,15 @@ class TensorWrapper(gym.Wrapper):
+ 		super().__init__(env)
+ 	
+ 	def rand_act(self):
+-		return torch.from_numpy(self.action_space.sample().astype(np.float32))
++		# Preserve an environment-provided seed policy when one exists. This is
++		# required for contact tasks where uniform joint actions never reach the
++		# interaction manifold; ordinary Gym environments still fall back to the
++		# upstream action-space sampler.
++		if hasattr(self.env, 'rand_act'):
++			action = self.env.rand_act()
++		else:
++			action = self.action_space.sample()
++		return torch.from_numpy(np.asarray(action, dtype=np.float32))
+ 
+ 	def _try_f32_tensor(self, x):
+ 		if isinstance(x, np.ndarray):

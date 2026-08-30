@@ -1,0 +1,18 @@
+{
+  "diagnostic": "hcar_fewshot",
+  "damage": "D3",
+  "shots": 3,
+  "train_transitions": 344,
+  "teacher_train_success_rate": 1.0,
+  "epochs": 150,
+  "final_minibatch_residual_mse": 0.007700498215854168,
+  "eval_episodes": 20,
+  "eval_seed_start": 10001,
+  "evaluation": {
+    "success_rate": 0.7,
+    "contact_episode_rate": 0.95,
+    "terminal_goal_distance_m_mean": 0.01367944137403505,
+    "terminal_goal_distance_m_median": 0.009843079833784893,
+    "max_failed_action_abs": 0.0
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "episodes": 100,
+  "seed": 1,
+  "contact_episode_rate": 0.0,
+  "success_rate": 0.0,
+  "max_block_displacement_m": {
+    "mean": 0.0,
+    "max": 0.0
+  },
+  "terminal_goal_distance_m": {
+    "mean": 0.041276990810107474,
+    "median": 0.04031756427187394
+  }
+}

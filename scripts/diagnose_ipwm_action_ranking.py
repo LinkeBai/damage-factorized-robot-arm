@@ -22,13 +22,17 @@ from robotarm.envs.mujoco_env import MujocoArmEnv
 from robotarm.models.physical_context_encoder import UncertainPhysicalContextEncoder
 from robotarm.models.projected_residual_innovation import FewShotProjectedModel
 from robotarm.models.selective_intervention_rollout import SelectiveInterventionRollout
-from robotarm.training.controllers import joint_reference_action, solve_reach_reference
+from robotarm.training.controllers import (
+    directional_push_waypoints,
+    joint_reference_action,
+    solve_reach_reference,
+)
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
 from robotarm.training.topology_surgery_gate import _damage_tensors
 from scripts.evaluate_ipwm_support_validation_gate import build_strict, make_adapter
 from scripts.run_bt_dpwm_gate_y0 import cached_collect
-from scripts.run_push_benchmark import PUSH_WAYPOINT_OFFSET, PUSH_XML, collect_push_domains
+from scripts.run_push_benchmark import PUSH_XML, collect_push_domains
 
 
 def rankdata(values: np.ndarray) -> np.ndarray:
@@ -111,15 +115,16 @@ def replay_to_decision(domain, q0a, target, locked, approach_steps, nominal_push
     observation = env.reset(target=target, damage_config=domain.damage)
     initial = env.block_pos().copy()
     lock_map = {i: domain.damage.lock_angle_of(i) for i in locked}
+    approach, push_endpoint = directional_push_waypoints(initial, target[:2])
     approach_reference, _ = solve_reach_reference(
-        np.array([initial[0] - 0.03, initial[1], 0.025]),
+        approach,
         env.joint_ranges, locked_joints=lock_map,
     )
     for _ in range(approach_steps):
         action = joint_reference_action(observation["state"][:10], approach_reference, locked_joints=locked)
         observation = env.step(action)["observation"]
     push_reference, _ = solve_reach_reference(
-        target + PUSH_WAYPOINT_OFFSET, env.joint_ranges, locked_joints=lock_map,
+        push_endpoint, env.joint_ranges, locked_joints=lock_map,
     )
     for _ in range(nominal_push_warmup):
         nominal = joint_reference_action(observation["state"][:10], push_reference, locked_joints=locked)
@@ -143,8 +148,9 @@ def realized_costs(domain, q0a, target, locked, approach_steps, nominal_push_war
 def first_nominal_contact_step(domain, q0a, target, locked, approach_steps, max_steps=90):
     env, state, _ = replay_to_decision(domain, q0a, target, locked, approach_steps, 0)
     lock_map = {i: domain.damage.lock_angle_of(i) for i in locked}
+    _, push_endpoint = directional_push_waypoints(env.block_pos(), target[:2])
     push_reference, _ = solve_reach_reference(
-        target + PUSH_WAYPOINT_OFFSET, env.joint_ranges, locked_joints=lock_map,
+        push_endpoint, env.joint_ranges, locked_joints=lock_map,
     )
     for step in range(max_steps):
         nominal = joint_reference_action(state[:10], push_reference, locked_joints=locked)

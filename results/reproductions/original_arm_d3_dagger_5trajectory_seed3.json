@@ -1,0 +1,48 @@
+{
+  "diagnostic": "dagger_sanity",
+  "initial_episodes": 3,
+  "damage": "D3",
+  "initial_teacher_success_rate": 1.0,
+  "dagger_iterations": 2,
+  "dagger_episodes_per_iteration": 1,
+  "teacher_execution_probability_beta": 0.2,
+  "eval_episodes": 20,
+  "fixed_eval_seed_start": 10003,
+  "history": [
+    {
+      "iteration": 0,
+      "aggregate_transitions": 316,
+      "final_minibatch_mse": 0.005619880277663469,
+      "evaluation": {
+        "success_rate": 0.45,
+        "contact_episode_rate": 1.0,
+        "terminal_goal_distance_m_mean": 0.06919521486453559,
+        "terminal_goal_distance_m_median": 0.06495482072719201
+      },
+      "aggregation_rollout_success_rate": 1.0
+    },
+    {
+      "iteration": 1,
+      "aggregate_transitions": 438,
+      "final_minibatch_mse": 0.005034847185015678,
+      "evaluation": {
+        "success_rate": 0.85,
+        "contact_episode_rate": 1.0,
+        "terminal_goal_distance_m_mean": 0.012517786790890342,
+        "terminal_goal_distance_m_median": 0.009816335985482864
+      },
+      "aggregation_rollout_success_rate": 0.0
+    },
+    {
+      "iteration": 2,
+      "aggregate_transitions": 588,
+      "final_minibatch_mse": 0.01035814918577671,
+      "evaluation": {
+        "success_rate": 0.75,
+        "contact_episode_rate": 0.85,
+        "terminal_goal_distance_m_mean": 0.036534300392051175,
+        "terminal_goal_distance_m_median": 0.009706937487533667
+      }
+    }
+  ]
+}

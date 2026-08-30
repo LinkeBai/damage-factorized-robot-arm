@@ -24,6 +24,36 @@ class JointReferenceConfig:
     seed: int = 7
 
 
+def directional_push_waypoints(
+    block_xy: npt.ArrayLike,
+    target_xy: npt.ArrayLike,
+    *,
+    pusher_offset_m: float = 0.03,
+    height_m: float = 0.025,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    """Construct direction-aware pre-contact and terminal pusher waypoints.
+
+    The pusher starts behind the block relative to the desired motion and ends
+    behind the target by the same tool-to-block offset.  Unlike the historical
+    fixed +x offset, this definition is valid for arbitrary planar goals.
+    """
+    block = np.asarray(block_xy, dtype=np.float64)
+    target = np.asarray(target_xy, dtype=np.float64)
+    if block.shape != (2,) or target.shape != (2,):
+        raise ValueError("block_xy and target_xy must both have shape (2,)")
+    delta = target - block
+    distance = float(np.linalg.norm(delta))
+    if distance <= 1e-9:
+        raise ValueError("push target must differ from the block position")
+    direction = delta / distance
+    approach_xy = block - float(pusher_offset_m) * direction
+    terminal_xy = target - float(pusher_offset_m) * direction
+    return (
+        np.array([*approach_xy, float(height_m)], dtype=np.float64),
+        np.array([*terminal_xy, float(height_m)], dtype=np.float64),
+    )
+
+
 def position_jacobian(
     q: npt.ArrayLike, *, epsilon: float = 1e-4
 ) -> npt.NDArray[np.float64]:

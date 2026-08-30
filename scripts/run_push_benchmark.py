@@ -34,9 +34,15 @@ from robotarm.training.sim_data import SimTrajectory
 from robotarm.training.sim_protocol import build_g1_protocol, DomainSpec
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.target_split import load_target_split
-from robotarm.training.controllers import solve_reach_reference, joint_reference_action
+from robotarm.training.controllers import (
+    directional_push_waypoints,
+    joint_reference_action,
+    solve_reach_reference,
+)
 
 PUSH_XML = "sim/assets/arm_push.xml"
+# Retained only for backward-compatible imports in retrospective diagnostics.
+# New data collection uses direction-aware waypoints below.
 PUSH_WAYPOINT_OFFSET = np.array([0.03, 0.0, 0.0])
 
 
@@ -92,12 +98,14 @@ def collect_push_trajectory(
     locked = {i: domain.damage.lock_angle_of(i) for i in domain.damage.locked}
     approach_reference = push_reference = None
     if excitation == "goal":
-        approach = np.array([initial_block[0] - 0.03, initial_block[1], 0.025])
+        approach, push_endpoint = directional_push_waypoints(
+            initial_block, np.asarray(target, dtype=np.float64)[:2]
+        )
         approach_reference, _ = solve_reach_reference(
             approach, env.joint_ranges, locked_joints=locked
         )
         push_reference, _ = solve_reach_reference(
-            target + PUSH_WAYPOINT_OFFSET,
+            push_endpoint,
             env.joint_ranges,
             locked_joints=locked,
         )
