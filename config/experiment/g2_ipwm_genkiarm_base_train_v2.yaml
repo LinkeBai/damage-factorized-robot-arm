@@ -1,0 +1,35 @@
+version: g2_ipwm_genkiarm_base_train_v2
+status: frozen_for_icra_2027_genkiarm_confirmation_v2
+v0_config: config/experiment/g2_dual_expert_fair_gate_v0_v1.yaml
+q0a_config: config/experiment/g2_bt_dpwm_meta_train_q0a_z32_v1.yaml
+seeds: [107, 117, 127, 137, 147]
+hidden_dim: 136
+object_hidden_dim: 32
+baseline_hidden_dim: 136
+initialize_robot_from_baseline: true
+contact_conditioned_robot: true
+independent_object_encoder: true
+internal_topology_conditioning: true
+selection_use_topology: true
+block_coordinate_training: true
+train_baseline: true
+baseline_epochs: 240
+baseline_rollout_training_horizon: 5
+selection_scaffold_epochs: 240
+selection_scaffold_learning_rate: 0.001
+selection_scaffold_rollout_horizon: 5
+selection_validation_every: 10
+selection_ema_decay: 0.99
+epochs: 120
+robot_epochs: 0
+object_epochs: 120
+learning_rate: 0.001
+joint_refinement_epochs: 0
+robot_rollout_training_horizon: 5
+object_rollout_training_horizon: 5
+primary_domain: D3__mixed_composition
+gate:
+  minimum_object_improvement_pct: 2.0
+  maximum_free_arm_regression_pct: 0.0
+  minimum_overall_improvement_pct: 5.0
+  maximum_constraint_violation_rms: 1.0e-7

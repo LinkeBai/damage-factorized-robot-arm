@@ -296,6 +296,7 @@ def main():
                         help="Reuse a frozen fair shared adapter trained with this protocol.")
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--train-only", action="store_true")
+    parser.add_argument("--xml", type=Path)
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     base_cfg = yaml.safe_load(Path(cfg["base_config"]).read_text(encoding="utf-8"))
@@ -303,6 +304,7 @@ def main():
     if args.smoke:
         cfg["outer_epochs"], cfg["inner_steps"] = 2, 2
         cfg["train_trajectories_per_domain"] = 2
+        cfg["goal_query_training"] = False
     torch.manual_seed(args.seed); np.random.seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     protocol = load_g1_protocol(Path(q0a["protocol"]))
@@ -336,11 +338,16 @@ def main():
     bt_adapter = ProjectedResidualInnovation(**common_adapter).to(device)
 
     train_domains = add_compositional_training_domains(protocol, cfg)
+    resolved_xml = Path(args.xml or cfg.get("xml", "sim/assets/arm_push.xml")).resolve()
+    xml_fingerprint = hashlib.sha256(
+        (str(resolved_xml) + "\n").encode("utf-8") + resolved_xml.read_bytes()
+    ).hexdigest()[:10]
     print(f"[data] device={device} domains={len(train_domains)}", flush=True)
     train = collect_push_domains_warp(
         train_domains, trajectories_per_domain=int(cfg["train_trajectories_per_domain"]),
         steps=int(q0a["steps"]), seed=args.seed * 10000 + 480,
-        block_initial_xy=np.asarray(q0a["block_initial_xy"], float), excitation="active")
+        block_initial_xy=np.asarray(q0a["block_initial_xy"], float), excitation="active",
+        xml_path=args.xml or Path(cfg.get("xml", "sim/assets/arm_push.xml")))
     count = int(cfg["train_trajectories_per_domain"])
     grouped = {d.domain_id: train[i*count:(i+1)*count]
                for i, d in enumerate(train_domains)}
@@ -352,13 +359,20 @@ def main():
         domain_fingerprint = hashlib.sha256(
             "\n".join(d.domain_id for d in train_domains).encode()).hexdigest()[:10]
         query_cache = cache_root / (
-            f"seed{args.seed}_d{len(train_domains)}_{domain_fingerprint}_q{query_count}.pt")
+            f"seed{args.seed}_d{len(train_domains)}_{domain_fingerprint}"
+            f"_x{xml_fingerprint}_q{query_count}.pt")
         if query_cache.exists():
             print(f"[data] loading goal query cache {query_cache}", flush=True)
             goal_queries = torch.load(query_cache, weights_only=False)
         else:
+            # Legacy parent caches predate XML provenance and were collected on
+            # arm_push.xml. They are safe to reuse only for that exact default
+            # asset; a calibrated robot must collect its own queries.
+            default_xml = Path("sim/assets/arm_push.xml").resolve()
+            parent_cache = (cfg.get("goal_query_parent_cache_dir")
+                            if resolved_xml == default_xml else None)
             reused = cached_trajectories_by_domain(
-                cfg.get("goal_query_parent_cache_dir"), args.seed, f"q{query_count}")
+                parent_cache, args.seed, f"q{query_count}")
             missing = tuple(d for d in train_domains if d.domain_id not in reused)
             print(f"[data] collecting {query_count} CPU goal queries/domain "
                   f"for {len(missing)} missing domains", flush=True)
@@ -368,7 +382,8 @@ def main():
                 block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
                 excitation="goal",
                 goal_exploration_std=float(q0a["goal_exploration_std"]),
-                targets=tuple(x.as_array() for x in targets.calibration))
+                targets=tuple(x.as_array() for x in targets.calibration),
+                xml_path=resolved_xml)
             collected_grouped = {
                 d.domain_id: collected[i*query_count:(i+1)*query_count]
                 for i, d in enumerate(missing)}
@@ -380,12 +395,13 @@ def main():
             for i, d in enumerate(train_domains)}
         validation_count = int(cfg.get("goal_validation_trajectories_per_domain", 1))
         validation_cache = cache_root / (
-            f"seed{args.seed}_d{len(train_domains)}_{domain_fingerprint}_v{validation_count}.pt")
+            f"seed{args.seed}_d{len(train_domains)}_{domain_fingerprint}"
+            f"_x{xml_fingerprint}_v{validation_count}.pt")
         if validation_cache.exists():
             goal_validation = torch.load(validation_cache, weights_only=False)
         else:
             reused_validation = cached_trajectories_by_domain(
-                cfg.get("goal_query_parent_cache_dir"), args.seed,
+                parent_cache, args.seed,
                 f"v{validation_count}")
             missing_validation = tuple(
                 d for d in train_domains if d.domain_id not in reused_validation)
@@ -395,7 +411,8 @@ def main():
                 block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
                 excitation="goal",
                 goal_exploration_std=float(q0a["goal_exploration_std"]),
-                targets=tuple(x.as_array() for x in targets.validation))
+                targets=tuple(x.as_array() for x in targets.validation),
+                xml_path=resolved_xml)
             collected_validation_grouped = {
                 d.domain_id: collected_validation[
                     i*validation_count:(i+1)*validation_count]
@@ -433,6 +450,8 @@ def main():
         (output/"summary.json").write_text(json.dumps({
             "config_version": cfg["version"], "seed": args.seed,
             "smoke": args.smoke, "train_only": True,
+            "xml": str(args.xml or Path(cfg.get("xml", "sim/assets/arm_push.xml"))),
+            "base_run": str(checkpoint), "bt_run": str(bt_checkpoint),
             "shared_history": shared_history, "bt_history": bt_history,
         }, indent=2), encoding="utf-8")
         return
@@ -445,11 +464,13 @@ def main():
         calibration = collect_push_domains(
             (domain,), trajectories_per_domain=max(cfg["calibration_shots"]),
             steps=int(q0a["steps"]), seed=args.seed*100000+index*1000+100,
-            targets=tuple(x.as_array() for x in targets.calibration), **common)
+            targets=tuple(x.as_array() for x in targets.calibration),
+            xml_path=resolved_xml, **common)
         test = collect_push_domains(
             (domain,), trajectories_per_domain=int(q0a["trajectories_per_test_domain"]),
             steps=int(q0a["steps"]), seed=args.seed*100000+index*1000+500,
-            targets=tuple(x.as_array() for x in targets.evaluation), **common)
+            targets=tuple(x.as_array() for x in targets.evaluation),
+            xml_path=resolved_xml, **common)
         for k in cfg["calibration_shots"]:
             if k == 0:
                 shared_z = torch.zeros(8, device=device); bt_z = shared_z.clone()
@@ -476,6 +497,8 @@ def main():
             print(f"[eval] {domain.domain_id} K={k} improvement={improve:+.2f}%", flush=True)
     summary = {"config_version": cfg["version"], "seed": args.seed,
                "smoke": args.smoke, "shared_history": shared_history,
+               "xml": str(args.xml or Path(cfg.get("xml", "sim/assets/arm_push.xml"))),
+               "base_run": str(checkpoint), "bt_run": str(bt_checkpoint),
                "bt_history": bt_history, "rows": rows}
     (output/"summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 

@@ -1,0 +1,27 @@
+experiment: ipwm_cross_arm_prediction_gate_v1
+status: passed_small_gate
+robots: [genkiarm_5dof, panda_7dof]
+seeds: [7, 17, 27]
+train_conditions: [intact, two_nonmiddle_single_locks_per_robot]
+heldout_conditions: [genkiarm_j3, panda_joint4]
+episodes_per_condition: 10
+steps_per_episode: 40
+training:
+  maximum_updates: 800
+  batch_size: 256
+  validation_every_updates: 10
+  early_stop_validation_checks: 20
+parameter_match_relative_tolerance: 0.05
+fair_parameterization: analytic_projection_plus_learned_delta_for_both_models
+inputs: [full_joint_state, normalized_action, lock_mask_angle, local_joint_axis_origin]
+forbidden_inputs: [robot_id, solver_force, future_contact, dropped_joints]
+go:
+  minimum_relative_pooled_rmse_improvement: 0.10
+  minimum_positive_seeds: 2
+  require_both_robots_improve_per_positive_seed: true
+scope: robot_transition_only_not_push_grasp_or_control
+result:
+  positive_seeds: 2
+  total_seeds: 3
+  seed17_genkiarm_regression_disclosed: true
+  promotion: object_contact_gate_only

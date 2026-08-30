@@ -1,0 +1,48 @@
+experiment: ipwm_constraint_response_gate_v1
+status: no_go
+date: 2026-08-28
+relation_to_prior_cr_gwm: >-
+  CR-GWM used predicted lock violation as a learned reaction proxy and failed
+  parameter-matched attribution. This gate tests solver-native lock reaction
+  identifiability; it does not reopen CR-GWM scale/head tuning.
+scope:
+  task: push
+  training_faults: [D2, D4]
+  heldout_fault: D3
+  seeds: [7, 17, 27]
+  external_terminal_ranker: forbidden
+  privileged_future_state_at_deployment: forbidden
+implementation_gate:
+  deployed_projection_violation_max: 1.0e-7
+  reaction_label_environment_position_violation_rad_max: 2.0e-5
+  require_intact_trajectory_unchanged: true
+  require_lock_force_attribution: true
+mechanism_gate:
+  min_free_joint_delta_explained_variance: 0.70
+  report_pre_contact_and_post_contact_separately: true
+  reject_contact_force_only_proxy: true
+comparisons:
+  - ordinary_world_model
+  - analytic_projection_only
+  - original_ipwm
+  - prior_cr_gwm
+  - projection_plus_unstructured_matched_residual
+  - projection_plus_constraint_response_ipwm
+go_criteria:
+  min_relative_action_ranking_improvement: 0.15
+  min_relative_closed_loop_terminal_error_improvement: 0.10
+  min_directionally_positive_seeds: 2
+  total_seeds: 3
+  matched_unstructured_residual_must_not_match_full_method: true
+promotion_rule: >-
+  Passing permits cross-arm and grasp smoke tests; it does not establish the
+  final contribution or a 4.0/5 paper score.
+decision:
+  result: no_go
+  date: 2026-08-28
+  reason: >-
+    Exact-prefix solver-label identifiability passed, but a deployable shared
+    path operator trained on j2/j4 improved held-out-j3 RMSE over a
+    parameter-matched unstructured MLP in only 1/3 seeds. The other two seeds
+    regressed by 22.8% and 87.8%, and held-out R2 remained negative. Stop this
+    candidate without architecture or threshold tuning.

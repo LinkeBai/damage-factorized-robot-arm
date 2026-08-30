@@ -1,0 +1,49 @@
+<!--
+Second-arm Push/Grasp task wrapper.
+
+Robot source: Google DeepMind MuJoCo Menagerie, Franka Emika Panda,
+commit da76818e269b82289eba39808e2fb91d679d6994, Apache-2.0.
+The included upstream model supplies 7-DoF arm dynamics, collision meshes,
+two physical fingers, fingertip pads, finger synchronization and actuator 8.
+This wrapper adds only the shared table/cube/task cameras.
+-->
+<mujoco model="panda_push_grasp">
+  <include file="../../third_party/mujoco_menagerie/franka_emika_panda/panda.xml"/>
+  <!-- Included mesh filenames are relative to the upstream assets folder;
+       the wrapper lives elsewhere, so restate that directory explicitly. -->
+  <compiler meshdir="../../third_party/mujoco_menagerie/franka_emika_panda/assets"/>
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+  </visual>
+
+  <worldbody>
+    <geom name="task_table" type="box" pos="0.50 0 -0.025"
+          size="0.45 0.45 0.025" rgba="0.48 0.50 0.54 1"
+          friction="0.6 0.05 0.005" contype="1" conaffinity="1"/>
+    <body name="task_cube" pos="0.50 0 0.025">
+      <freejoint name="cube_free"/>
+      <geom name="cube_geom" type="box" size="0.025 0.025 0.025"
+            mass="0.08" rgba="0.90 0.65 0.16 1"
+            friction="0.8 0.08 0.005" contype="1" conaffinity="1"/>
+    </body>
+    <body name="task_goal" pos="0.58 0.10 0.025">
+      <geom name="task_goal_geom" type="sphere" size="0.012"
+            rgba="0.2 0.9 0.3 0.45" contype="0" conaffinity="0"/>
+    </body>
+    <camera name="eye_to_hand_left" pos="1.15 -0.78 0.72"
+            xyaxes="0.75 0.66 0 -0.34 0.39 0.86"/>
+    <camera name="eye_to_hand_right" pos="1.15 0.78 0.72"
+            xyaxes="-0.75 0.66 0 -0.34 -0.39 0.86"/>
+    <camera name="overview" pos="1.35 -1.20 1.05"
+            xyaxes="0.72 0.69 0 -0.40 0.42 0.81"/>
+  </worldbody>
+
+  <!-- Upstream `home` predates the wrapper's free cube and therefore pads its
+       translation with zeros. Task code must use this complete keyframe. -->
+  <keyframe>
+    <key name="task_home"
+         qpos="0 0 0 -1.57079 0 1.57079 -0.7853 0.04 0.04 0.50 0 0.025 1 0 0 0"
+         ctrl="0 0 0 -1.57079 0 1.57079 -0.7853 255"/>
+  </keyframe>
+</mujoco>

@@ -1,0 +1,19 @@
+protocol: config/splits/g2_topology_leave_one_joint_out_v1.yaml
+targets: config/splits/push_targets_5dof_v1.yaml
+seeds: [7]
+steps: 150
+trajectories_per_train_domain: 2
+trajectories_per_test_domain: 3
+goal_exploration_std: 0.08
+block_initial_xy: [0.24, 0.10]
+epochs: 60
+learning_rate: 0.001
+time_step: 0.005
+friction_coefficient: 0.8
+block_mass: 0.06
+block_joint_damping: 0.5
+primary_domain: D3__mixed_composition
+gate:
+  minimum_contact_transitions: 20
+  minimum_object_rmse_improvement_vs_continuous_pct: 30.0
+  maximum_oracle_velocity_reconstruction_rmse: 1.0e-6

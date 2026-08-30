@@ -30,8 +30,13 @@ def main():
         "config/experiment/g2_bt_dpwm_context_encoder_z64_v1.yaml"))
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--output-dir", type=Path)
+    ap.add_argument("--xml", type=Path)
+    ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    if args.smoke:
+        cfg["epochs"] = 2
+        cfg["trajectories_per_domain"] = 2
     parent = yaml.safe_load(Path(cfg["parent_config"]).read_text(encoding="utf-8"))
     base = yaml.safe_load(Path(parent["base_config"]).read_text(encoding="utf-8"))
     q0a = yaml.safe_load(Path(base["q0a_config"]).read_text(encoding="utf-8"))
@@ -43,6 +48,7 @@ def main():
     trajectories = collect_push_domains_warp(
         domains, trajectories_per_domain=count, steps=int(q0a["steps"]),
         seed=args.seed * 10000 + 640,
+        xml_path=args.xml or Path(cfg.get("xml", "sim/assets/arm_push.xml")),
         block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
         excitation="active")
     grouped = {d.domain_id: trajectories[i*count:(i+1)*count]
@@ -123,6 +129,8 @@ def main():
     torch.save(encoder.state_dict(), output/"context_encoder.pt")
     (output/"summary.json").write_text(json.dumps({
         "version": cfg["version"], "seed": args.seed,
+        "smoke": args.smoke,
+        "xml": str(args.xml or Path(cfg.get("xml", "sim/assets/arm_push.xml"))),
         "best_validation_loss": best_val, "history": history,
         "context_scale": CONTEXT_SCALE.tolist()}, indent=2), encoding="utf-8")
 

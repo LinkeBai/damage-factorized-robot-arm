@@ -62,9 +62,10 @@ def collect_push_trajectory(
     goal_exploration_std: float = 0.0,
     sequence_index: int = 0,
     block_initial_xy: np.ndarray | None = None,
+    xml_path: str | Path = PUSH_XML,
 ) -> SimTrajectory:
     env = MujocoArmEnv(
-        xml_path=PUSH_XML,
+        xml_path=xml_path,
         residual_physics=domain.residual,
         block_initial_xy=block_initial_xy,
     )
@@ -81,6 +82,13 @@ def collect_push_trajectory(
     contact_records: list[list[dict[str, object]]] = []
     contact_steps = 0
     initial_block = env.block_pos().copy()
+    try:
+        env.model.geom("tool_geom")
+        tool_geom = "tool_geom"
+        pusher_geom = "pusher_geom"
+    except KeyError:
+        tool_geom = "tool_collision"
+        pusher_geom = "pusher_collision"
     locked = {i: domain.damage.lock_angle_of(i) for i in domain.damage.locked}
     approach_reference = push_reference = None
     if excitation == "goal":
@@ -122,18 +130,18 @@ def collect_push_trajectory(
         applied.append(env.last_applied_action)
         states.append(result["observation"]["state"].copy())
         contact = (
-            env.last_has_contact("tool_geom", "block_geom")
-            or env.last_has_contact("pusher_geom", "block_geom")
+            env.last_has_contact(tool_geom, "block_geom")
+            or env.last_has_contact(pusher_geom, "block_geom")
         )
         contacts.append(contact)
         contact_impulses.append(
-            env.contact_impulse_xy("tool_geom", "block_geom")
-            + env.contact_impulse_xy("pusher_geom", "block_geom")
+            env.contact_impulse_xy(tool_geom, "block_geom")
+            + env.contact_impulse_xy(pusher_geom, "block_geom")
         )
         table_impulses.append(env.contact_impulse_xy("table_geom", "block_geom"))
         contact_records.append(
-            env.contact_records("tool_geom", "block_geom")
-            + env.contact_records("pusher_geom", "block_geom")
+            env.contact_records(tool_geom, "block_geom")
+            + env.contact_records(pusher_geom, "block_geom")
         )
         contact_steps += int(contact)
     return SimTrajectory(
@@ -162,6 +170,7 @@ def collect_push_domains(
     excitation: str = "random",
     goal_exploration_std: float = 0.0,
     block_initial_xy: np.ndarray | None = None,
+    xml_path: str | Path = PUSH_XML,
 ) -> list[SimTrajectory]:
     trajs = []
     for di, domain in enumerate(domains):
@@ -176,6 +185,7 @@ def collect_push_domains(
                     goal_exploration_std=goal_exploration_std,
                     sequence_index=ti,
                     block_initial_xy=block_initial_xy,
+                    xml_path=xml_path,
                 )
             )
     return trajs

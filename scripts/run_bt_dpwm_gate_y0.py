@@ -587,6 +587,8 @@ def main():
     parser.add_argument("--v0-run-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--cache-dir", type=Path, default=Path("runs/trajectory_cache"))
+    parser.add_argument("--xml", type=Path, default=Path("sim/assets/arm_push.xml"))
+    parser.add_argument("--smoke", action="store_true")
     args = parser.parse_args()
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     if args.seed not in cfg["seeds"]:
@@ -594,15 +596,27 @@ def main():
     v0 = yaml.safe_load(Path(cfg["v0_config"]).read_text(encoding="utf-8"))
     q0a_path = Path(cfg.get("q0a_config", v0["q0a_config"]))
     q0a = yaml.safe_load(q0a_path.read_text(encoding="utf-8"))
+    if args.smoke:
+        for key in ("baseline_epochs", "selection_scaffold_epochs", "epochs",
+                    "object_epochs", "robot_epochs", "joint_refinement_epochs"):
+            if key in cfg:
+                cfg[key] = min(int(cfg[key]), 2)
+        q0a["trajectories_per_train_domain"] = 2
+        q0a["trajectories_per_test_domain"] = 2
+    # Every cache key in this script embeds q0a. Including the resolved XML
+    # prevents calibrated-GenkiArm runs from reusing simplified-arm data.
+    q0a["_sim_xml"] = str(args.xml.resolve())
     torch.manual_seed(args.seed); np.random.seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     protocol = load_g1_protocol(Path(q0a["protocol"]))
     targets = load_target_split(Path(q0a["targets"]))
     common = dict(steps=int(q0a["steps"]), excitation="goal",
                   block_initial_xy=np.asarray(q0a["block_initial_xy"], float),
-                  goal_exploration_std=float(q0a["goal_exploration_std"]))
+                  goal_exploration_std=float(q0a["goal_exploration_std"]),
+                  xml_path=args.xml)
     train_key = json.dumps({"kind": "push_train", "seed": args.seed,
-        "domains": [x.domain_id for x in protocol.train], "q0a": q0a}, sort_keys=True)
+        "domains": [x.domain_id for x in protocol.train], "q0a": q0a,
+        "xml": str(args.xml.resolve())}, sort_keys=True)
     train_data = cached_collect(args.cache_dir, train_key, lambda: collect_push_domains(
         protocol.train, trajectories_per_domain=int(q0a["trajectories_per_train_domain"]),
         seed=args.seed * 10_000, targets=tuple(x.as_array() for x in targets.calibration), **common))
@@ -1125,6 +1139,7 @@ def main():
               and overall >= gate["minimum_overall_improvement_pct"]
               and cand["violation_rmse"] <= gate["maximum_constraint_violation_rms"])
     summary = {"config_version": cfg["version"], "seed": args.seed, "device": str(device),
+               "smoke": args.smoke, "xml": str(args.xml),
                "parameters": sum(p.numel() for p in candidate.parameters()),
                "shared_epochs": shared_epochs, "joint_refinement_epochs": refinement_epochs,
                "block_coordinate_training": bool(cfg.get("block_coordinate_training", False)),

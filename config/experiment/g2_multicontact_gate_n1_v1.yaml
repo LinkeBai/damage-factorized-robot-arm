@@ -1,0 +1,14 @@
+version: g2_multicontact_gate_n1_v1
+status: frozen_2026-08-21
+data_config: config/experiment/g2_hybrid_contact_gate_m_v1.yaml
+seed: 7
+candidate_geometry: axis_aligned_box
+friction_coefficient: 0.8
+projection_steps: 400
+projection_learning_rate: 0.05
+gate:
+  maximum_exact_record_negative_normal_fraction: 0.01
+  maximum_candidate_projection_relative_rmse: 0.20
+decision:
+  pass: implement one-seed learned set-valued impulse operator
+  fail: stop Gate N before learned-model training

@@ -1,0 +1,26 @@
+version: g2_ipwm_deployable_terminal_ranker_v4
+status: preregistered_after_v3_validation_no_go_2026-08-28
+parent: config/experiment/g2_ipwm_deployable_terminal_ranker_v3.yaml
+change_from_v3: expanded_contact_state_geometry_only
+ranker_architecture_unchanged: [64, 32]
+candidate_protocol_unchanged:
+  candidates: 16
+  planner_candidates: 16
+  horizon: 10
+  perturbation_std: 0.10
+targets: config/splits/push_targets_5dof_v2.yaml
+minimum_contact_state_counts:
+  calibration: 12
+  validation: 4
+  evaluation: 6
+gate:
+  validation_mean_spearman_min: 0.5
+  validation_positive_fraction_min: 0.75
+  development_mean_improvement_over_strong_carrier_pct_min: 5.0
+  development_positive_target_fraction_min: 0.8
+  catastrophic_regression_m: 0.003
+  catastrophic_regression_fraction_max: 0.0
+integrity:
+  no_v3_evaluation_was_run: true
+  v2_privileged_rows_prohibited: true
+  v3_rows_not_mixed_with_v4_training: true

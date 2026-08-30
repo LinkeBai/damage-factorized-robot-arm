@@ -1,0 +1,26 @@
+version: g2_ipwm_genkiarm_evaluation_v2
+status: frozen_for_icra_2027_genkiarm_confirmation_v2
+q0a_config: config/experiment/g2_ipwm_d3_physics_spectrum_q0a_targets_v2.yaml
+seeds: [107, 117, 127, 137, 147]
+hidden_dim: 136
+baseline_hidden_dim: 136
+external_baseline_model_template: runs/g2_ipwm_genkiarm_base_v2/seed{seed}_v1/baseline_model.pt
+contact_conditioned_robot: true
+contact_gated_object_context: false
+independent_object_encoder: false
+compact_bridge_object_head: true
+geometric_object_rank: 16
+intervention_object_rank: 32
+intervention_residual_support_joints: [0, 1, 3, 4]
+intervention_residual_meta_train: true
+intervention_context_dim: 8
+intervention_context_rank: 16
+intervention_context_only_training: true
+intervention_context_ramp: 0.06
+intervention_context_ramp_start: 8
+intervention_context_delayed: true
+context_posterior_scale: 1.38
+context_encoder_run_template: runs/g2_ipwm_genkiarm_context_v2/seed{seed}_v1
+context_encoder_hidden_dim: 96
+matched_adapter_config: config/experiment/g2_bt_dpwm_known_topology_z63_v1.yaml
+matched_adapter_run_template: runs/g2_ipwm_genkiarm_adapter_v2/seed{seed}_v1

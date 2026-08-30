@@ -1,0 +1,13 @@
+version: g2_hybrid_contact_gate_m1b_v1
+status: frozen_2026-08-21
+parent: config/experiment/g2_hybrid_contact_gate_m_v1.yaml
+seed: 7
+time_step: 0.005
+block_mass: 0.06
+block_joint_damping: 0.5
+oracle_gate:
+  maximum_implicit_momentum_reconstruction_rmse: 0.001
+  maximum_negative_normal_impulse_fraction: 0.05
+decision:
+  pass: implement learned pusher impulse with analytic implicit damping
+  fail: stop hybrid-contact branch and do not train M1b

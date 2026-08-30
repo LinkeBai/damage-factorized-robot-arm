@@ -23,11 +23,34 @@ from src.robotarm.training.sim_data import SimTrajectory
 from src.robotarm.training.sim_protocol import DomainSpec
 from src.robotarm.envs.residual_physics import ResidualPhysicsConfig
 
-PUSH_XML = "sim/assets/arm_push.xml"
+PUSH_XML = Path("sim/assets/arm_push.xml")
+ARM_JOINT_NAMES = tuple(f"j{i}" for i in range(1, 6))
+BLOCK_JOINT_NAMES = ("block_x", "block_y")
 CTRL_SCALE = np.array([1.5, 1.8, 2.4, 1.8, 3.0], dtype=np.float32)
 
 _warp_initialized = False
 _cached_base_model: mujoco.MjModel | None = None
+
+
+def _named_state_addresses(m: mujoco.MjModel) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Resolve the canonical arm/block state contract without assuming XML order."""
+    def addresses(names: tuple[str, ...]) -> tuple[np.ndarray, np.ndarray]:
+        qpos, qvel = [], []
+        for name in names:
+            joint_id = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, name)
+            if joint_id < 0:
+                raise ValueError(f"MuJoCo model is missing required joint {name!r}")
+            if int(m.jnt_type[joint_id]) not in (
+                int(mujoco.mjtJoint.mjJNT_HINGE), int(mujoco.mjtJoint.mjJNT_SLIDE)
+            ):
+                raise ValueError(f"joint {name!r} must have one qpos and one qvel coordinate")
+            qpos.append(int(m.jnt_qposadr[joint_id]))
+            qvel.append(int(m.jnt_dofadr[joint_id]))
+        return np.asarray(qpos, dtype=np.int64), np.asarray(qvel, dtype=np.int64)
+
+    arm_qpos, arm_qvel = addresses(ARM_JOINT_NAMES)
+    block_qpos, block_qvel = addresses(BLOCK_JOINT_NAMES)
+    return arm_qpos, arm_qvel, block_qpos, block_qvel
 
 
 def _ensure_warp():
@@ -75,6 +98,7 @@ def collect_push_domains_warp(
     seed: int,
     block_initial_xy: np.ndarray | None = None,
     excitation: str = "active",  # "active" or "random"
+    xml_path: str | Path = PUSH_XML,
 ) -> list[SimTrajectory]:
     """Batch-collect random-excitation trajectories using GPU parallel simulation.
 
@@ -100,7 +124,7 @@ def collect_push_domains_warp(
 
     for physics_name, indexed_domains in physics_groups.items():
         # Build model with this physics profile
-        m_base = mujoco.MjModel.from_xml_path(PUSH_XML)
+        m_base = mujoco.MjModel.from_xml_path(str(Path(xml_path)))
         residual = indexed_domains[0][1].residual
         _apply_residual_to_model(m_base, residual)
 
@@ -115,11 +139,12 @@ def collect_push_domains_warp(
         qpos_np = np.zeros((nworld, m_base.nq), dtype=np.float32)
         qvel_np = np.zeros((nworld, m_base.nv), dtype=np.float32)
 
-        # Simulator order is [block_x, block_y, j1..j5].  The world-model
-        # contract is [j1..j5, v1..v5, block_xy, block_vxy].
-        block_qpos_adr = np.array([0, 1])
-        arm_qpos_adr = np.arange(2, 7)
-        arm_qvel_adr = np.arange(2, 7)
+        # The world-model contract is [j1..j5, v1..v5, block_xy, block_vxy].
+        # Resolve simulator coordinates by name so XML body order cannot
+        # silently corrupt training data.
+        arm_qpos_adr, arm_qvel_adr, block_qpos_adr, block_qvel_adr = (
+            _named_state_addresses(m_base)
+        )
         block_origin = m_base.body("block").pos[:2].copy()
         for w in range(nworld):
             qpos_np[w, block_qpos_adr] = block_initial_xy - block_origin
@@ -141,7 +166,7 @@ def collect_push_domains_warp(
             return np.concatenate((
                 qpos[:, arm_qpos_adr], qvel[:, arm_qvel_adr],
                 qpos[:, block_qpos_adr] + block_origin[None, :],
-                qvel[:, block_qpos_adr]), axis=1)
+                qvel[:, block_qvel_adr]), axis=1)
 
         # Locked joint indices per world
         locked_per_world = []
@@ -250,6 +275,7 @@ def collect_push_domains_warp(
                             all_states[w, -1, 10:12] - all_states[w, 0, 10:12]
                         )),
                         "warp_collected": True,
+                        "xml_path": str(Path(xml_path)),
                     },
                 )
                 all_trajs[orig_idx * trajectories_per_domain + traj_idx] = traj

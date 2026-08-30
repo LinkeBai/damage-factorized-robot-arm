@@ -294,7 +294,7 @@ class FixedTransformContactWorldModel(FixedTransformGraphWorldModel):
         )
         object_code = self.object_contact_encoder(features.detach())
         object_delta = self.object_free_head(object_state)
-        object_delta = object_delta + contact_gate.unsqueeze(-1) * self.object_impulse_head(
+        object_delta = object_delta + contact_gate.detach().unsqueeze(-1) * self.object_impulse_head(
             object_code
         )
         prediction[:, 2 * self.cfg.dof:] = inertial + object_delta

@@ -1,0 +1,87 @@
+experiment: ipwm_fault_hybrid_counterfactual_gate_v1
+status: no_go_2026-08-29
+hypothesis: >-
+  For multi-step candidate actions under an unseen diagnosed lock, explicitly
+  factorizing contact-mode survival from mode-conditioned cumulative object
+  response improves both object prediction and action ordering across robot
+  structures, while analytic projection and state isolation preserve the safe
+  robot-state boundary.
+scope: h10_current-contact_push_development_gate
+robots: [calibrated_genkiarm_5dof, official_panda_7dof]
+dataset: runs/ipwm_action_effect_gate_v1/dataset_h10_seed20260829.npz
+split:
+  group_by: [robot, prefix_id]
+  train_locks:
+    genkiarm: [j2, j4]
+    panda: [joint2, joint6]
+  heldout_locks:
+    genkiarm: j3
+    panda: joint4
+inputs:
+  - current_object_pose_twist
+  - current_end_effector_object_relative_position
+  - analytic_lock_projected_end_effector_action_response
+  - analytic_removed_end_effector_action_response
+  - normalized_lock_depth_and_angle
+forbidden_inputs: [robot_id, solver_force, future_contact, future_state, target_label]
+target:
+  mode: locked_branch_contact_survival_at_h10
+  continuous: locked_branch_cumulative_object_position_and_twist_change_at_h10
+methods:
+  candidate: fault_conditioned_contact_survival_mixture
+  strong_baselines:
+    - parameter_matched_flat_multitask_predictor_with_same_mode_label
+    - parameter_matched_non_mixture_predictor_with_same_inputs
+  maximum_parameter_difference: 0.05
+training:
+  regression_loss: conditional_mode_head_mse_plus_mixture_mse
+  mode_loss: binary_cross_entropy
+  mode_loss_weight: 0.2
+  optimizer: adamw
+  learning_rate: 0.001
+  weight_decay: 0.00001
+  maximum_epochs: 1600
+  validation_patience_checks: 25
+development_seeds: [7, 17, 27]
+metrics:
+  mode: [balanced_accuracy, brier_score]
+  prediction: object_response_rmse
+  action: [mean_spearman, normalized_top1_regret]
+go:
+  minimum_positive_seeds: 2
+  require_both_robots_in_each_positive_seed: true
+  minimum_pooled_rmse_improvement_over_strongest_baseline: 0.10
+  minimum_spearman_absolute_improvement_over_strongest_baseline: 0.10
+  require_lower_top1_regret_than_all_baselines: true
+  minimum_mode_balanced_accuracy: 0.70
+  maximum_mode_brier_score: 0.20
+decision_rule: >-
+  Failure on any joint criterion stops this route. Do not tune mode count,
+  horizon, head count, loss weight, hidden size, threshold, features, or seeds.
+  Passing is only a development Go and does not authorize paper claims until
+  the full dual-task five-seed contract succeeds.
+result:
+  positive_seeds: 0
+  total_seeds: 3
+  seed7:
+    rmse_improvement: -0.052093
+    spearman_improvement: 0.017857
+    lower_regret: false
+    both_robots_improve: false
+    mode_balanced_accuracy: 0.613488
+    mode_brier: 0.346288
+  seed17:
+    rmse_improvement: 0.045367
+    spearman_improvement: -0.028571
+    lower_regret: false
+    both_robots_improve: true
+    mode_balanced_accuracy: 0.659124
+    mode_brier: 0.345267
+  seed27:
+    rmse_improvement: 0.129340
+    spearman_improvement: 0.022321
+    lower_regret: true
+    both_robots_improve: true
+    mode_balanced_accuracy: 0.632609
+    mode_brier: 0.383268
+  decision: no_go_stop_without_tuning

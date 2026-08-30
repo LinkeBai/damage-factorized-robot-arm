@@ -1,0 +1,143 @@
+<!--
+GenkiArm calibrated-geometry Push task.
+
+Evidence status:
+  * joint axes, limits, link offsets and TCP offset come from
+    hardware/arm_spec.yaml and genkiarm_calibrated.urdf;
+  * AA through GG STL files are the supplied arm CAD and are visual-only;
+  * primitive collision proxies follow the calibrated URDF;
+  * masses, inertias, damping, motor strength and contact parameters remain
+    provisional and MUST be randomized/identified before sim-to-real claims.
+
+This is the primary GenkiArm simulation model for Push.  arm_push.xml remains
+only a fast mechanism/debug fixture.
+-->
+<mujoco model="genkiarm_calibrated_push">
+  <compiler angle="radian" meshdir="genkiarm/meshes" autolimits="true"/>
+  <option gravity="0 0 -9.81" timestep="0.005" integrator="implicitfast"/>
+
+  <asset>
+    <mesh name="cad_base" file="AA.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cad_j1" file="BB.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cad_j2" file="CC.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cad_j3" file="DD.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cad_j4" file="EE.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cad_j5" file="FF.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="cad_tool" file="GG.stl" scale="0.001 0.001 0.001"/>
+  </asset>
+
+  <default>
+    <joint type="hinge" limited="true" damping="0.1" armature="0.01"/>
+    <motor ctrllimited="true" ctrlrange="-1.5 1.5"
+           forcelimited="true" forcerange="-1 1"/>
+    <default class="visual">
+      <geom type="mesh" contype="0" conaffinity="0"
+            group="2" rgba="0.72 0.76 0.80 1"/>
+    </default>
+    <default class="collision">
+      <geom contype="1" conaffinity="1" group="3"
+            rgba="0.3 0.7 0.9 0.18"/>
+    </default>
+  </default>
+
+  <worldbody>
+    <light pos="0 -1 1.5" dir="0 1 -1" diffuse="0.8 0.8 0.8"/>
+    <body name="table" pos="0 0 0">
+      <geom name="table_geom" type="box" size="0.5 0.5 0.001"
+            pos="0 0 -0.001" rgba="0.5 0.5 0.55 1"
+            contype="1" conaffinity="1" friction="0.4 0.05 0.05"/>
+    </body>
+    <body name="block" pos="0.20 0.10 0.02">
+      <joint name="block_x" type="slide" axis="1 0 0"
+             range="-0.5 0.5" damping="0.5"/>
+      <joint name="block_y" type="slide" axis="0 1 0"
+             range="-0.5 0.5" damping="0.5"/>
+      <geom name="block_geom" type="box" size="0.02 0.02 0.02" mass="0.06"
+            rgba="0.9 0.7 0.2 1" contype="1" conaffinity="1"
+            friction="0.4 0.05 0.05"/>
+    </body>
+
+    <body name="base">
+      <geom name="base_visual" class="visual" mesh="cad_base"
+            pos="0.01274 0 0.020"/>
+      <geom name="base_collision" class="collision" type="box"
+            size="0.045 0.045 0.030" pos="0 0 0.030" mass="0.10"/>
+      <body name="link1" pos="0 0 0.120">
+        <joint name="j1" axis="0 0 1" range="-1.4835 1.4835"/>
+        <geom name="link1_visual" class="visual" mesh="cad_j1"
+              pos="0.01274 0 -0.100"/>
+        <geom name="link1_collision" class="collision" type="sphere"
+              size="0.025" mass="0.08"/>
+        <body name="link2">
+          <joint name="j2" axis="0 1 0" range="-1.4835 1.4835"/>
+          <geom name="link2_visual" class="visual" mesh="cad_j2"
+                pos="0.01274 0 -0.100"/>
+          <geom name="link2_collision" class="collision" type="capsule"
+                fromto="0 0 0 0 0 0.110" size="0.018" mass="0.08"/>
+          <body name="link3" pos="0 0 0.110">
+            <joint name="j3" axis="0 1 0" range="-1.6057 1.6057"/>
+            <geom name="link3_visual" class="visual" mesh="cad_j3"
+                  pos="0.01274 0 -0.210"/>
+            <geom name="link3_collision" class="collision" type="capsule"
+                  fromto="0 0 0 0 0 0.120" size="0.016" mass="0.08"/>
+            <body name="link4" pos="0 0 0.120">
+              <joint name="j4" axis="0 1 0" range="-1.6406 1.6057"/>
+              <geom name="link4_visual" class="visual" mesh="cad_j4"
+                    pos="0.01274 0 -0.330"/>
+              <geom name="link4_collision" class="collision" type="capsule"
+                    fromto="0 0 0 0 0 0.060" size="0.014" mass="0.06"/>
+              <body name="link5" pos="0 0 0.060">
+                <joint name="j5" axis="0 0 1" range="-1.5708 1.5708"/>
+                <geom name="link5_visual" class="visual" mesh="cad_j5"
+                      pos="0.01274 0 -0.390"/>
+                <geom name="link5_collision" class="collision" type="sphere"
+                      size="0.020" mass="0.05"/>
+                <body name="tool" pos="0 -0.0132 0.110">
+                  <geom name="tool_visual" class="visual" mesh="cad_tool"
+                        pos="0.01274 0.0132 -0.500"
+                        rgba="0.88 0.36 0.22 1"/>
+                  <geom name="tool_collision" class="collision" type="capsule"
+                        fromto="0 0 0 0.020 0 0" size="0.012" mass="0.02"
+                        friction="0.1 0.02 0.02"/>
+                  <!-- CAD-envelope contact proxy; validate against finger measurements. -->
+                  <geom name="pusher_collision" class="collision" type="capsule"
+                        fromto="0.0200 0 0 0.0537 -0.0210 0.0210" size="0.008"
+                        mass="0.001" friction="0.1 0.02 0.02"/>
+                  <site name="ee" pos="0.020 0 0" size="0.008"
+                        rgba="1 0.2 0.2 1"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+
+    <body name="goal" pos="0.25 0.15 0.02">
+      <geom name="goal_geom" type="sphere" size="0.008"
+            rgba="0.2 0.9 0.3 1" contype="0" conaffinity="0"/>
+    </body>
+    <camera name="eye_to_hand_left" pos="0.62 -0.62 0.56"
+            xyaxes="0.72 0.69 0 -0.42 0.44 0.79"/>
+    <camera name="eye_to_hand_right" pos="0.62 0.62 0.56"
+            xyaxes="-0.72 0.69 0 -0.42 -0.44 0.79"/>
+    <camera name="overview" pos="0.80 -1.00 0.82"
+            xyaxes="0.8 0.6 0 -0.35 0.47 0.81"/>
+  </worldbody>
+
+  <actuator>
+    <motor name="m1" joint="j1"/>
+    <motor name="m2" joint="j2"/>
+    <motor name="m3" joint="j3"/>
+    <motor name="m4" joint="j4"/>
+    <motor name="m5" joint="j5"/>
+  </actuator>
+  <sensor>
+    <jointpos name="qpos" joint="j1"/>
+    <jointpos name="qpos2" joint="j2"/>
+    <jointpos name="qpos3" joint="j3"/>
+    <jointpos name="qpos4" joint="j4"/>
+    <jointpos name="qpos5" joint="j5"/>
+    <framepos name="block_pos" objtype="body" objname="block"/>
+  </sensor>
+</mujoco>
