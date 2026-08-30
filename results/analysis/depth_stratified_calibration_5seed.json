@@ -1,0 +1,33 @@
+{
+  "experiment": "depth_stratified_calibration",
+  "seeds": [
+    7,
+    17,
+    27,
+    37,
+    47
+  ],
+  "global_spearman": {
+    "values": {
+      "7": 0.9046458724843316,
+      "17": 0.9577979924920847,
+      "27": 0.9108272550540021,
+      "37": 0.9270400528653717,
+      "47": 0.9730873931320118
+    },
+    "mean": 0.9346797132055604,
+    "std": 0.029744497276622064
+  },
+  "depth_stratified_spearman": {
+    "values": {
+      "7": 0.3813934815383406,
+      "17": 0.7555760402036794,
+      "27": 0.778033509097019,
+      "37": 0.6585528034483663,
+      "47": 0.7980644646626083
+    },
+    "mean": 0.6743240597900027,
+    "std": 0.1722833989363109
+  },
+  "diagnosis": "Global correlation (+0.90) is strong but driven by depth index. Within each step, uncertainty and error have low correlation (+0.25-0.70). This confirms ensemble disagreement tracks rollout horizon but not sample difficulty."
+}

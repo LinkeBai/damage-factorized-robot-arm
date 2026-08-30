@@ -1,0 +1,74 @@
+{
+  "seed": 17,
+  "domain": "D3__mixed_composition",
+  "n_samples": 450,
+  "baseline_rmse": 0.41787886177781963,
+  "global_uncertainty_error_spearman": 0.9577979924920847,
+  "coverage_rmse_spearman": 1.0,
+  "is_monotone": true,
+  "selective_prediction_curve": [
+    {
+      "coverage": 1.0,
+      "n_retained": 450,
+      "rmse": 0.41787886177781963,
+      "mean_uncertainty_retained": 0.2712766991058985,
+      "rmse_reduction_pct": 0.0
+    },
+    {
+      "coverage": 0.9,
+      "n_retained": 405,
+      "rmse": 0.3614626089177193,
+      "mean_uncertainty_retained": 0.2370653693322782,
+      "rmse_reduction_pct": 13.500623750166158
+    },
+    {
+      "coverage": 0.8,
+      "n_retained": 360,
+      "rmse": 0.3227274284690777,
+      "mean_uncertainty_retained": 0.2098087429172463,
+      "rmse_reduction_pct": 22.770099665709488
+    },
+    {
+      "coverage": 0.7,
+      "n_retained": 315,
+      "rmse": 0.28244711580484516,
+      "mean_uncertainty_retained": 0.18293877215612503,
+      "rmse_reduction_pct": 32.40933159356159
+    },
+    {
+      "coverage": 0.6,
+      "n_retained": 270,
+      "rmse": 0.24125219059572725,
+      "mean_uncertainty_retained": 0.15646043066625243,
+      "rmse_reduction_pct": 42.26743377988866
+    },
+    {
+      "coverage": 0.5,
+      "n_retained": 225,
+      "rmse": 0.20114995988965484,
+      "mean_uncertainty_retained": 0.1305506330066257,
+      "rmse_reduction_pct": 51.86405001825541
+    },
+    {
+      "coverage": 0.4,
+      "n_retained": 180,
+      "rmse": 0.1523808455373537,
+      "mean_uncertainty_retained": 0.10543154031038285,
+      "rmse_reduction_pct": 63.53468445638381
+    },
+    {
+      "coverage": 0.3,
+      "n_retained": 135,
+      "rmse": 0.10918385732406483,
+      "mean_uncertainty_retained": 0.08099145591259002,
+      "rmse_reduction_pct": 73.87188792954156
+    },
+    {
+      "coverage": 0.2,
+      "n_retained": 90,
+      "rmse": 0.07087530897216725,
+      "mean_uncertainty_retained": 0.05807681282361348,
+      "rmse_reduction_pct": 83.03926916268604
+    }
+  ]
+}

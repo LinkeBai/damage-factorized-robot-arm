@@ -1,0 +1,64 @@
+version: icra_2027_primary_5dof_recovery_v1
+status: frozen_before_primary_rerun_2026_08_30
+purpose: original_5dof_primary_evidence
+
+platform:
+  embodiment: original_5dof
+  xml: sim/assets/arm_push.xml
+  kinematic_source: sim/assets/arm.xml
+  physical_twin: hardware/arm_spec.yaml
+  positioning_dof: 5
+  cameras: [eye_to_hand_left, eye_to_hand_horizontal]
+
+task:
+  primary: push
+  secondary_feasibility: grasp_short_lift
+  target_split: config/splits/push_targets_5dof_v2.yaml
+
+interventions:
+  train_locks: [D2, D4]
+  heldout_lock: D3
+  heldout_lock_angles: true
+  intact_control: true
+
+methods:
+  - nominal_world_model
+  - fault_conditioned_world_model
+  - analytic_projection
+  - projection_global_residual_matched
+  - si_ipwm
+
+ablations:
+  - si_ipwm_without_projection
+  - si_ipwm_without_path_support
+  - si_ipwm_without_paired_counterfactual_loss
+
+metrics:
+  constraints: [locked_position_violation, locked_velocity_violation, free_joint_rmse]
+  prediction: [object_rmse_h1, object_rmse_h5, object_rmse_h10, counterfactual_effect_rmse]
+  planning: [spearman_action_rank, kendall_action_rank, top1_regret, endpoint_error, success_rate]
+  efficiency: [training_wall_time, planning_wall_time, peak_gpu_memory]
+
+statistics:
+  development_seeds: [7, 17, 27]
+  confirmation_seeds: [107, 117, 127, 137, 147]
+  evaluation_unit: episode
+  confidence_interval: paired_hierarchical_bootstrap_95
+  report_all_seeds: true
+
+go_gate:
+  original_arm_required: true
+  locked_violation_max: 1.0e-8
+  endpoint_error_relative_improvement_min: 0.10
+  action_rank_spearman_delta_min: 0.10
+  seed_direction_min: 2_of_3_development_then_4_of_5_confirmation
+  matched_global_residual_must_not_match_gain: true
+  no_posthoc_seed_exclusion: true
+
+physical_protocol:
+  robot: original_5dof
+  conditions: [intact, D2, D3]
+  minimum_trials_per_condition_target: 10
+  preferred_trials_per_condition_target: 20
+  preserve_aborts_and_failures: true
+  tune_on_evaluation: false

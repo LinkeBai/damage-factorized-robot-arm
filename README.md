@@ -1,12 +1,16 @@
 # DFWM Robot Arm
 
-面向低成本五自由度机械臂加独立夹爪的关节故障恢复仿真、标定与实验仓库。当前主线以
-GenkiArm、MuJoCo 和 Damage-Factorized World Model（DFWM）为核心。
+面向低成本五自由度机械臂加独立夹爪的关节锁定恢复仿真、标定与实验仓库。当前以
+原始 5-DoF 机械臂为主平台，研究已知单关节硬锁定后的极少样本 Push 恢复；
+GenkiArm 与 Panda 仅承担跨机械臂和任务可行性验证。
 
 ## 当前入口
 
 - [最新状态与证据边界（2026-08-30）](LATEST-STATUS.md)
 - [当前项目计划（V6）](PROJECT-PLAN-V6.md)
+- [8月30日给学长的完整进度](reports/to-senior-2100-progress-20260830.md)
+- [近期顶会项目复现与迁移审计](reports/reproduction-first-audit-20260830.md)
+- [SFET 原始臂任务级 No-Go](reports/sfet-task-level-nogo-20260830.md)
 - [实际 GenkiArm 三种子阶段结论](reports/genkiarm-three-seed-interim-20260830.md)
 - [2025--2026 强相关顶会复现审计](reports/closest-top-conference-methods-2025-2026-20260829.md)
 - [最终 G2 证据汇总](reports/g2-final-synthesis-20260821.md)
@@ -33,8 +37,9 @@ scripts/      数据采集、基准实验和烟雾测试入口
 tests/        单元测试与接口契约测试
 docs/         设计、硬件、计划归档和研究笔记
 references/   论文 PDF 与参考文献数据库
+papers/       本地文献索引；下载的 PDF/全文不上传公开仓库
 reports/      阶段报告和实验门禁结论
-results/      可提交的最终聚合结果
+results/      最终结果、诊断与复现的小型机器可读输出
 runs/         本地实验输出，不纳入 Git
 external/     外部完整工程的本地参考归档，不纳入 Git
 ```
@@ -49,14 +54,25 @@ python scripts/analyze_seed_significance.py results/final/heldout_5seeds_merged.
 python scripts/run_push_benchmark.py --seeds 7,17,27,42,51 --epochs 60
 ```
 
+TD-MPC2 原始臂 adapter 需要可选依赖
+`pip install -e ".[tdmpc2]"`，并对单独下载的上游仓库应用
+`third_party/patches/tdmpc2-original-arm.patch`。LeWM 复现依赖其官方
+`stable-pretraining/stable-worldmodel` 环境与发布 checkpoint；完整版本和
+已验证边界见 `reports/reproduction-first-audit-20260830.md`。
+
 ## 当前结论（2026-08-30）
 
-历史大幅正向 Push 结果来自简化 `arm_push.xml`，不能作为实际 GenkiArm 证据。
-在校准运动学 GenkiArm 上，预注册种子 107/117/127 的 routed selective SI-IPWM
-目标物 RMSE 改善为 +0.6037%、-0.7836%、+0.7182%，平均仅 +0.1794%，置信区间
-跨零，当前性能门为 **No-Go**。三个种子均保持自由状态回归为零和锁定坐标违例为零，
-因此只支持解析约束与选择性状态隔离的窄机制主张。闭环控制优势、Panda 对象/接触传播、
-真机和 4+/5 ICRA 结论均未成立。完整边界见 `LATEST-STATUS.md`。
+历史大幅正向 Push 结果来自简化开发模型，不能作为原始真机、GenkiArm 或闭环
+优势。最新原始臂筛选表明，单步 SFET 运输与 hard-mask 在 D2/D3 上没有形成
+任务优势；此前称为 `oracle_ik` 的方法实际是不使用隐藏真值的可部署
+fault-aware constrained IK 强基线，D2 为 3/3 种子 100%，D3 为
+80/100/100%。因此后续方法必须共享其故障可行路径，只比较未知接触效果和
+动作排序的极少样本适配。
 
-完整过程输出保存在本地 `runs/` 或单独实验备份中，Git 只跟踪可复现代码、配置、
-审计报告和 `results/final/` 聚合结果。
+当前只确认硬锁定可行性与 carrier-relative 状态隔离；闭环优势、跨臂
+object/contact 迁移、方法级 Grasp、真机收益和 4+/5 ICRA 结论均未成立。
+完整边界见 `LATEST-STATUS.md`。
+
+完整过程输出保存在本地 `runs/` 或单独实验备份中；Git 跟踪可复现代码、配置、
+审计报告，以及 `results/final/`、`results/analysis/`、
+`results/diagnostics/` 和 `results/reproductions/` 的小型聚合结果。

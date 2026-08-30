@@ -1,0 +1,16 @@
+{
+  "episodes": 10,
+  "seed": 2,
+  "policy": "directional",
+  "damage": "D3",
+  "contact_episode_rate": 1.0,
+  "success_rate": 1.0,
+  "max_block_displacement_m": {
+    "mean": 0.03321916890480889,
+    "max": 0.048555480719399136
+  },
+  "terminal_goal_distance_m": {
+    "mean": 0.009585012692847925,
+    "median": 0.009645612475501782
+  }
+}

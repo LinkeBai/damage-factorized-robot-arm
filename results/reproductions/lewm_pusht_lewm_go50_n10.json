@@ -1,0 +1,27 @@
+{
+  "scope": "upstream-smoke-not-paper-reproduction",
+  "checkpoint": "third_party\\reproductions\\lewm\\hf_pusht",
+  "dataset": "third_party\\reproductions\\lewm\\pusht_smoke10.lance",
+  "policy": "lewm",
+  "episodes": 10,
+  "episode_start": 0,
+  "goal_offset": 50,
+  "eval_budget": 100,
+  "num_samples": 64,
+  "cem_steps": 5,
+  "metrics": {
+    "success_rate": 10.0,
+    "episode_successes": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  }
+}

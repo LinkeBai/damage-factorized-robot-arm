@@ -1,0 +1,17 @@
+{
+  "diagnostic": "behavior_cloning_sanity",
+  "train_episodes": 5,
+  "damage": "D4",
+  "train_transitions": 472,
+  "teacher_train_success_rate": 1.0,
+  "epochs": 100,
+  "final_minibatch_mse": 0.013681268319487572,
+  "eval_episodes": 20,
+  "eval_seed_start": 10002,
+  "evaluation": {
+    "success_rate": 0.65,
+    "contact_episode_rate": 0.85,
+    "terminal_goal_distance_m_mean": 0.021138123836401877,
+    "terminal_goal_distance_m_median": 0.009363433138110094
+  }
+}
