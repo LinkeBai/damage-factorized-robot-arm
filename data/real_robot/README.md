@@ -25,6 +25,21 @@ goal positions; these are not interchangeable. See
 common action-library hash, collect only the Level-A fixed-trajectory physical
 feasibility packet and do not attach learned-method labels to its motions.
 
+After manually validating one low-speed fixed trajectory for each condition,
+generate the Level-A randomized order with the three actual trajectory IDs:
+
+```powershell
+python scripts/generate_real_robot_level_a_schedule.py `
+  --intact-trajectory-id <validated-id> --d2-trajectory-id <validated-id> `
+  --d3-trajectory-id <validated-id> `
+  --output data/real_robot/level_a_session_20260901.csv
+```
+
+Do not invent these IDs before validating the motions. The standard Push
+analyzer now reports a separate `physical_feasibility_by_condition` table and a
+formal Level-A gate (ten valid trials each for intact/D2/D3 plus raw-file checks),
+whose claim boundary explicitly excludes learned-method superiority.
+
 ## Minimum field sequence
 
 1. Photograph the arm, gripper, block, table, both fixed eye-to-hand cameras,

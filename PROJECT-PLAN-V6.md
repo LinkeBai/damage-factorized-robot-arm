@@ -713,6 +713,12 @@ Level B 还必须提供 action bridge、低幅度验证日志、共同候选库�
 模型选择 ID。未满足时不得把手工轨迹标成 nominal/global 方法结果。完整审计见
 `reports/real-robot-action-interface-audit-20260831.md`。
 
+Level A 已有独立随机表生成器和正式汇总口径：必须先人工验证并填写 intact/D2/D3
+三个真实固定轨迹 ID，随后生成各 10 次、共 30 次的随机顺序；CSV 中 method 永远
+为 `fixed_safe_trajectory`。统一分析器按 condition 输出锁定误差、reach/contact、
+endpoint、success、abort 和 failure code，且只有每种条件至少 10 条有效记录并
+通过双视频/控制日志文件检查才标记 formal。该表仅支持物理机制/可行性结论。
+
 ### 11.8 8 月 31 日独立 ICRA/CCFA 严格复评
 
 当前七页稿、严格机器汇总、来源台账、聚焦契约测试和计算成本台账接受统一量表

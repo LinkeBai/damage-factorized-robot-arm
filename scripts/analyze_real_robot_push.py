@@ -117,6 +117,40 @@ def main() -> None:
             "contact_rate": float(np.mean([flag(row["contact"]) for row in selected])),
             "max_lock_error_rad": float(max(float(row["max_lock_error_rad"]) for row in selected)),
         }
+    feasibility_by_condition = {}
+    for condition in sorted({row["condition"] for row in rows}):
+        selected = [row for row in valid if row["condition"] == condition]
+        aborted = [row for row in rows
+                   if row["condition"] == condition and flag(row["aborted"])]
+        feasibility_by_condition[condition] = {
+            "scheduled_trials": len(selected) + len(aborted),
+            "valid_trials": len(selected),
+            "aborted_trials": len(aborted),
+            "mean_endpoint_error_m": (
+                float(np.mean([float(row["endpoint_error_m"]) for row in selected]))
+                if selected else None
+            ),
+            "success_rate": (
+                float(np.mean([flag(row["success"]) for row in selected]))
+                if selected else None
+            ),
+            "reach_rate": (
+                float(np.mean([flag(row["reached"]) for row in selected]))
+                if selected else None
+            ),
+            "contact_rate": (
+                float(np.mean([flag(row["contact"]) for row in selected]))
+                if selected else None
+            ),
+            "max_lock_error_rad": (
+                float(max(float(row["max_lock_error_rad"]) for row in selected))
+                if selected else None
+            ),
+            "failure_codes": dict(Counter(
+                row["failure_code"] or "none" for row in rows
+                if row["condition"] == condition
+            )),
+        }
     all_indexed = {}
     for row in rows:
         all_indexed.setdefault((row["condition"], row["pair_id"]), {})[
@@ -251,6 +285,10 @@ def main() -> None:
         per_condition.get(condition, {}).get("pairs", 0) >= 10
         for condition in ("D2", "D3")
     )
+    feasibility_counts_met = all(
+        feasibility_by_condition.get(condition, {}).get("valid_trials", 0) >= 10
+        for condition in ("intact", "D2", "D3")
+    )
     payload = {
         "source": str(args.csv), "rows": len(rows), "valid_rows": len(valid),
         "aborted_rows": len(rows) - len(valid), "methods": methods, "paired_trials": len(pairs),
@@ -282,6 +320,20 @@ def main() -> None:
         "paired_rows": per_pair,
         "failure_codes": dict(Counter(row["failure_code"] or "none" for row in rows)),
         "conditions": dict(Counter(row["condition"] for row in valid)),
+        "physical_feasibility_by_condition": feasibility_by_condition,
+        "physical_feasibility_claim_level": (
+            "formal" if feasibility_counts_met and args.require_files
+            else "pilot" if valid else "no physical evidence"
+        ),
+        "physical_feasibility_gate": {
+            "minimum_valid_trials_each_intact_D2_D3": 10,
+            "counts_met": feasibility_counts_met,
+            "raw_files_required_and_checked": args.require_files,
+            "claim_boundary": (
+                "Supports physical constraint/reach/contact/Push feasibility only; "
+                "does not establish learned-method superiority."
+            ),
+        },
         "all_required_files_checked": args.require_files,
         "claim_level": (
             "formal" if formal_counts_met and args.require_files

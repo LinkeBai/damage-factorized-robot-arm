@@ -58,6 +58,9 @@ def test_analyzer_reports_configurable_paired_comparison(tmp_path):
     assert payload["paired_rows"][0]["pair_id"] == "P001"
     assert payload["claim_level"] == "pilot"
     assert payload["formal_gate"]["counts_met"] is False
+    assert payload["physical_feasibility_by_condition"]["D3"]["valid_trials"] == 2
+    assert payload["physical_feasibility_by_condition"]["D3"]["contact_rate"] == 1.0
+    assert payload["physical_feasibility_claim_level"] == "pilot"
 
 
 def test_failure_reduction_is_none_when_reference_has_no_failures(tmp_path):
