@@ -1,0 +1,216 @@
+{
+  "config_version": "icra_primary_d2d4_eval_strict_3seed_v1",
+  "seed": 7,
+  "device": "cuda",
+  "smoke": false,
+  "xml": "sim\\assets\\arm_push.xml",
+  "parameters": 337834,
+  "primary_method": "selective_ipwm",
+  "comparison_baseline": "carrier_no_intervention",
+  "selective_publication_evaluated": true,
+  "global_residual_matched": false,
+  "analytic_projection": true,
+  "shared_epochs": 0,
+  "joint_refinement_epochs": 0,
+  "block_coordinate_training": true,
+  "reaction_epochs": 0,
+  "baseline_history": null,
+  "swa_scaffold_history": null,
+  "swa_scaffold_count": 0,
+  "scaffold_selection": null,
+  "robot_selection": null,
+  "bridge_alignment_selection": null,
+  "object_selection": null,
+  "validation_decision_metrics": null,
+  "formal_decision_metrics": null,
+  "formal_six_stage_metrics": {
+    "shared_baseline": {
+      "groups": 400,
+      "selection_rule": "minimum predicted terminal object-to-goal distance",
+      "constraint": {
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      "reachability": {
+        "definition": "predicted analytic contact gate plus realized continuous-time minimum MuJoCo geom distance when available",
+        "contact_gate_threshold": 0.5,
+        "predicted_proxy_selected_candidate_rate": 0.3225,
+        "realized_distance_available": true,
+        "near_contact_distance_threshold": 0.01,
+        "realized_min_contact_distance_mean": 0.010107559614707497,
+        "realized_near_contact_rate": 0.5875
+      },
+      "contact": {
+        "available": true,
+        "selected_candidate_rate": 0.4225
+      },
+      "response": {
+        "available": true,
+        "contact_candidate_terminal_object_rmse": 0.1450331637757492,
+        "contact_candidate_count": 22617
+      },
+      "action_ranking": {
+        "spearman": 0.011922207330201141,
+        "kendall": -0.0035734498031496065,
+        "top1_regret": 0.010483244245479
+      },
+      "closed_loop_outcome": {
+        "label": "realized open-loop candidate outcome; not receding-horizon MPC",
+        "endpoint_error": 0.04618002191389678,
+        "success_available": true,
+        "success_rate": 0.3625
+      },
+      "evaluation_wall_time_seconds": 19.59234920000017
+    },
+    "carrier_no_intervention": {
+      "groups": 400,
+      "selection_rule": "minimum predicted terminal object-to-goal distance",
+      "constraint": {
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      "reachability": {
+        "definition": "predicted analytic contact gate plus realized continuous-time minimum MuJoCo geom distance when available",
+        "contact_gate_threshold": 0.5,
+        "predicted_proxy_selected_candidate_rate": 0.3675,
+        "realized_distance_available": true,
+        "near_contact_distance_threshold": 0.01,
+        "realized_min_contact_distance_mean": 0.010047814668951105,
+        "realized_near_contact_rate": 0.5925
+      },
+      "contact": {
+        "available": true,
+        "selected_candidate_rate": 0.41
+      },
+      "response": {
+        "available": true,
+        "contact_candidate_terminal_object_rmse": 0.078019044601537,
+        "contact_candidate_count": 22617
+      },
+      "action_ranking": {
+        "spearman": 0.02287258235459686,
+        "kendall": 0.004830216535433072,
+        "top1_regret": 0.009548264138938976
+      },
+      "closed_loop_outcome": {
+        "label": "realized open-loop candidate outcome; not receding-horizon MPC",
+        "endpoint_error": 0.04524504180735676,
+        "success_available": true,
+        "success_rate": 0.37
+      },
+      "evaluation_wall_time_seconds": 75.65408469999966
+    },
+    "full_state_ipwm": {
+      "groups": 400,
+      "selection_rule": "minimum predicted terminal object-to-goal distance",
+      "constraint": {
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      "reachability": {
+        "definition": "predicted analytic contact gate plus realized continuous-time minimum MuJoCo geom distance when available",
+        "contact_gate_threshold": 0.5,
+        "predicted_proxy_selected_candidate_rate": 0.34,
+        "realized_distance_available": true,
+        "near_contact_distance_threshold": 0.01,
+        "realized_min_contact_distance_mean": 0.009933215848859618,
+        "realized_near_contact_rate": 0.5925
+      },
+      "contact": {
+        "available": true,
+        "selected_candidate_rate": 0.42
+      },
+      "response": {
+        "available": true,
+        "contact_candidate_terminal_object_rmse": 0.0852496058775233,
+        "contact_candidate_count": 22617
+      },
+      "action_ranking": {
+        "spearman": 0.07425978697113407,
+        "kendall": 0.04109313484251968,
+        "top1_regret": 0.008496757231259835
+      },
+      "closed_loop_outcome": {
+        "label": "realized open-loop candidate outcome; not receding-horizon MPC",
+        "endpoint_error": 0.04419353489967762,
+        "success_available": true,
+        "success_rate": 0.3825
+      },
+      "evaluation_wall_time_seconds": 66.16599539999152
+    },
+    "selective_ipwm": {
+      "groups": 400,
+      "selection_rule": "minimum predicted terminal object-to-goal distance",
+      "constraint": {
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      "reachability": {
+        "definition": "predicted analytic contact gate plus realized continuous-time minimum MuJoCo geom distance when available",
+        "contact_gate_threshold": 0.5,
+        "predicted_proxy_selected_candidate_rate": 0.34,
+        "realized_distance_available": true,
+        "near_contact_distance_threshold": 0.01,
+        "realized_min_contact_distance_mean": 0.009933215848859618,
+        "realized_near_contact_rate": 0.5925
+      },
+      "contact": {
+        "available": true,
+        "selected_candidate_rate": 0.42
+      },
+      "response": {
+        "available": true,
+        "contact_candidate_terminal_object_rmse": 0.0852496058775233,
+        "contact_candidate_count": 22617
+      },
+      "action_ranking": {
+        "spearman": 0.07425978697113407,
+        "kendall": 0.04109313484251968,
+        "top1_regret": 0.008496757231259835
+      },
+      "closed_loop_outcome": {
+        "label": "realized open-loop candidate outcome; not receding-horizon MPC",
+        "endpoint_error": 0.04419353489967762,
+        "success_available": true,
+        "success_rate": 0.3825
+      },
+      "evaluation_wall_time_seconds": 181.42400749999797
+    }
+  },
+  "robot_blend_selection": null,
+  "object_improvement_pct": 2.1016114704444835,
+  "free_arm_improvement_pct": 0.0,
+  "overall_improvement_pct": 0.107543021912786,
+  "gate_passed": true,
+  "rows": [
+    {
+      "method": "shared_baseline",
+      "free_rmse": 0.16191920638084412,
+      "object_rmse": 0.052699435502290726,
+      "overall_rmse": 0.1256013959646225,
+      "violation_rmse": 0.0
+    },
+    {
+      "method": "carrier_no_intervention",
+      "free_rmse": 0.15812762081623077,
+      "object_rmse": 0.052210502326488495,
+      "overall_rmse": 0.12275030463933945,
+      "violation_rmse": 0.0
+    },
+    {
+      "method": "full_state_ipwm",
+      "free_rmse": 0.15812762081623077,
+      "object_rmse": 0.05111324042081833,
+      "overall_rmse": 0.12261829525232315,
+      "violation_rmse": 0.0
+    },
+    {
+      "method": "selective_ipwm",
+      "free_rmse": 0.15812762081623077,
+      "object_rmse": 0.05111324042081833,
+      "overall_rmse": 0.12261829525232315,
+      "violation_rmse": 0.0
+    }
+  ],
+  "history": []
+}

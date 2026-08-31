@@ -6,8 +6,10 @@ GenkiArm 与 Panda 仅承担跨机械臂和任务可行性验证。
 
 ## 当前入口
 
-- [最新状态与证据边界（2026-08-30）](LATEST-STATUS.md)
+- [最新状态与证据边界](LATEST-STATUS.md)
 - [当前项目计划（V6）](PROJECT-PLAN-V6.md)
+- [严格主结果来源台账](reports/primary-result-provenance-ledger-20260831.md)
+- [当前英文主稿](paper/main.pdf)
 - [8月30日给学长的完整进度](reports/to-senior-2100-progress-20260830.md)
 - [近期顶会项目复现与迁移审计](reports/reproduction-first-audit-20260830.md)
 - [SFET 原始臂任务级 No-Go](reports/sfet-task-level-nogo-20260830.md)
@@ -54,13 +56,23 @@ python scripts/analyze_seed_significance.py results/final/heldout_5seeds_merged.
 python scripts/run_push_benchmark.py --seeds 7,17,27,42,51 --epochs 60
 ```
 
+严格三 seed 主证据（需要本地 `runs/` 中的正式 checkpoint 评测输出）可用一条命令
+重新汇总并验证：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/reproduce_primary_evidence.ps1
+```
+
+该入口重新生成主结果、决策损失、同容量全局残差和无投影消融 JSON，并运行
+57 项配对数据、损失、投影和选择性状态发布测试。
+
 TD-MPC2 原始臂 adapter 需要可选依赖
 `pip install -e ".[tdmpc2]"`，并对单独下载的上游仓库应用
 `third_party/patches/tdmpc2-original-arm.patch`。LeWM 复现依赖其官方
 `stable-pretraining/stable-worldmodel` 环境与发布 checkpoint；完整版本和
 已验证边界见 `reports/reproduction-first-audit-20260830.md`。
 
-## 当前结论（2026-08-30）
+## 当前结论（2026-08-31）
 
 历史大幅正向 Push 结果来自简化开发模型，不能作为原始真机、GenkiArm 或闭环
 优势。最新原始臂筛选表明，单步 SFET 运输与 hard-mask 在 D2/D3 上没有形成
@@ -69,9 +81,16 @@ fault-aware constrained IK 强基线，D2 为 3/3 种子 100%，D3 为
 80/100/100%。因此后续方法必须共享其故障可行路径，只比较未知接触效果和
 动作排序的极少样本适配。
 
-当前只确认硬锁定可行性与 carrier-relative 状态隔离；闭环优势、跨臂
-object/contact 迁移、方法级 Grasp、真机收益和 4+/5 ICRA 结论均未成立。
-完整边界见 `LATEST-STATUS.md`。
+严格 D2/D4 三 seed、每 seed 400 组、每组 128 候选、50 步评测表明：同容量
+全局故障残差相对 nominal WM 的 top-1 regret 平均降低 19.76%（3/3 seed），
+终点候选误差降低 4.04%（3/3）；但接触响应 RMSE 恶化 270.04%。移除解析投影
+会产生平均 6.63 度锁定关节漂移和 0.539 rad/s 速度违例，启用投影后 3/3 seed
+严格为零。
+
+选择性 IPWM 未超过同容量全局残差，full-state 与 selective publication 在当前
+协议中完全相同，因此选择性结构归因是 No-Go。当前可支持的是硬约束、动作排序
+改善与“预测 RMSE 不等于控制效用”的六阶段诊断；receding-horizon MPC、跨臂
+object/contact、方法级 Grasp、真机收益和 4+/5 ICRA 结论仍未成立。
 
 完整过程输出保存在本地 `runs/` 或单独实验备份中；Git 跟踪可复现代码、配置、
 审计报告，以及 `results/final/`、`results/analysis/`、

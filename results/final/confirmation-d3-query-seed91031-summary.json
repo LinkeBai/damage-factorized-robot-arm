@@ -1,0 +1,217 @@
+{
+  "protocol": "icra_2027_primary_5dof_recovery_v1",
+  "role": "same_capacity_global_residual_attribution_control",
+  "seeds": [
+    7,
+    17,
+    27
+  ],
+  "rows": [
+    {
+      "seed": 7,
+      "baseline": {
+        "response_rmse": 0.13578088957978146,
+        "spearman": 0.052398701065852274,
+        "top1_regret": 0.007556828924352885,
+        "endpoint_error": 0.03919879454537295,
+        "success_rate": 0.415
+      },
+      "global_matched": {
+        "response_rmse": 0.1930093703671408,
+        "spearman": 0.071555100391476,
+        "top1_regret": 0.006305148993051262,
+        "endpoint_error": 0.037947114614071326,
+        "success_rate": 0.445
+      },
+      "ipwm": {
+        "response_rmse": 0.3740788037855443,
+        "spearman": 0.11078829680418657,
+        "top1_regret": 0.006860807221746654,
+        "endpoint_error": 0.038502772842766715,
+        "success_rate": 0.42
+      },
+      "global_vs_nominal": {
+        "response_rmse_reduction_percent": -42.14766964958888,
+        "spearman_delta": 0.019156399325623727,
+        "top1_regret_reduction_percent": 16.56356050707881,
+        "endpoint_error_reduction_percent": 3.1931592433353893,
+        "success_gain_percentage_points": 3.0000000000000027
+      },
+      "ipwm_minus_global": {
+        "response_rmse_reduction_percent": -93.8138045183893,
+        "spearman_delta": 0.03923319641271057,
+        "top1_regret_reduction_percent": -8.812769203515547,
+        "endpoint_error_reduction_percent": -1.4642963881352486,
+        "success_gain_percentage_points": -2.500000000000002
+      },
+      "sources": {
+        "global": "runs\\icra_confirmation_d3_query_global_w10\\seed7\\summary.json",
+        "ipwm": "runs\\icra_confirmation_d3_query_selective_w10\\seed7\\summary.json"
+      }
+    },
+    {
+      "seed": 17,
+      "baseline": {
+        "response_rmse": 0.08111962250823905,
+        "spearman": 0.06548799497239938,
+        "top1_regret": 0.008848669203362079,
+        "endpoint_error": 0.04049063482438214,
+        "success_rate": 0.42
+      },
+      "global_matched": {
+        "response_rmse": 0.45370039305238635,
+        "spearman": 0.06329024353491505,
+        "top1_regret": 0.00746082642035617,
+        "endpoint_error": 0.03910279204137623,
+        "success_rate": 0.435
+      },
+      "ipwm": {
+        "response_rmse": 0.39072339622509517,
+        "spearman": -0.0015799760928847744,
+        "top1_regret": 0.00889595452674257,
+        "endpoint_error": 0.040537920147762634,
+        "success_rate": 0.41
+      },
+      "global_vs_nominal": {
+        "response_rmse_reduction_percent": -459.2979590188619,
+        "spearman_delta": -0.0021977514374843243,
+        "top1_regret_reduction_percent": 15.684197828059768,
+        "endpoint_error_reduction_percent": 3.427564890067361,
+        "success_gain_percentage_points": 1.5000000000000013
+      },
+      "ipwm_minus_global": {
+        "response_rmse_reduction_percent": 13.88074548571519,
+        "spearman_delta": -0.06487021962779983,
+        "top1_regret_reduction_percent": -19.23551126281114,
+        "endpoint_error_reduction_percent": -3.670142287711409,
+        "success_gain_percentage_points": -2.500000000000002
+      },
+      "sources": {
+        "global": "runs\\icra_confirmation_d3_query_global_w10\\seed17\\summary.json",
+        "ipwm": "runs\\icra_confirmation_d3_query_selective_w10\\seed17\\summary.json"
+      }
+    },
+    {
+      "seed": 27,
+      "baseline": {
+        "response_rmse": 0.18368975316486566,
+        "spearman": 0.06396467514247098,
+        "top1_regret": 0.008590933494633645,
+        "endpoint_error": 0.04023289911565371,
+        "success_rate": 0.385
+      },
+      "global_matched": {
+        "response_rmse": 0.715383160524965,
+        "spearman": 0.0025902728294260073,
+        "top1_regret": 0.008843092463575886,
+        "endpoint_error": 0.040485058084595946,
+        "success_rate": 0.405
+      },
+      "ipwm": {
+        "response_rmse": 0.5218644505180049,
+        "spearman": 0.12693911223224955,
+        "top1_regret": 0.007376460130690248,
+        "endpoint_error": 0.03901842575171031,
+        "success_rate": 0.43
+      },
+      "global_vs_nominal": {
+        "response_rmse_reduction_percent": -289.45186010615004,
+        "spearman_delta": -0.06137440231304497,
+        "top1_regret_reduction_percent": -2.935175427673293,
+        "endpoint_error_reduction_percent": -0.6267481948476464,
+        "success_gain_percentage_points": 2.0000000000000018
+      },
+      "ipwm_minus_global": {
+        "response_rmse_reduction_percent": 27.051057487144583,
+        "spearman_delta": 0.12434883940282354,
+        "top1_regret_reduction_percent": 16.585061605163578,
+        "endpoint_error_reduction_percent": 3.6226509291922526,
+        "success_gain_percentage_points": 2.4999999999999964
+      },
+      "sources": {
+        "global": "runs\\icra_confirmation_d3_query_global_w10\\seed27\\summary.json",
+        "ipwm": "runs\\icra_confirmation_d3_query_selective_w10\\seed27\\summary.json"
+      }
+    }
+  ],
+  "global_vs_nominal_aggregate": {
+    "response_rmse_reduction_percent": {
+      "mean": -263.63249625820026,
+      "minimum": -459.2979590188619,
+      "maximum": -42.14766964958888,
+      "positive_seeds": 0,
+      "total_seeds": 3
+    },
+    "spearman_delta": {
+      "mean": -0.014805251474968523,
+      "minimum": -0.06137440231304497,
+      "maximum": 0.019156399325623727,
+      "positive_seeds": 1,
+      "total_seeds": 3
+    },
+    "top1_regret_reduction_percent": {
+      "mean": 9.770860969155095,
+      "minimum": -2.935175427673293,
+      "maximum": 16.56356050707881,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    },
+    "endpoint_error_reduction_percent": {
+      "mean": 1.9979919795183678,
+      "minimum": -0.6267481948476464,
+      "maximum": 3.427564890067361,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    },
+    "success_gain_percentage_points": {
+      "mean": 2.1666666666666683,
+      "minimum": 1.5000000000000013,
+      "maximum": 3.0000000000000027,
+      "positive_seeds": 3,
+      "total_seeds": 3
+    }
+  },
+  "ipwm_minus_global_aggregate": {
+    "response_rmse_reduction_percent": {
+      "mean": -17.627333848509842,
+      "minimum": -93.8138045183893,
+      "maximum": 27.051057487144583,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    },
+    "spearman_delta": {
+      "mean": 0.03290393872924476,
+      "minimum": -0.06487021962779983,
+      "maximum": 0.12434883940282354,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    },
+    "top1_regret_reduction_percent": {
+      "mean": -3.821072953721037,
+      "minimum": -19.23551126281114,
+      "maximum": 16.585061605163578,
+      "positive_seeds": 1,
+      "total_seeds": 3
+    },
+    "endpoint_error_reduction_percent": {
+      "mean": -0.5039292488848018,
+      "minimum": -3.670142287711409,
+      "maximum": 3.6226509291922526,
+      "positive_seeds": 1,
+      "total_seeds": 3
+    },
+    "success_gain_percentage_points": {
+      "mean": -0.833333333333336,
+      "minimum": -2.500000000000002,
+      "maximum": 2.4999999999999964,
+      "positive_seeds": 1,
+      "total_seeds": 3
+    }
+  },
+  "attribution_gate": {
+    "ipwm_better_regret_2_of_3": false,
+    "ipwm_better_endpoint_2_of_3": false,
+    "ipwm_better_spearman_2_of_3": true
+  },
+  "verdict": "STRUCTURAL_ATTRIBUTION_NO_GO"
+}

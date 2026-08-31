@@ -1,0 +1,106 @@
+{
+  "protocol": "icra_2027_primary_5dof_recovery_v1",
+  "scope": "formal 400x128x50 six-stage evaluation",
+  "rows": [
+    {
+      "seed": 7,
+      "groups": 400,
+      "candidates_per_group": 128,
+      "horizon_steps": 50,
+      "ipwm_parameters": 337834,
+      "global_matched_parameters": 337842,
+      "evaluation_wall_time_seconds": {
+        "nominal": 129.86852920000092,
+        "carrier": 204.44646440001088,
+        "full_state_ipwm": 200.34049859999504,
+        "selective_ipwm": 333.1876468999981,
+        "global_matched": 132.89558979999856
+      },
+      "recorded_device_ipwm": "cpu",
+      "recorded_device_global": "cuda",
+      "sources": {
+        "ipwm": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed7\\summary.json",
+        "global": "runs\\icra_primary_global_matched_w10_128eval_strict_v2\\seed7\\summary.json"
+      }
+    },
+    {
+      "seed": 17,
+      "groups": 400,
+      "candidates_per_group": 128,
+      "horizon_steps": 50,
+      "ipwm_parameters": 337834,
+      "global_matched_parameters": 337842,
+      "evaluation_wall_time_seconds": {
+        "nominal": 78.89221289999841,
+        "carrier": 150.3866507000057,
+        "full_state_ipwm": 144.8159508999961,
+        "selective_ipwm": 257.96926290000556,
+        "global_matched": 148.72553049999988
+      },
+      "recorded_device_ipwm": "cpu",
+      "recorded_device_global": "cuda",
+      "sources": {
+        "ipwm": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed17\\summary.json",
+        "global": "runs\\icra_primary_global_matched_w10_128eval_strict_v2\\seed17\\summary.json"
+      }
+    },
+    {
+      "seed": 27,
+      "groups": 400,
+      "candidates_per_group": 128,
+      "horizon_steps": 50,
+      "ipwm_parameters": 337834,
+      "global_matched_parameters": 337842,
+      "evaluation_wall_time_seconds": {
+        "nominal": 22.796016400010558,
+        "carrier": 66.14966919999279,
+        "full_state_ipwm": 62.7214762000076,
+        "selective_ipwm": 113.66756980000355,
+        "global_matched": 150.18453059998865
+      },
+      "recorded_device_ipwm": "cuda",
+      "recorded_device_global": "cuda",
+      "sources": {
+        "ipwm": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed27\\summary.json",
+        "global": "runs\\icra_primary_global_matched_w10_128eval_strict_v2\\seed27\\summary.json"
+      }
+    }
+  ],
+  "aggregate_evaluation_wall_time": {
+    "nominal": {
+      "mean_seconds": 77.18558616666996,
+      "minimum_seconds": 22.796016400010558,
+      "maximum_seconds": 129.86852920000092
+    },
+    "carrier": {
+      "mean_seconds": 140.3275947666698,
+      "minimum_seconds": 66.14966919999279,
+      "maximum_seconds": 204.44646440001088
+    },
+    "full_state_ipwm": {
+      "mean_seconds": 135.95930856666624,
+      "minimum_seconds": 62.7214762000076,
+      "maximum_seconds": 200.34049859999504
+    },
+    "selective_ipwm": {
+      "mean_seconds": 234.94149320000238,
+      "minimum_seconds": 113.66756980000355,
+      "maximum_seconds": 333.1876468999981
+    },
+    "global_matched": {
+      "mean_seconds": 143.93521696666235,
+      "minimum_seconds": 132.89558979999856,
+      "maximum_seconds": 150.18453059998865
+    }
+  },
+  "runtime_used_to_generate_this_ledger": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "cuda_device": "NVIDIA GeForce RTX 4060 Laptop GPU"
+  },
+  "training_wall_time": null,
+  "training_wall_time_note": "Historical training summaries did not reliably persist end-to-end wall time; it is reported as missing rather than reconstructed.",
+  "timing_limitations": "IPWM and global rows were produced on different recorded devices in some seeds; wall time documents resource cost and is not used for a speed-comparison claim."
+}

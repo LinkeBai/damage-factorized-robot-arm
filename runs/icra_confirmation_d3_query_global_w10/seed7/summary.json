@@ -1,0 +1,129 @@
+{
+  "config_version": "icra_primary_d2d4_eval_strict_3seed_v1",
+  "seed": 7,
+  "device": "cuda",
+  "smoke": false,
+  "xml": "sim\\assets\\arm_push.xml",
+  "parameters": 337842,
+  "primary_method": "projection_global_residual_matched",
+  "comparison_baseline": "shared_baseline",
+  "selective_publication_evaluated": false,
+  "global_residual_matched": true,
+  "analytic_projection": true,
+  "decision_evaluation_locks": [
+    2
+  ],
+  "shared_epochs": 0,
+  "joint_refinement_epochs": 0,
+  "block_coordinate_training": true,
+  "reaction_epochs": 0,
+  "baseline_history": null,
+  "swa_scaffold_history": null,
+  "swa_scaffold_count": 0,
+  "scaffold_selection": null,
+  "robot_selection": null,
+  "bridge_alignment_selection": null,
+  "object_selection": null,
+  "validation_decision_metrics": null,
+  "formal_decision_metrics": null,
+  "formal_six_stage_metrics": {
+    "shared_baseline": {
+      "groups": 200,
+      "selection_rule": "minimum predicted terminal object-to-goal distance",
+      "constraint": {
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      "reachability": {
+        "definition": "predicted analytic contact gate plus realized continuous-time minimum MuJoCo geom distance when available",
+        "contact_gate_threshold": 0.5,
+        "predicted_proxy_selected_candidate_rate": 0.325,
+        "realized_distance_available": true,
+        "near_contact_distance_threshold": 0.01,
+        "realized_min_contact_distance_mean": 0.010844959596865352,
+        "realized_near_contact_rate": 0.54
+      },
+      "contact": {
+        "available": true,
+        "selected_candidate_rate": 0.375
+      },
+      "response": {
+        "available": true,
+        "contact_candidate_terminal_object_rmse": 0.13578088957978146,
+        "contact_candidate_count": 10552
+      },
+      "action_ranking": {
+        "spearman": 0.052398701065852274,
+        "kendall": 0.00954232283464567,
+        "top1_regret": 0.007556828924352885
+      },
+      "closed_loop_outcome": {
+        "label": "realized open-loop candidate outcome; not receding-horizon MPC",
+        "endpoint_error": 0.03919879454537295,
+        "success_available": true,
+        "success_rate": 0.415
+      },
+      "evaluation_wall_time_seconds": 26.462398100004066
+    },
+    "projection_global_residual_matched": {
+      "groups": 200,
+      "selection_rule": "minimum predicted terminal object-to-goal distance",
+      "constraint": {
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      "reachability": {
+        "definition": "predicted analytic contact gate plus realized continuous-time minimum MuJoCo geom distance when available",
+        "contact_gate_threshold": 0.5,
+        "predicted_proxy_selected_candidate_rate": 0.195,
+        "realized_distance_available": true,
+        "near_contact_distance_threshold": 0.01,
+        "realized_min_contact_distance_mean": 0.010272913783095987,
+        "realized_near_contact_rate": 0.555
+      },
+      "contact": {
+        "available": true,
+        "selected_candidate_rate": 0.375
+      },
+      "response": {
+        "available": true,
+        "contact_candidate_terminal_object_rmse": 0.1930093703671408,
+        "contact_candidate_count": 10552
+      },
+      "action_ranking": {
+        "spearman": 0.071555100391476,
+        "kendall": 0.04842027559055118,
+        "top1_regret": 0.006305148993051262
+      },
+      "closed_loop_outcome": {
+        "label": "realized open-loop candidate outcome; not receding-horizon MPC",
+        "endpoint_error": 0.037947114614071326,
+        "success_available": true,
+        "success_rate": 0.445
+      },
+      "evaluation_wall_time_seconds": 75.14467660000082
+    }
+  },
+  "robot_blend_selection": null,
+  "object_improvement_pct": -13.808547858511252,
+  "free_arm_improvement_pct": 2.341652759645632,
+  "overall_improvement_pct": 1.4659803508543812,
+  "gate_passed": false,
+  "rows": [
+    {
+      "method": "shared_baseline",
+      "free_rmse": 0.16191920638084412,
+      "object_rmse": 0.052699435502290726,
+      "overall_rmse": 0.1256013959646225,
+      "violation_rmse": 0.0
+    },
+    {
+      "method": "projection_global_residual_matched",
+      "free_rmse": 0.15812762081623077,
+      "object_rmse": 0.05997646227478981,
+      "overall_rmse": 0.12376010417938232,
+      "violation_rmse": 0.0
+    }
+  ],
+  "history": []
+}

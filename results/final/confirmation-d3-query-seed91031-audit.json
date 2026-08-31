@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "phase": "confirmation",
+  "role": "confirmation_evaluation",
+  "contract": "config\\experiment\\icra_2027_primary_5dof_recovery_v1.yaml",
+  "heldout_lock": "D3",
+  "planning_candidates": 128,
+  "candidate_duplication_allowed": false,
+  "privileged_future_state_allowed": false,
+  "candidate_file": {
+    "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\primary_candidates\\confirmation_d3_query_seed91031.npz",
+    "sha256": "43a00365caf59e504ef7b730fc9d91bc7bfd0d9efce79899a7b9d725072e2702",
+    "rows_total": 25600,
+    "rows_selected": 25600,
+    "rows_excluded_by_lock_filter": 0,
+    "selected_locks": [
+      2
+    ],
+    "groups": 200,
+    "candidates_per_group": 128,
+    "action_segments": 5,
+    "expanded_horizon_steps": 50,
+    "duplicate_candidate_groups": 0
+  },
+  "error": null
+}

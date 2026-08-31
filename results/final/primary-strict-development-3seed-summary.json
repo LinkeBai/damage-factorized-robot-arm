@@ -1,0 +1,164 @@
+{
+  "protocol": "icra_2027_primary_5dof_recovery_v1",
+  "role": "strict_D2_D4_development_evidence",
+  "seeds": [
+    7,
+    17,
+    27
+  ],
+  "rows": [
+    {
+      "seed": 7,
+      "response_rmse_reduction_percent": 4.346925263574324,
+      "spearman_delta": 0.03655800468509662,
+      "top1_regret_reduction_percent": 10.557046661162975,
+      "endpoint_error_reduction_percent": 1.9919459515457505,
+      "success_gain_percentage_points": 0.2500000000000002,
+      "contact_gain_percentage_points": 0.5000000000000004,
+      "locked_position_violation_max": 0.0,
+      "locked_velocity_violation_max": 0.0,
+      "full_state_equals_selective": true,
+      "selective_wall_time_seconds": 333.1876468999981,
+      "source": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed7\\summary.json",
+      "versus_nominal_shared": {
+        "response_rmse_reduction_percent": -157.70173327603666,
+        "spearman_delta": 0.05602249911469754,
+        "top1_regret_reduction_percent": 29.168813416556308,
+        "endpoint_error_reduction_percent": 6.621560205551699,
+        "success_gain_percentage_points": 1.5000000000000013
+      }
+    },
+    {
+      "seed": 17,
+      "response_rmse_reduction_percent": -32.11163156788838,
+      "spearman_delta": 0.004175832471685827,
+      "top1_regret_reduction_percent": -1.079041081789666,
+      "endpoint_error_reduction_percent": -0.18801796328874498,
+      "success_gain_percentage_points": -1.250000000000001,
+      "contact_gain_percentage_points": 1.0000000000000009,
+      "locked_position_violation_max": 0.0,
+      "locked_velocity_violation_max": 0.0,
+      "full_state_equals_selective": true,
+      "selective_wall_time_seconds": 257.96926290000556,
+      "source": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed17\\summary.json",
+      "versus_nominal_shared": {
+        "response_rmse_reduction_percent": -382.4513136155883,
+        "spearman_delta": 0.005978306696578471,
+        "top1_regret_reduction_percent": 9.873254863296275,
+        "endpoint_error_reduction_percent": 1.889422937041392,
+        "success_gain_percentage_points": 1.250000000000001
+      }
+    },
+    {
+      "seed": 27,
+      "response_rmse_reduction_percent": -26.455378156787795,
+      "spearman_delta": 0.019961182722716783,
+      "top1_regret_reduction_percent": 3.83237112544382,
+      "endpoint_error_reduction_percent": 0.5843653467112238,
+      "success_gain_percentage_points": 0.2500000000000002,
+      "contact_gain_percentage_points": 0.0,
+      "locked_position_violation_max": 0.0,
+      "locked_velocity_violation_max": 0.0,
+      "full_state_equals_selective": true,
+      "selective_wall_time_seconds": 113.66756980000355,
+      "source": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed27\\summary.json",
+      "versus_nominal_shared": {
+        "response_rmse_reduction_percent": -203.53516482710108,
+        "spearman_delta": 0.05151448489625493,
+        "top1_regret_reduction_percent": 15.785278973380837,
+        "endpoint_error_reduction_percent": 2.690364999288268,
+        "success_gain_percentage_points": 0.7500000000000007
+      }
+    }
+  ],
+  "aggregate": {
+    "response_rmse_reduction_percent": {
+      "mean": -18.07336148703395,
+      "minimum": -32.11163156788838,
+      "maximum": 4.346925263574324,
+      "positive_seeds": 1,
+      "total_seeds": 3
+    },
+    "spearman_delta": {
+      "mean": 0.02023167329316641,
+      "minimum": 0.004175832471685827,
+      "maximum": 0.03655800468509662,
+      "positive_seeds": 3,
+      "total_seeds": 3
+    },
+    "top1_regret_reduction_percent": {
+      "mean": 4.436792234939042,
+      "minimum": -1.079041081789666,
+      "maximum": 10.557046661162975,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    },
+    "endpoint_error_reduction_percent": {
+      "mean": 0.7960977783227431,
+      "minimum": -0.18801796328874498,
+      "maximum": 1.9919459515457505,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    },
+    "success_gain_percentage_points": {
+      "mean": -0.2500000000000002,
+      "minimum": -1.250000000000001,
+      "maximum": 0.2500000000000002,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    },
+    "contact_gain_percentage_points": {
+      "mean": 0.5000000000000004,
+      "minimum": 0.0,
+      "maximum": 1.0000000000000009,
+      "positive_seeds": 2,
+      "total_seeds": 3
+    }
+  },
+  "versus_nominal_shared_aggregate": {
+    "response_rmse_reduction_percent": {
+      "mean": -247.89607057290868,
+      "minimum": -382.4513136155883,
+      "maximum": -157.70173327603666,
+      "positive_seeds": 0,
+      "total_seeds": 3
+    },
+    "spearman_delta": {
+      "mean": 0.03783843023584365,
+      "minimum": 0.005978306696578471,
+      "maximum": 0.05602249911469754,
+      "positive_seeds": 3,
+      "total_seeds": 3
+    },
+    "top1_regret_reduction_percent": {
+      "mean": 18.275782417744477,
+      "minimum": 9.873254863296275,
+      "maximum": 29.168813416556308,
+      "positive_seeds": 3,
+      "total_seeds": 3
+    },
+    "endpoint_error_reduction_percent": {
+      "mean": 3.7337827139604527,
+      "minimum": 1.889422937041392,
+      "maximum": 6.621560205551699,
+      "positive_seeds": 3,
+      "total_seeds": 3
+    },
+    "success_gain_percentage_points": {
+      "mean": 1.1666666666666679,
+      "minimum": 0.7500000000000007,
+      "maximum": 1.5000000000000013,
+      "positive_seeds": 3,
+      "total_seeds": 3
+    }
+  },
+  "gate": {
+    "spearman_delta_at_least_0_10_each_passing_seed": 0,
+    "endpoint_reduction_at_least_10_percent_each_passing_seed": 0,
+    "direction_consistency_2_of_3": true,
+    "magnitude_gate_passed": false,
+    "zero_constraint_violation_all_seeds": true,
+    "path_support_has_distinct_effect": false
+  },
+  "verdict": "DIRECTIONAL_SIGNAL_MAGNITUDE_AND_ATTRIBUTION_NO_GO"
+}

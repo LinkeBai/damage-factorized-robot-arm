@@ -1,5 +1,121 @@
 # Project Plan V6 — Verified SI-IPWM + Pending Few-Shot Fault Recovery
 
+## 2026-08-31严格论文闭环阶段（当前最新）
+
+- 已在生成数据前登记 `reports/post-freeze-d3-confirmation-protocol-20260831.md`，
+  随后一次性生成 D3、seed `91031` 的新候选查询集：200组、每组128条独立
+  50步轨迹，共25,600行，零重复；协议审计通过，SHA-256为
+  `43a00365caf59e504ef7b730fc9d91bc7bfd0d9efce79899a7b9d725072e2702`。
+  三个冻结checkpoint只在该集合上正式评测一次。由于D3在历史探索中已被看过，
+  该证据准确称为“post-freeze untouched candidate-query confirmation”，不是
+  pristine unseen-domain confirmation。
+- D3确认结果没有形成预声明的巨大优势：同容量global residual相对nominal的
+  top-1 regret平均降低`9.77%`，仅2/3种子为正；终点误差平均降低`2.00%`，
+  仅2/3为正；成功率平均提高`2.17 pp`且3/3为正。接触响应RMSE平均恶化
+  `263.63%`，Spearman平均下降`0.0148`。因此它只确认了小幅成功率方向，未过
+  预注册的10%/3-of-3中等优势门，更未过20%强优势门。
+- selective IPWM在D3上相对global residual的regret为`-3.82%`、终点为
+  `-0.50%`、成功率为`-0.83 pp`，三项都只有1/3种子占优；选择性结构归因继续
+  `NO-GO`。不得把seed27单独的regret `+16.59%`写成总体贡献。
+- 当前可写的“大幅”指标只有结构正确性：解析投影把最大锁角漂移从平均
+  `6.63°`降为精确`0`（约束违例100%消除）。任务相关最大稳定指标仍是D2/D4
+  开发集global residual相对nominal的regret `19.76%`（3/3）；D3确认表明该幅度
+  不稳定外推，论文必须将其限定为开发证据。
+- 真机主比较已随证据归因纠正为`nominal`对`global_matched`；两者是当前唯一
+  具有稳定仿真控制信号的公平比较。`si_ipwm`作为同一pair内的第三方法仅用于
+  选择性结构归因，不能预设为赢家。真机分析器现支持显式reference/candidate、
+  配对位置一致性、重复行拦截，以及reach/contact/success/endpoint四类配对统计；
+  相关回归测试通过。
+
+- goal现采用可审计闭环而非开放式试错：`同协议开发消融→六阶段定位首个
+  失败层→一次只做一个预声明调整→重跑全部开发seed→冻结checkpoint→一次性
+  确认→更新主张与论文`。循环规则已写入主协议的`iteration_loop`。D3不得用于
+  权重搜索或反复确认；确认失败只能回到未使用D3的开发证据、收缩主张，或在
+  明确修订协议后建立新的确认资产，不能靠挑seed闭合。
+- 严格研究 goal 已于本轮重新建立并锁定：不换问题、不换主模型、不把探索性
+  validation 增益当作确认结果。逐结果的模型身份、数据、seed、指标与可主张
+  边界统一记录在 `reports/primary-result-provenance-ledger-20260831.md`；该台账
+  是主稿和后续表格的强制引用源。
+- 重新运行四组核心专项测试，结果为 `54 passed`。这证明成对候选加载、128
+  候选协议、解析投影开关、全局同容量头和选择性 rollout 的实现仍可执行，
+  不证明任何方法具有性能优势。
+- 必须纠正此前最容易混淆的正结果：D3上终点误差降低`8.93%`、成功率提高
+  `10.33`个百分点、top-1 regret降低`26.97%`且3/3 rollout seeds方向一致，
+  来自另一个直接预测14维状态的紧凑序列模型。它有解析投影和decision loss，
+  但没有共享carrier与选择性发布，因此只能支持“硬约束＋决策相关序列训练”，
+  **不得归因给选择性IPWM**。D3虽未参与最终拟合与epoch选择，但此前已被多次
+  检视，只能称“held out from final fitting with fresh evaluation seeds”，不能称
+  pristine never-seen confirmation。
+- 权威SI-IPWM的weight-10、40-epoch开发训练覆盖320/320训练组，32候选validation
+  上Spearman约从`0.0164`升至`0.0636`，top-1 regret约下降`4.2%`。随后发现此前
+  独立400组×128候选重评使用了错误CLI：`--initialize-candidate-model`只加载
+  `robot_`前缀参数（317,834/337,834），没有加载物体头和选择性修正头，却以
+  epoch-32完整模型名义报告完全并列。该No-Go现已撤销为**INVALID checkpoint
+  reconstruction**。新增`--initialize-candidate-full-model`实行全键、全形状严格
+  匹配；smoke已确认337,834/337,834参数加载。正式V2重评正在生成，完成前不得
+  宣布选择性机制Go或No-Go。
+- 六阶段首轮还发现候选生成器只记录`tool_geom`接触，漏掉实际推块使用的
+  `pusher_geom`。V2生成器改为同时监测两者，并记录每个10步segment内连续
+  最小MuJoCo几何距离。完整V2 seed7保持动作、状态、终点代价和成功标签逐元素
+  不变，只新增3,835个漏标接触；400组×128协议审计通过，SHA-256为
+  `70e9ed782bb24508776e93f44ca66fd0e4a8abdbe0870f7f7396119d22443039`。
+- 严格完整checkpoint的seed7正式结果产生真实但未过门的正信号：相对carrier，
+  接触响应RMSE改善约`4.35%`，Spearman绝对提高`0.03656`，top-1 regret降低
+  约`10.56%`，终点误差降低约`1.99%`，成功率提高`0.25`个百分点。full-state与
+  selective逐项相同，故该信号不能归因于选择性发布；selective六阶段耗时约
+  `333 s`，full-state约`200 s`。
+- seed17按相同训练、严格加载和独立400×128 V2协议复核后方向不一致：相对
+  carrier，响应RMSE恶化`32.11%`、Spearman仅`+0.00418`、regret恶化`1.08%`、
+  终点恶化`0.19%`、成功率下降`1.25`个百分点。weight-10当前为1/2正向，不能
+  宣称稳定贡献。seed27前置机器人checkpoint已补齐，第三种子decision训练正在
+  执行，完成前不做2/3结论。
+- seed27严格结果现已完成：Spearman `+0.01996`、regret改善`3.83%`、终点
+  改善`0.584%`、成功率`+0.25 pp`，但响应RMSE恶化`26.46%`。机器汇总
+  `results/final/primary-strict-development-3seed-summary.json`给出完整三seed结论：
+  Spearman 3/3正向、均值`+0.02023`；regret 2/3改善、均值`4.44%`；终点2/3
+  改善、均值仅`0.796%`；成功率均值`-0.25 pp`；响应RMSE仅1/3改善、均值
+  恶化`18.07%`。方向门通过但幅度门0/3通过，full-state与selective在3/3
+  seed逐项相同，故正式判定为`DIRECTIONAL_SIGNAL_MAGNITUDE_AND_ATTRIBUTION_NO_GO`。
+- CPU/CUDA设备等价性已在同一seed27、2组×128候选smoke上验证：四方法的
+  Spearman、Kendall、regret、终点误差和成功率最大绝对差均为`0.0`。CUDA正式
+  六阶段耗时约为shared `22.8 s`、carrier `66.1 s`、full-state `62.7 s`、
+  selective `113.7 s`；CUDA适合大批评测，但小批50步训练受Python循环和显存
+  竞争影响反而更慢。
+- 同一机器汇总现同时报告nominal/shared总体对照与carrier增量对照。完整方法
+  相对nominal的top-1 regret三seed均改善，平均`18.28%`、范围
+  `[9.87%,29.17%]`；Spearman三seed均提高，平均绝对`+0.03784`；终点误差
+  三seed均降低，平均`3.73%`；成功率三seed均提高，平均`+1.17 pp`。这是目前
+  最大且稳定的任务相关优势。与此同时接触响应RMSE相对nominal平均恶化约
+  `247.90%`，形成“响应RMSE显著变差但动作regret与实际结果改善”的核心诊断
+  证据。必须同时披露carrier增量仅为regret `4.44%`、终点`0.80%`且选择性发布
+  无独立效应；不能把完整管线相对nominal的`18.28%`全归因于选择性机制。
+- 无decision-loss三seed同协议消融已完成，机器结果为
+  `results/final/primary-decision-loss-ablation-3seed.json`。weight-10相对weight-0
+  的regret 2/3改善、均值`5.98%`，终点2/3改善、均值`1.40%`；但Spearman仅
+  1/3改善且均值`-0.0108`，成功率均值`-0.50 pp`，响应RMSE 3/3恶化、平均
+  恶化`356.44%`。正式结论为
+  `DECISION_LOSS_REGRET_ENDPOINT_DIRECTIONAL_ONLY_RESPONSE_SUCCESS_NO_GO`，不能
+  将完整方法相对nominal的18.28%优势归因给decision loss。
+- weight-0故障感知结构相对nominal表现更均衡：响应RMSE 3/3改善、平均
+  `24.84%`，成功率3/3提高、平均`+1.67 pp`，regret平均改善`10.31%`且2/3
+  正向，终点平均改善`2.29%`且2/3正向。下一允许调整不是新模型或继续放大
+  decision weight，而是在weight-0结构上使用受响应稳定门约束的轻量decision
+  目标；进入该单变量修复前仍需先完成全局同容量与无投影归因。
+- 计算环境审计：普通`.venv`为CPU-only PyTorch 2.13；`.venv-cuda`为PyTorch
+  2.11+cu128且RTX 4060 8GB可用，MuJoCo Warp已安装。seed27 decision训练已切
+  CUDA，但物理候选生成仍是标准MuJoCo串行代码，不能宣称Warp并行；当前GPU还
+  与桌面/游戏进程竞争（审计时显存约6.26/8GB、利用率32%），效率结果需注明。
+- 已确认桌面Git仓库和GitHub为权威项目；远端已快进同步。此前报告的源码缺失仅发生在另一个无版本工作副本，原始IPWM源码在权威仓库完整。
+- `config/experiment/icra_2027_primary_5dof_recovery_v1.yaml`已经冻结五方法、三消融和D2/D4→D3协议，但尚无统一执行入口或同协议结果，不能把配置清单视为实验完成。
+- 权威SI-IPWM实现包含解析投影、carrier、双私有rollout、选择性物体发布与已接入
+  的成对soft-regret训练。另一工作副本的128候选序列模型虽同样含decision loss，
+  但并非完整SI-IPWM，二者仍不得互相改名或拼表。
+- 已新增机器可读合同覆盖审计、原始臂真机Push配对模板和分析脚本。下一实现只允许在现有SI-IPWM训练链增加成对候选损失与统一组件开关；选择与调参仅使用D2/D4，D3保持确认。
+- 完整审计见`reports/strict-primary-contract-audit-20260831.md`。决定性八行消融未完成前，评分仍不得宣布4.0+/5。
+- 成对soft-regret损失、严格分组加载器和同checkpoint的carrier/full-state/selective评估现已实现并通过专项测试。首个D2/D4 smoke产生非零梯度，但验证选择epoch 0；三方法排序相同，Spearman `-0.0362`、top-1 regret `0.01238`，判定为管线通过、性能No-Go。该结果不进入论文主表。
+- “无解析投影”现为同架构、同权重的显式消融开关，专项测试证明关闭后锁定坐标可以漂移。全局同容量修正也已实现：与选择性头共享12维输入但可发布到全部14维，冻结rank下整模型仅多8个参数（远小于0.1%），硬投影仍保留。48项相关测试通过。两项D2/D4四组、32候选接线smoke均为No-Go：无投影overall `-0.14%`、Spearman `-0.0415`；全局修正object `-2.55%`、overall `+6.55%`、Spearman `-0.0362`，二者top-1 regret均约`0.01238`。因此八个冻结消融单元实现已达8/8，但正式128候选、多seed和D3同协议结果仍为0/8，当前不能报告性能归因。
+- 已生成并审计seed 7的完整D2/D4开发候选集：400组、每组128条独立动作序列、50步、零重复、51,200行，SHA-256为`d587bd32de45ffe76ccee6c25adfcf98099a35a934169b801c08d14e64425180`。现有epoch-0-selected checkpoint的全量诊断显示carrier与full-state/selective完全并列：Spearman `0.02116`、Kendall `0.00278`、top-1 regret `0.00906`；oracle cost `0.03570`，所选cost `0.04476`。这将“候选不足”排除为当前主要原因，当前No-Go定位为决策修正没有被验证选择；单seed诊断不填正式消融表。
+
 ## 当前权威执行摘要（截至 2026-08-30）
 
 > **阅读规则。** 本文件是当前唯一权威计划。已经失效的逐轮计划、旧时间表和
@@ -514,3 +630,60 @@ Panda 仿真，不牺牲 Push 的重复数和数据完整性。
 最晚停止日期冻结为：**9/5 12:00 停止核心机制变化；9/7 12:00 停止跨臂扩展；
 9/9 12:00 停止 Grasp 扩展；9/10 24:00 冻结全部数字；9/12 冻结论文主张；
 9/14 18:00 冻结最终提交包。**
+
+### 11.7 8 月 31 日严格归因更新：大指标与边界（权威覆盖项）
+
+统一使用三个预定开发 seed（7/17/27）、每 seed 400 组、每组 128 个候选、完整
+checkpoint 严格加载。以下数字不得与旧的不完整 checkpoint 评测混用。
+
+- **稳定控制相关大指标存在，但不属于选择性结构独占。** 同容量全局残差相对
+  nominal WM 的 top-1 regret 平均降低 **19.76%**（范围 10.66%--27.86%，
+  3/3 seeds 同向），候选终点误差平均降低 **4.04%**（3/3），成功率平均
+  +1.58 pp（2/3 正、1/3 持平）。与此同时接触候选响应 RMSE 平均恶化
+  **270.04%**（0/3 改善）。这支持“平均预测误差与动作选择/任务结果解耦”的
+  诊断结论，而不能写成全面预测提升。
+- **选择性 IPWM 相对同容量全局残差归因 No-Go。** IPWM 的 regret 相对全局
+  残差平均为 **-2.07%**、endpoint 为 **-0.32%**、Spearman 平均仅
+  +0.00037；虽然 regret 和 endpoint 各有 2/3 seed 微弱改善，但幅度小、
+  Spearman 仅 1/3 改善，且 full-state 与 selective publication 在三个 seed
+  完全相同。正文不得声称路径选择性产生现有 18%--20% 优势。
+- **解析硬投影得到干净的结构性 Go。** 移除投影后，锁定关节最大位置违例为
+  0.077--0.153 rad（平均 **0.116 rad / 6.63°**），最大速度违例为
+  0.384--0.660 rad/s（平均 **0.539 rad/s**），3/3 seeds 均非零；启用投影后
+  两类违例在 3/3 seeds 均严格为 **0**。任务指标几乎不变，因此该贡献应准确
+  表述为结构约束/安全保证，而不是成功率增益。
+
+机器可读证据：
+
+- `results/final/primary-global-matched-ablation-3seed.json`
+- `results/final/primary-projection-ablation-3seed.json`
+
+截至本节，最诚实的主线是：**解析投影保证故障约束；控制相关适配稳定改善候选
+动作 regret；但选择性影响建模尚未通过同容量归因，且预测 RMSE 与控制收益存在
+系统性冲突。** 后续只能补确认性证据、真机和写作，不得换 seed、删掉全局残差
+或把该 No-Go 隐藏到附录。
+
+### 11.8 8 月 31 日独立 ICRA/CCFA 严格复评
+
+当前七页稿、四份严格机器汇总、来源台账、57 项测试和计算成本台账接受统一量表
+复评。官方 ICRA 2027 规则已核验：完整论文最多八页（含参考文献）、双匿名、
+截止 2026-09-15 23:59 PST。当前篇幅七页，格式长度通过，但匿名 class/PDF
+metadata 仍需最终检查。
+
+当前客观结论为：
+
+- 六阶段图补入后的项目综合约 **3.6/5**，不是 4+/5；
+- ICRA 决策尺度约 **5/10，weak reject / borderline**；
+- 技术正确性与可复现性约 4/5；
+- 新颖性、证据广度、表达聚焦度约 3/5，形成当前评分上限。
+
+决策级 P0 缺口严格固定为：
+
+1. 原始 5-DoF 真机 paired Push 原始证据、有效性 ledger、锁定/接触/终点误差；
+2. 一个完全冻结且不再调参的 untouched confirmation 包；
+3. 接受选择性结构归因 No-Go，将论文明确定位为六阶段诊断研究；
+4. 六阶段证据图，替代只突出 state isolation 的视觉中心（已完成，Fig. 2）。
+
+满足前两项且方向与论文一致，再完成图表与匿名检查，客观上才可能接近
+**3.9--4.1/5 或 ICRA 6/10**。仅润色、堆附录或继续发明网络不能使当前稿达到
+4+/5。完整报告：`paper/ccfa-review-reports/current-icra-review.md`。

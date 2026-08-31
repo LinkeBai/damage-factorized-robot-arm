@@ -3,6 +3,8 @@
 - Deadline: 2026-09-15 11:59 PM PST.
 - Maximum length: eight total pages including text, figures, tables,
   acknowledgments, and references.
+- Official source checked 2026-08-31:
+  https://2027.ieee-icra.org/contribute/call-for-icra-2027-papers-now-accepting-submissions/
 - Format: official IEEE/ICRA double-column PDF.
 - Review: double anonymous; remove authors, affiliations, repository identity,
   acknowledgments, and identifying self-citations.
@@ -10,11 +12,14 @@
 - Select at least three official ICRA keywords.
 - Check PaperPlaza metadata against title, abstract, and author list.
 - Verify every numerical claim against the frozen machine summary.
-- Keep seed27 identified as untouched confirmation.
+- Do not call D3 or any of seeds 7/17/27 untouched confirmation; D3 was excluded
+  from fitting but historically inspected, and all current primary rows are
+  development evidence.
 - Do not claim K monotonicity, rollout-risk probability, strict forward
   triangular causality, control success, or real-arm success without evidence.
-- Replace only two necessary visual placeholders: one method overview and one
-  labeled real-arm setup image with calibration insets.
+- Add one six-stage evidence-chain figure and one labeled real-arm setup image
+  with calibration insets; the current state-isolation diagram alone does not
+  visualize the paper's primary contribution.
 - Fill real-arm table with every repetition, including aborts.
 - Run PDF compliance and anonymity audit before submission.
 - Optional accompanying video: maximum 180 seconds and 20 MB; submit within

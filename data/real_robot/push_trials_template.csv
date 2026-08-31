@@ -1,0 +1,4 @@
+pair_id,condition,method,position_id,trial_order,aborted,max_lock_error_rad,reached,contact,endpoint_error_m,success,camera_left_video,camera_horizontal_video,control_log,failure_code
+P001,D3,nominal,A,1,0,,,,,,,,,
+P001,D3,global_matched,A,2,0,,,,,,,,,
+P001,D3,si_ipwm,A,3,0,,,,,,,,,

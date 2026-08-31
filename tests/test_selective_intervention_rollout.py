@@ -63,6 +63,20 @@ def test_selective_rollout_preserves_locked_coordinates():
     assert float(output[0, 7]) == 0.0
 
 
+def test_selective_no_projection_ablation_does_not_reapply_lock():
+    model = SelectiveInterventionRollout(
+        ToyModel(robot_delta=9.0, object_delta=2.0),
+        ToyModel(robot_delta=1.0, object_delta=0.5),
+        analytic_projection=False,
+    )
+    state = torch.zeros(1, 14)
+    mask = torch.tensor([[0.0, 0.0, 1.0, 0.0, 0.0]])
+    angle = torch.tensor([[0.0, 0.0, 0.3, 0.0, 0.0]])
+    output, _ = model.step(state, torch.zeros(1, 5), mask, angle)
+    assert abs(float(output[0, 2]) - 0.3) > 1e-5
+    assert abs(float(output[0, 7])) > 1e-5
+
+
 def test_intervention_keeps_its_internal_coupled_state():
     model = SelectiveInterventionRollout(
         RobotCoupledToyModel(robot_delta=9.0, object_delta=2.0),

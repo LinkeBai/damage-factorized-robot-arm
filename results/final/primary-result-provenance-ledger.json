@@ -1,0 +1,163 @@
+{
+  "version": "2026-08-31",
+  "status": "GLOBAL_CONTROL_SIGNAL_GO_SELECTIVE_ATTRIBUTION_NO_GO",
+  "paper_safe_conclusion": "Analytic projection eliminates learned-rollout lock violations in 3/3 seeds. A same-capacity global residual lowers top-1 regret by 19.76% versus nominal in 3/3 seeds despite severe response-RMSE degradation. Selective IPWM does not improve the aggregate result over this global control, so the ranking gain cannot be attributed to selective publication.",
+  "integrity_rules": [
+    "Never attribute the compact sequence model result to selective IPWM.",
+    "Never report a development validation improvement as confirmation.",
+    "D3 is held out from final fitting but is not pristine never-inspected data.",
+    "D3 metrics emitted during the decision-weight development sweep are contaminated diagnostics and are excluded from confirmation tables.",
+    "Do not silently replace the frozen D3 confirmation set."
+  ],
+  "evidence": [
+    {
+      "id": "compact_sequence_d3_positive",
+      "source": "C:/Users/asus/Documents/ChatGPT/New project/robotarm/results/final/metric-push-goal-summary.json",
+      "model": {
+        "analytic_projection": true,
+        "decision_focused_sequence_loss": true,
+        "predicts_all_14_state_dimensions": true,
+        "shared_carrier": false,
+        "selective_publication": false
+      },
+      "protocol": {
+        "domain": "D3",
+        "candidates": 128,
+        "paired_episodes": 300,
+        "rollout_seeds": [307, 317, 327]
+      },
+      "metrics": {
+        "endpoint_error_reduction_percent": 8.926,
+        "success_gain_percentage_points": 10.333,
+        "top1_regret_reduction_percent": 26.974,
+        "constraint_violation": 0,
+        "direction_consistency": "3/3"
+      },
+      "permitted_claim": "Analytic projection plus decision-focused sequence training improved ranking and closed-loop outcomes under this protocol.",
+      "prohibited_claim": "Selective IPWM caused these gains.",
+      "status": "POSITIVE_MODEL_SPECIFIC"
+    },
+    {
+      "id": "authoritative_si_ipwm_w10_development",
+      "source": "runs/icra_primary_decision_full_w10/seed7/summary.json",
+      "model": {
+        "analytic_projection": true,
+        "decision_focused_sequence_loss": true,
+        "shared_carrier": true,
+        "private_intervention_rollout": true,
+        "selective_publication": true
+      },
+      "protocol": {
+        "domains": ["D2", "D4"],
+        "train_groups": 320,
+        "validation_groups": 80,
+        "candidates": 32,
+        "epochs": 40,
+        "selected_epoch": 32
+      },
+      "metrics": {
+        "unique_training_groups_seen": 320,
+        "carrier_validation_spearman": 0.016422,
+        "selective_validation_spearman": 0.063629,
+        "top1_regret_reduction_percent_approx": 4.2
+      },
+      "permitted_claim": "The paired loss fits the development candidate distribution.",
+      "prohibited_claim": "This is an independent or D3 confirmation result.",
+      "status": "DEVELOPMENT_ONLY"
+    },
+    {
+      "id": "authoritative_si_ipwm_w10_independent_128",
+      "source": "runs/icra_primary_decision_full_w10_128eval/seed7/summary.json",
+      "protocol": {
+        "domains": ["D2", "D4"],
+        "groups": 400,
+        "candidates_per_group": 128,
+        "horizon_steps": 50,
+        "seed": 7
+      },
+      "metrics": {
+        "carrier_spearman": 0.017345991719544766,
+        "full_state_spearman": 0.017345991719544766,
+        "selective_spearman": 0.017345991719544766,
+        "carrier_top1_regret": 0.010282555899830187,
+        "full_state_top1_regret": 0.010282555899830187,
+        "selective_top1_regret": 0.010282555899830187,
+        "selected_true_cost": 0.04597933356824797,
+        "oracle_true_cost": 0.03569677844643593
+      },
+      "permitted_claim": "This run exposed an invalid robot-only checkpoint reconstruction path.",
+      "prohibited_claim": "Any performance conclusion about the selected full checkpoint.",
+      "status": "INVALID_SUPERSEDED_CHECKPOINT_LOADING_BUG"
+    },
+    {
+      "id": "global_matched_three_seed_control_signal",
+      "source": "results/final/primary-global-matched-ablation-3seed.json",
+      "protocol": {
+        "domains": ["D2", "D4"],
+        "seeds": [7, 17, 27],
+        "groups_per_seed": 400,
+        "candidates_per_group": 128,
+        "horizon_steps": 50
+      },
+      "metrics": {
+        "top1_regret_reduction_percent_mean": 19.76424030593306,
+        "top1_regret_positive_seeds": "3/3",
+        "endpoint_error_reduction_percent_mean": 4.038811701669177,
+        "endpoint_positive_seeds": "3/3",
+        "response_rmse_reduction_percent_mean": -270.0367057465378,
+        "ipwm_minus_global_regret_reduction_percent_mean": -2.0690732964352483
+      },
+      "permitted_claim": "Control-related fault adaptation improves candidate ranking versus nominal while prediction and control metrics decouple.",
+      "prohibited_claim": "Selective publication uniquely causes the ranking gain.",
+      "status": "CONTROL_SIGNAL_GO_SELECTIVE_ATTRIBUTION_NO_GO"
+    },
+    {
+      "id": "analytic_projection_three_seed_constraint_ablation",
+      "source": "results/final/primary-projection-ablation-3seed.json",
+      "metrics": {
+        "no_projection_position_violation_rad_mean": 0.11564970016479492,
+        "no_projection_position_violation_degrees_mean": 6.62623972139617,
+        "no_projection_velocity_violation_rad_s_mean": 0.5392876366774241,
+        "projected_position_and_velocity_violation": 0.0,
+        "direction_consistency": "3/3"
+      },
+      "permitted_claim": "Analytic projection gives exact lock-constraint satisfaction under the evaluated rollout protocol.",
+      "prohibited_claim": "Projection alone substantially improves task success.",
+      "status": "CONSTRAINT_SATISFACTION_GO"
+    },
+    {
+      "id": "post_freeze_d3_candidate_query_confirmation",
+      "source": "results/final/confirmation-d3-query-seed91031-summary.json",
+      "protocol": {
+        "domain": "D3",
+        "candidate_seed": 91031,
+        "model_seeds": [7, 17, 27],
+        "groups": 200,
+        "candidates_per_group": 128,
+        "horizon_steps": 50,
+        "candidate_archive_sha256": "43a00365caf59e504ef7b730fc9d91bc7bfd0d9efce79899a7b9d725072e2702",
+        "registration": "reports/post-freeze-d3-confirmation-protocol-20260831.md"
+      },
+      "metrics": {
+        "global_vs_nominal_top1_regret_reduction_percent_mean": 9.770860969155095,
+        "global_vs_nominal_regret_positive_seeds": "2/3",
+        "global_vs_nominal_endpoint_error_reduction_percent_mean": 1.9979919795183678,
+        "global_vs_nominal_success_gain_percentage_points_mean": 2.1666666666666683,
+        "global_vs_nominal_success_positive_seeds": "3/3",
+        "global_vs_nominal_response_rmse_reduction_percent_mean": -263.63249625820026,
+        "ipwm_minus_global_regret_reduction_percent_mean": -3.821072953721037,
+        "ipwm_minus_global_endpoint_error_reduction_percent_mean": -0.5039292488848018,
+        "ipwm_minus_global_success_gain_percentage_points_mean": -0.833333333333336
+      },
+      "permitted_claim": "After checkpoint freeze, a fresh D3 candidate-query sample shows a small consistent success-rate direction and no large transferable regret advantage.",
+      "prohibited_claim": "This is a pristine unseen-domain confirmation or evidence that selective IPWM dominates the matched global residual.",
+      "status": "FRESH_QUERY_CONFIRMATION_LARGE_ADVANTAGE_AND_ATTRIBUTION_NO_GO"
+    }
+  ],
+  "next_required_evidence": [
+    "Unified multi-seed same-data same-budget ablation matrix",
+    "Six-stage machine-readable diagnostics for every formal row",
+    "Original 5-DoF real-robot push measurements",
+    "Independent ICRA and CCFA review after paper rewrite"
+  ]
+}

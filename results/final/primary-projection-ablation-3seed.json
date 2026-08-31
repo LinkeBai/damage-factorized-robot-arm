@@ -1,0 +1,98 @@
+{
+  "protocol": "icra_2027_primary_5dof_recovery_v1",
+  "role": "analytic_projection_ablation",
+  "seeds": [
+    7,
+    17,
+    27
+  ],
+  "rows": [
+    {
+      "seed": 7,
+      "without_projection": {
+        "locked_position_violation_max_rad": 0.07718288898468018,
+        "locked_velocity_violation_max_rad_s": 0.5739142894744873,
+        "top1_regret": 0.0074912155399943,
+        "endpoint_error": 0.04318799320841208,
+        "success_rate": 0.375
+      },
+      "with_projection": {
+        "locked_position_violation_max_rad": 0.0,
+        "locked_velocity_violation_max_rad_s": 0.0,
+        "top1_regret": 0.007425406291513354,
+        "endpoint_error": 0.043122183959931136,
+        "success_rate": 0.3775
+      },
+      "sources": {
+        "without_projection": "runs\\icra_primary_decision_full_w10_no_projection_128eval_strict_v2\\seed7\\summary.json",
+        "with_projection": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed7\\summary.json"
+      }
+    },
+    {
+      "seed": 17,
+      "without_projection": {
+        "locked_position_violation_max_rad": 0.11704027652740479,
+        "locked_velocity_violation_max_rad_s": 0.3839668333530426,
+        "top1_regret": 0.008091184767836239,
+        "endpoint_error": 0.04674165680189617,
+        "success_rate": 0.3225
+      },
+      "with_projection": {
+        "locked_position_violation_max_rad": 0.0,
+        "locked_velocity_violation_max_rad_s": 0.0,
+        "top1_regret": 0.008243777980387676,
+        "endpoint_error": 0.04689425001444761,
+        "success_rate": 0.3175
+      },
+      "sources": {
+        "without_projection": "runs\\icra_primary_decision_full_w10_no_projection_128eval_strict_v2\\seed17\\summary.json",
+        "with_projection": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed17\\summary.json"
+      }
+    },
+    {
+      "seed": 27,
+      "without_projection": {
+        "locked_position_violation_max_rad": 0.1527259349822998,
+        "locked_velocity_violation_max_rad_s": 0.6599817872047424,
+        "top1_regret": 0.006650630359072238,
+        "endpoint_error": 0.04504457381670363,
+        "success_rate": 0.365
+      },
+      "with_projection": {
+        "locked_position_violation_max_rad": 0.0,
+        "locked_velocity_violation_max_rad_s": 0.0,
+        "top1_regret": 0.0066429240931756795,
+        "endpoint_error": 0.045036867550807075,
+        "success_rate": 0.365
+      },
+      "sources": {
+        "without_projection": "runs\\icra_primary_decision_full_w10_no_projection_128eval_strict_v2\\seed27\\summary.json",
+        "with_projection": "runs\\icra_primary_decision_full_w10_128eval_strict_v2\\seed27\\summary.json"
+      }
+    }
+  ],
+  "without_projection_position_violation_rad": {
+    "mean": 0.11564970016479492,
+    "minimum": 0.07718288898468018,
+    "maximum": 0.1527259349822998,
+    "nonzero_seeds": 3,
+    "total_seeds": 3
+  },
+  "without_projection_position_violation_degrees": {
+    "mean": 6.62623972139617,
+    "minimum": 4.422253789448946,
+    "maximum": 8.750551496675197,
+    "nonzero_seeds": 3,
+    "total_seeds": 3
+  },
+  "without_projection_velocity_violation_rad_s": {
+    "mean": 0.5392876366774241,
+    "minimum": 0.3839668333530426,
+    "maximum": 0.6599817872047424,
+    "nonzero_seeds": 3,
+    "total_seeds": 3
+  },
+  "with_projection_zero_violation_all_seeds": true,
+  "verdict": "ANALYTIC_PROJECTION_CONSTRAINT_GO",
+  "scope_note": "This ablation establishes exact structural constraint satisfaction; it does not by itself establish better task success."
+}

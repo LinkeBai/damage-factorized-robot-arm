@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import sys
@@ -13,8 +14,19 @@ import numpy as np
 import torch
 import yaml
 
+from robotarm.training.decision_focused import (
+    PairedCandidateBatch,
+    load_sequence_candidate_npz,
+    subset_candidate_batch,
+    world_model_candidate_metrics,
+    world_model_paired_regret_loss,
+    world_model_paired_regret_loss_batched,
+    world_model_six_stage_metrics,
+)
+
 from robotarm.models.block_triangular_dpwm import BlockTriangularDPWM
 from robotarm.models.contact_geometry import pusher_reference_point
+from robotarm.models.selective_intervention_rollout import SelectiveInterventionRollout
 from robotarm.models.topology_graph_world_model import TopologyGraphConfig, TopologyGraphWorldModel
 from robotarm.training.sim_protocol import load_g1_protocol
 from robotarm.training.g1_mechanism import residual_descriptor
@@ -246,6 +258,13 @@ def train_object_with_selection(
     validation_every, train_group_indices, validation_group_indices,
     group_robust_weight, use_topology=False, teacher=None, teacher_weight=0.0,
     train_context=None, validation_context=None, terminal_weight=0.0,
+    decision_batch: PairedCandidateBatch | None = None,
+    validation_decision_batch: PairedCandidateBatch | None = None,
+    decision_weight: float = 0.0,
+    decision_temperature: float = 0.02,
+    decision_group_batch_size: int = 8,
+    validation_decision_group_batch_size: int = 8,
+    decision_batch_seed: int = 0,
 ):
     parameters = [p for p in model.parameters() if p.requires_grad]
     if epochs > 0 and not parameters:
@@ -253,17 +272,36 @@ def train_object_with_selection(
     optimizer = (torch.optim.Adam(parameters, lr=learning_rate)
                  if parameters else None)
     history, validation_history = [], []
+    if decision_group_batch_size < 1 or validation_decision_group_batch_size < 1:
+        raise ValueError("decision group batch sizes must be positive")
+    decision_rng = np.random.default_rng(decision_batch_seed)
+    decision_order = (
+        decision_rng.permutation(decision_batch.actions.shape[0])
+        if decision_batch is not None else np.empty(0, dtype=np.int64)
+    )
+    decision_cursor = 0
+    decision_seen: set[int] = set()
     with torch.no_grad():
         model.set_intervention_context(validation_context)
         initial_values = object_losses_per_trajectory(
             model, validation_batch, horizon, use_topology, terminal_weight)
         initial_value, initial_groups = aggregate_topology_losses(
             initial_values, validation_group_indices, group_robust_weight)
+        if validation_decision_batch is not None and decision_weight > 0.0:
+            initial_decision_value = world_model_paired_regret_loss_batched(
+                model, validation_decision_batch, temperature=decision_temperature,
+                group_batch_size=validation_decision_group_batch_size,
+            )
+            initial_value = initial_value + decision_weight * initial_decision_value
+        else:
+            initial_decision_value = None
     best_value, best_epoch = float(initial_value), 0
     best_state = {name: tensor.detach().clone()
                   for name, tensor in model.state_dict().items()}
     validation_history.append({
         "epoch": 0, "loss": best_value,
+        "decision_loss": (None if initial_decision_value is None
+                          else float(initial_decision_value)),
         "topology_losses": {name: float(item) for name, item in initial_groups.items()},
     })
     for epoch in range(1, epochs + 1):
@@ -279,6 +317,18 @@ def train_object_with_selection(
             teacher_loss, _ = aggregate_topology_losses(
                 teacher_losses, train_group_indices, group_robust_weight)
             loss = loss + teacher_weight * teacher_loss
+        if decision_batch is not None and decision_weight > 0.0:
+            batch_size = min(decision_group_batch_size, len(decision_order))
+            if decision_cursor + batch_size > len(decision_order):
+                decision_order = decision_rng.permutation(len(decision_order))
+                decision_cursor = 0
+            selected = decision_order[decision_cursor:decision_cursor + batch_size]
+            decision_cursor += batch_size
+            decision_seen.update(int(index) for index in selected)
+            decision_mini_batch = subset_candidate_batch(decision_batch, selected.tolist())
+            loss = loss + decision_weight * world_model_paired_regret_loss(
+                model, decision_mini_batch, temperature=decision_temperature
+            )
         optimizer.zero_grad(); loss.backward()
         gradient = float(torch.nn.utils.clip_grad_norm_(parameters, 5.0))
         optimizer.step(); history.append(float(loss.detach()))
@@ -292,9 +342,19 @@ def train_object_with_selection(
                 value, groups = aggregate_topology_losses(
                     values, validation_group_indices, group_robust_weight
                 )
+                if validation_decision_batch is not None and decision_weight > 0.0:
+                    decision_value = world_model_paired_regret_loss_batched(
+                        model, validation_decision_batch, temperature=decision_temperature,
+                        group_batch_size=validation_decision_group_batch_size,
+                    )
+                    value = value + decision_weight * decision_value
+                else:
+                    decision_value = None
             value_float = float(value)
             group_values = {name: float(item) for name, item in groups.items()}
             validation_history.append({"epoch": epoch, "loss": value_float,
+                                       "decision_loss": (None if decision_value is None
+                                                         else float(decision_value)),
                                        "topology_losses": group_values})
             if value_float < best_value:
                 best_value, best_epoch = value_float, epoch
@@ -308,7 +368,15 @@ def train_object_with_selection(
     model.set_intervention_context(None)
     diagnostics = {"selected_epoch": best_epoch, "selected_validation_loss": best_value,
                    "validation_history": validation_history,
-                   "group_robust_weight": group_robust_weight}
+                   "group_robust_weight": group_robust_weight,
+                   "decision_weight": decision_weight,
+                   "decision_temperature": decision_temperature,
+                   "decision_group_batch_size": decision_group_batch_size,
+                   "validation_decision_group_batch_size": validation_decision_group_batch_size,
+                   "decision_batch_seed": decision_batch_seed,
+                   "decision_unique_groups_seen": len(decision_seen),
+                   "decision_groups": (0 if decision_batch is None
+                                       else int(decision_batch.actions.shape[0]))}
     print(f"[object] selected epoch={best_epoch} validation_loss={best_value:.6f}", flush=True)
     return history, diagnostics
 
@@ -588,9 +656,85 @@ def main():
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--cache-dir", type=Path, default=Path("runs/trajectory_cache"))
     parser.add_argument("--xml", type=Path, default=Path("sim/assets/arm_push.xml"))
+    parser.add_argument(
+        "--initialize-candidate-model",
+        type=Path,
+        help="Robot-backbone-only initialization override; not valid for full checkpoint evaluation.",
+    )
+    parser.add_argument(
+        "--initialize-candidate-full-model",
+        type=Path,
+        help="Strictly load every tensor from an already selected full candidate checkpoint.",
+    )
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--object-epochs", type=int)
+    parser.add_argument("--object-validation-every", type=int)
+    parser.add_argument("--decision-candidate-data", type=Path)
+    parser.add_argument(
+        "--decision-evaluation-data",
+        type=Path,
+        help="Independent 128-candidate D2/D4 archive used only after checkpoint selection.",
+    )
+    parser.add_argument(
+        "--decision-evaluation-locks",
+        default="1,3",
+        help=("Comma-separated zero-based locked-joint indices permitted in the "
+              "evaluation archive. Defaults to the frozen D2/D4 development split; "
+              "use 2 for the registered D3 confirmation archive."),
+    )
+    parser.add_argument("--decision-weight", type=float)
+    parser.add_argument("--decision-temperature", type=float)
+    parser.add_argument("--decision-max-groups", type=int)
+    parser.add_argument("--decision-batch-groups", type=int)
+    parser.add_argument("--decision-validation-batch-groups", type=int)
+    parser.add_argument("--decision-batch-seed", type=int)
+    parser.add_argument(
+        "--six-stage-diagnostics",
+        action="store_true",
+        help=("Emit constraint, contact-manifold reachability, physical contact, "
+              "response, ranking and realized candidate-outcome metrics from the "
+              "same 128-candidate groups."),
+    )
+    parser.add_argument(
+        "--six-stage-only",
+        action="store_true",
+        help="Skip the duplicate terminal-only pass when six-stage diagnostics are requested.",
+    )
+    parser.add_argument("--evaluate-selective-publication", action="store_true")
+    parser.add_argument(
+        "--global-residual-matched",
+        action="store_true",
+        help="Use the same-input global correction comparator (rank 10 versus selective rank 16).",
+    )
+    parser.add_argument(
+        "--disable-analytic-projection",
+        action="store_true",
+        help="Ablation only: keep architecture and weights fixed but do not project the locked joint.",
+    )
     args = parser.parse_args()
+    if args.six_stage_only and not args.six_stage_diagnostics:
+        raise ValueError("--six-stage-only requires --six-stage-diagnostics")
+    if args.global_residual_matched and args.evaluate_selective_publication:
+        raise ValueError("global residual and selective-publication evaluation are separate contract rows")
+    try:
+        evaluation_locks = tuple(int(item.strip()) for item in
+                                 args.decision_evaluation_locks.split(",") if item.strip())
+    except ValueError as exc:
+        raise ValueError("--decision-evaluation-locks must contain integer indices") from exc
+    if not evaluation_locks or any(index < 0 or index >= 5 for index in evaluation_locks):
+        raise ValueError("--decision-evaluation-locks must be non-empty indices in [0, 4]")
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
+    if ("no_d3" in str(cfg.get("status", "")).lower()
+            and str(cfg.get("primary_domain", "")).startswith("D3")):
+        raise ValueError("development-only configuration cannot evaluate a D3 domain")
+    if args.object_epochs is not None:
+        if args.object_epochs < 0:
+            raise ValueError("object epochs must be non-negative")
+        cfg["object_epochs"] = args.object_epochs
+    if args.object_validation_every is not None:
+        if args.object_validation_every < 1:
+            raise ValueError("object validation interval must be positive")
+        cfg["object_validation_every"] = args.object_validation_every
     if args.seed not in cfg["seeds"]:
         raise ValueError("seed not in frozen Y0 list")
     v0 = yaml.safe_load(Path(cfg["v0_config"]).read_text(encoding="utf-8"))
@@ -714,8 +858,14 @@ def main():
         shadow_object_rank=int(cfg.get("shadow_object_rank", 0)),
         robot_expert_count=int(cfg.get("robot_expert_count", 1)),
         contact_gated_object_context=bool(cfg.get("contact_gated_object_context", False)),
+        analytic_projection=not args.disable_analytic_projection,
         compact_bridge_object_head=bool(cfg.get("compact_bridge_object_head", False)),
-        geometric_object_rank=int(cfg.get("geometric_object_rank", 0)),
+        geometric_object_rank=(
+            0 if args.global_residual_matched else int(cfg.get("geometric_object_rank", 0))
+        ),
+        global_residual_rank=(
+            int(cfg.get("global_residual_rank", 10)) if args.global_residual_matched else 0
+        ),
         object_integration_dt=cfg.get("object_integration_dt"),
         object_position_blend=float(cfg.get("object_position_blend", 0.0)),
         geometric_object_contact_gate=bool(
@@ -739,33 +889,62 @@ def main():
         intervention_context_ramp_start=int(cfg.get("intervention_context_ramp_start", 0)),
         intervention_context_delayed=bool(cfg.get("intervention_context_delayed", False)),
     ).to(device)
-    if "initialize_candidate_full_template" in cfg:
-        source_path = Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
+    if args.initialize_candidate_full_model is not None or "initialize_candidate_full_template" in cfg:
+        source_path = (
+            args.initialize_candidate_full_model
+            if args.initialize_candidate_full_model is not None
+            else Path(str(cfg["initialize_candidate_full_template"]).format(seed=args.seed))
+        )
         source = torch.load(source_path, map_location=device)
         target = candidate.state_dict()
-        compatible = {name: value for name, value in source.items()
-                      if name in target and value.shape == target[name].shape}
-        target.update(compatible)
-        if bool(cfg.get("drop_object_to_robot_feedback", False)):
-            name = "robot_encoder.0.weight"
-            if source[name].shape[1] <= target[name].shape[1]:
-                raise ValueError("source robot encoder has no removable object context")
-            target[name] = source[name][:, :target[name].shape[1]].detach().clone()
-        incompatible = {name for name, value in source.items()
-                        if name in target and value.shape != target[name].shape}
-        allowed_incompatible = ({"robot_encoder.0.weight"}
-                                if cfg.get("drop_object_to_robot_feedback", False) else set())
-        if incompatible != allowed_incompatible:
-            raise ValueError(f"incompatible full template tensors: {sorted(incompatible)}")
-        candidate.load_state_dict(target)
-        new_names = [name for name in target if name not in source]
-        print(f"[initialize] loaded frozen BT template {source_path}; "
-              f"new parameters={sum(target[x].numel() for x in new_names):,}",
-              flush=True)
+        if args.initialize_candidate_full_model is not None:
+            missing = sorted(set(target).difference(source))
+            unexpected = sorted(set(source).difference(target))
+            mismatched = sorted(
+                name for name in set(source).intersection(target)
+                if source[name].shape != target[name].shape
+            )
+            if missing or unexpected or mismatched:
+                raise ValueError(
+                    "full candidate checkpoint is not exact: "
+                    f"missing={missing}, unexpected={unexpected}, mismatched={mismatched}"
+                )
+            candidate.load_state_dict(source, strict=True)
+            print(f"[initialize] strictly loaded full candidate checkpoint {source_path} "
+                  f"({sum(x.numel() for x in source.values()):,} parameters)", flush=True)
+            source = None
+        if source is None:
+            pass
+        else:
+            compatible = {name: value for name, value in source.items()
+                          if name in target and value.shape == target[name].shape}
+            target.update(compatible)
+            if bool(cfg.get("drop_object_to_robot_feedback", False)):
+                name = "robot_encoder.0.weight"
+                if source[name].shape[1] <= target[name].shape[1]:
+                    raise ValueError("source robot encoder has no removable object context")
+                target[name] = source[name][:, :target[name].shape[1]].detach().clone()
+            incompatible = {name for name, value in source.items()
+                            if name in target and value.shape != target[name].shape}
+            allowed_incompatible = ({"robot_encoder.0.weight"}
+                                    if cfg.get("drop_object_to_robot_feedback", False) else set())
+            if incompatible != allowed_incompatible:
+                raise ValueError(f"incompatible full template tensors: {sorted(incompatible)}")
+            candidate.load_state_dict(target)
+            new_names = [name for name in target if name not in source]
+            print(f"[initialize] loaded frozen BT template {source_path}; "
+                  f"new parameters={sum(target[x].numel() for x in new_names):,}",
+                  flush=True)
     candidate_template_robot = None
     candidate_secondary_robot = None
-    if "initialize_candidate_model_template" in cfg:
-        source_path = Path(str(cfg["initialize_candidate_model_template"]).format(seed=args.seed))
+    if (args.initialize_candidate_full_model is None
+            and (args.initialize_candidate_model is not None
+                 or "initialize_candidate_model_template" in cfg)):
+        source_path = (
+            args.initialize_candidate_model
+            if args.initialize_candidate_model is not None
+            else Path(str(cfg["initialize_candidate_model_template"]).format(seed=args.seed))
+        )
         source = torch.load(source_path, map_location=device)
         current = candidate.state_dict()
         compatible = {name: value for name, value in source.items()
@@ -930,6 +1109,7 @@ def main():
     robot_selection = None
     object_selection = None
     bridge_selection = None
+    decision_batch = validation_decision_batch = None
     refinement_epochs = int(cfg.get("joint_refinement_epochs", 0))
     shared_epochs = int(cfg["epochs"]) - refinement_epochs
     if bool(cfg.get("block_coordinate_training", False)):
@@ -1034,6 +1214,7 @@ def main():
                 if context_only else (
                     name.startswith("geometric_object_head.") if geometric_only
                     else name.startswith(("object_", "geometric_object_head.",
+                                          "global_residual_head.",
                                           "intervention_object_head."))))
             if geometric_only and not context_only and name.startswith(
                     "intervention_object_head."):
@@ -1054,6 +1235,32 @@ def main():
                         targets=tuple(x.as_array() for x in targets.validation), **common,
                     )
                 )
+            decision_path = args.decision_candidate_data or cfg.get("decision_candidate_data")
+            decision_weight = float(
+                args.decision_weight if args.decision_weight is not None
+                else cfg.get("decision_weight", 0.0)
+            )
+            decision_temperature = float(
+                args.decision_temperature if args.decision_temperature is not None
+                else cfg.get("decision_temperature", 0.02)
+            )
+            if decision_weight > 0.0:
+                if not decision_path:
+                    raise ValueError("decision_weight requires decision_candidate_data")
+                decision_batch = load_sequence_candidate_npz(
+                    decision_path, device=device, allowed_locked_joints=(1, 3), split="train",
+                    validation_fraction=float(cfg.get("decision_validation_fraction", 0.2)),
+                    split_seed=int(cfg.get("decision_split_seed", args.seed)),
+                    segment_repeat=int(cfg.get("decision_segment_repeat", 10)),
+                    max_groups=args.decision_max_groups,
+                )
+                validation_decision_batch = load_sequence_candidate_npz(
+                    decision_path, device=device, allowed_locked_joints=(1, 3), split="validation",
+                    validation_fraction=float(cfg.get("decision_validation_fraction", 0.2)),
+                    split_seed=int(cfg.get("decision_split_seed", args.seed)),
+                    segment_repeat=int(cfg.get("decision_segment_repeat", 10)),
+                    max_groups=args.decision_max_groups,
+                )
             object_history, object_selection = train_object_with_selection(
                 candidate, batch, _batch(validation_data, device),
                 epochs=int(cfg["object_epochs"]),
@@ -1073,6 +1280,25 @@ def main():
                     validation_data, device, batch[0].dtype)
                     if candidate.intervention_context_dim > 0 else None),
                 terminal_weight=float(cfg.get("object_terminal_weight", 0.0)),
+                decision_batch=decision_batch,
+                validation_decision_batch=validation_decision_batch,
+                decision_weight=decision_weight,
+                decision_temperature=decision_temperature,
+                decision_group_batch_size=int(
+                    args.decision_batch_groups
+                    if args.decision_batch_groups is not None
+                    else cfg.get("decision_batch_groups", 8)
+                ),
+                validation_decision_group_batch_size=int(
+                    args.decision_validation_batch_groups
+                    if args.decision_validation_batch_groups is not None
+                    else cfg.get("decision_validation_batch_groups", 8)
+                ),
+                decision_batch_seed=int(
+                    args.decision_batch_seed
+                    if args.decision_batch_seed is not None
+                    else cfg.get("decision_batch_seed", args.seed)
+                ),
             )
         else:
             object_history = train_model(
@@ -1127,10 +1353,39 @@ def main():
     if candidate.intervention_context_dim > 0:
         candidate.set_intervention_context(residual_descriptor(
             domain.residual_name, device=device, dtype=batch[0].dtype))
-    topology_methods = ("bt_dpwm",) if use_topology else ()
-    rows = evaluate({"shared_baseline": baseline, "bt_dpwm": candidate}, domain, test_data,
-                    device, int(q0a["rollout_horizon"]), topology_methods)
-    result = {row["method"]: row for row in rows}; base, cand = result["shared_baseline"], result["bt_dpwm"]
+    candidate_row_name = (
+        "projection_global_residual_matched" if args.global_residual_matched else "bt_dpwm"
+    )
+    methods = {"shared_baseline": baseline, candidate_row_name: candidate}
+    if args.evaluate_selective_publication:
+        carrier = copy.deepcopy(candidate)
+        with torch.no_grad():
+            for head_name in (
+                "geometric_object_head", "global_residual_head", "intervention_object_head"
+            ):
+                if hasattr(carrier, head_name):
+                    for parameter in getattr(carrier, head_name).parameters():
+                        parameter.zero_()
+        methods = {
+            "shared_baseline": baseline,
+            "carrier_no_intervention": carrier,
+            "full_state_ipwm": candidate,
+            "selective_ipwm": SelectiveInterventionRollout(
+                candidate,
+                carrier,
+                analytic_projection=not args.disable_analytic_projection,
+            ).to(device).eval(),
+        }
+    topology_methods = tuple(name for name in methods if name != "shared_baseline") if use_topology else ()
+    rows = evaluate(methods, domain, test_data, device, int(q0a["rollout_horizon"]), topology_methods)
+    result = {row["method"]: row for row in rows}
+    base_name = "carrier_no_intervention" if args.evaluate_selective_publication else "shared_baseline"
+    base = result[base_name]
+    primary_method = (
+        "selective_ipwm" if args.evaluate_selective_publication
+        else candidate_row_name
+    )
+    cand = result[primary_method]
     improvement = lambda key: 100.0 * (base[key] - cand[key]) / base[key]
     obj, free, overall = improvement("object_rmse"), improvement("free_rmse"), improvement("overall_rmse")
     gate = cfg["gate"]
@@ -1138,9 +1393,46 @@ def main():
               and free >= -gate["maximum_free_arm_regression_pct"]
               and overall >= gate["minimum_overall_improvement_pct"]
               and cand["violation_rmse"] <= gate["maximum_constraint_violation_rms"])
+    decision_metrics = None
+    if validation_decision_batch is not None:
+        decision_metrics = {
+            name: world_model_candidate_metrics(model, validation_decision_batch)
+            for name, model in methods.items()
+            if name != "shared_baseline" or not args.evaluate_selective_publication
+        }
+    formal_decision_metrics = None
+    formal_six_stage_metrics = None
+    if args.decision_evaluation_data is not None:
+        formal_batch = load_sequence_candidate_npz(
+            args.decision_evaluation_data,
+            device=device,
+            allowed_locked_joints=evaluation_locks,
+            split="all",
+            segment_repeat=int(cfg.get("decision_segment_repeat", 10)),
+        )
+        if formal_batch.actions.shape[1] != 128:
+            raise ValueError(
+                "formal decision evaluation requires exactly 128 independent candidates"
+            )
+        if not args.six_stage_only:
+            formal_decision_metrics = {
+                name: world_model_candidate_metrics(model, formal_batch)
+                for name, model in methods.items()
+            }
+        if args.six_stage_diagnostics:
+            formal_six_stage_metrics = {
+                name: world_model_six_stage_metrics(model, formal_batch)
+                for name, model in methods.items()
+            }
     summary = {"config_version": cfg["version"], "seed": args.seed, "device": str(device),
                "smoke": args.smoke, "xml": str(args.xml),
                "parameters": sum(p.numel() for p in candidate.parameters()),
+               "primary_method": primary_method,
+               "comparison_baseline": base_name,
+               "selective_publication_evaluated": args.evaluate_selective_publication,
+               "global_residual_matched": args.global_residual_matched,
+               "analytic_projection": not args.disable_analytic_projection,
+               "decision_evaluation_locks": list(evaluation_locks),
                "shared_epochs": shared_epochs, "joint_refinement_epochs": refinement_epochs,
                "block_coordinate_training": bool(cfg.get("block_coordinate_training", False)),
                "reaction_epochs": int(cfg.get("reaction_epochs", 0)),
@@ -1150,6 +1442,9 @@ def main():
                "robot_selection": robot_selection,
                "bridge_alignment_selection": bridge_selection,
                "object_selection": object_selection,
+               "validation_decision_metrics": decision_metrics,
+               "formal_decision_metrics": formal_decision_metrics,
+               "formal_six_stage_metrics": formal_six_stage_metrics,
                "robot_blend_selection": blend_selection,
                "object_improvement_pct": obj, "free_arm_improvement_pct": free,
                "overall_improvement_pct": overall, "gate_passed": passed,

@@ -1,0 +1,57 @@
+protocol: original_5dof_real_push_v1
+status: fill_and_freeze_before_method_trials
+session_id: ""
+date_local: ""
+operator: ""
+
+hardware:
+  robot_asset_id: ""
+  gripper_asset_id: ""
+  block_asset_id: ""
+  emergency_stop_checked: false
+  joint_direction_check_complete: false
+  low_speed_stop_check_complete: false
+
+cameras:
+  left_eye_to_hand_serial: ""
+  horizontal_eye_to_hand_serial: ""
+  left_calibration_file: ""
+  horizontal_calibration_file: ""
+  synchronization_event_video: ""
+  maximum_allowed_sync_error_ms: 50
+
+frozen_task_definition:
+  endpoint_error_success_threshold_m: 0.03
+  near_contact_threshold_m: 0.01
+  primary_conditions: [D2, D3]
+  intact_sanity_control: true
+  primary_reference_method: nominal
+  primary_candidate_method: global_matched
+  attribution_method: si_ipwm
+  minimum_complete_pairs_per_fault: 10
+  preserve_aborts_and_failures: true
+
+safety:
+  maximum_commanded_joint_speed_rad_s: ""
+  maximum_allowed_lock_error_rad: ""
+  workspace_boundary_description: ""
+  stop_conditions: "joint_limit, workspace_exit, cable risk, unexpected contact, camera loss"
+
+randomization:
+  schedule_file: ""
+  schedule_sha256_before_trials: ""
+  physical_reset_fixture_description: ""
+  action_library_hash: ""
+
+data_roots:
+  left_video_directory: ""
+  horizontal_video_directory: ""
+  control_log_directory: ""
+  backup_copy_1: ""
+  backup_copy_2: ""
+
+freeze_record:
+  frozen_before_first_method_trial: false
+  freeze_timestamp_local: ""
+  operator_signature_or_initials: ""
+  deviations_file: ""

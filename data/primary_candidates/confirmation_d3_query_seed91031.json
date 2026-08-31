@@ -1,0 +1,23 @@
+{
+  "protocol": "icra_2027_primary_5dof_recovery_v1",
+  "phase": "confirmation",
+  "seed": 91031,
+  "locks": [
+    2
+  ],
+  "groups": 200,
+  "rows": 25600,
+  "episodes_per_lock": 40,
+  "replans": 5,
+  "candidates": 128,
+  "segments": 5,
+  "steps_per_segment": 10,
+  "solver_native_lock": true,
+  "all_candidates_retained": true,
+  "contact_geoms": [
+    "tool_geom",
+    "pusher_geom"
+  ],
+  "continuous_segment_contact_measurement": true,
+  "file": "data\\primary_candidates\\confirmation_d3_query_seed91031.npz"
+}

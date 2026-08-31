@@ -15,6 +15,14 @@ task:
   secondary_feasibility: grasp_short_lift
   target_split: config/splits/push_targets_5dof_v2.yaml
 
+planning:
+  candidates: 128
+  horizon_steps: 50
+  action_segments: 5
+  steps_per_segment: 10
+  candidate_duplication_allowed: false
+  privileged_future_state_allowed: false
+
 interventions:
   train_locks: [D2, D4]
   heldout_lock: D3
@@ -54,6 +62,51 @@ go_gate:
   seed_direction_min: 2_of_3_development_then_4_of_5_confirmation
   matched_global_residual_must_not_match_gain: true
   no_posthoc_seed_exclusion: true
+
+iteration_loop:
+  objective: improve_frozen_method_without_confirmation_leakage
+  stages:
+    - run_same_protocol_development_ablation
+    - locate_first_failed_diagnostic_stage
+    - choose_one_predeclared_adjustment
+    - rerun_all_development_seeds
+    - freeze_checkpoint_and_configuration
+    - run_confirmation_once
+    - update_claims_and_paper
+  diagnostic_order:
+    - constraint
+    - contact_manifold_reachability
+    - physical_contact
+    - contact_response
+    - action_ranking
+    - realized_candidate_outcome
+    - receding_horizon_closed_loop
+  allowed_adjustments:
+    - optimizer_and_training_stability
+    - predeclared_loss_weight_on_development_only
+    - d2_d4_training_coverage_without_new_fault_types
+    - implementation_bug_fix_with_regression_test
+    - planner_engineering_without_budget_change
+    - claim_scope_and_evidence_presentation
+  forbidden_adjustments:
+    - tune_on_d3_confirmation_metrics
+    - exclude_failed_seed_or_episode
+    - change_128_candidate_budget
+    - change_success_threshold_after_results
+    - introduce_new_model_family
+    - relabel_compact_sequence_model_as_si_ipwm
+    - use_privileged_future_state_at_deployment
+  development_promotion_rule:
+    minimum_direction_consistency: 2_of_3
+    require_independent_128_candidate_evaluation: true
+    require_global_matched_comparator: true
+    require_zero_constraint_violation: true
+  confirmation_policy:
+    maximum_runs_per_frozen_checkpoint: 1
+    failed_confirmation_action: revise_claim_or_return_to_development_without_reusing_d3
+  termination:
+    success: all_required_evidence_and_score_at_least_4_of_5
+    honest_fallback: report_score_and_shortest_gap_path_without_overclaim
 
 physical_protocol:
   robot: original_5dof

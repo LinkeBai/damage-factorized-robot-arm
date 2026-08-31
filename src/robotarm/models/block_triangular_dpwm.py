@@ -42,6 +42,7 @@ class BlockTriangularDPWM(nn.Module):
         reaction_relative_clip: float | None = None,
         compact_bridge_object_head: bool = False,
         geometric_object_rank: int = 0,
+        global_residual_rank: int = 0,
         object_integration_dt: float | None = None,
         object_position_blend: float = 0.0,
         geometric_object_contact_gate: bool = False,
@@ -58,6 +59,7 @@ class BlockTriangularDPWM(nn.Module):
         intervention_context_ramp: float = 0.0,
         intervention_context_ramp_start: int = 0,
         intervention_context_delayed: bool = False,
+        analytic_projection: bool = True,
     ) -> None:
         super().__init__()
         self.cfg = cfg or TopologyGraphConfig()
@@ -84,6 +86,7 @@ class BlockTriangularDPWM(nn.Module):
         self.reaction_relative_clip = reaction_relative_clip
         self.compact_bridge_object_head = compact_bridge_object_head
         self.geometric_object_rank = int(geometric_object_rank)
+        self.global_residual_rank = int(global_residual_rank)
         self.object_integration_dt = object_integration_dt
         self.object_position_blend = float(object_position_blend)
         self.geometric_object_contact_gate = bool(geometric_object_contact_gate)
@@ -98,6 +101,7 @@ class BlockTriangularDPWM(nn.Module):
         self.intervention_context_ramp = float(intervention_context_ramp)
         self.intervention_context_ramp_start = int(intervention_context_ramp_start)
         self.intervention_context_delayed = bool(intervention_context_delayed)
+        self.analytic_projection = bool(analytic_projection)
         if self.intervention_residual_scale < 0.0:
             raise ValueError("intervention residual scale must be non-negative")
         if (intervention_residual_relative_clip is not None
@@ -132,8 +136,10 @@ class BlockTriangularDPWM(nn.Module):
             raise ValueError("reaction_relative_clip must be non-negative")
         if robot_expert_count < 1:
             raise ValueError("robot_expert_count must be positive")
-        if geometric_object_rank < 0:
-            raise ValueError("geometric_object_rank must be non-negative")
+        if geometric_object_rank < 0 or global_residual_rank < 0:
+            raise ValueError("residual ranks must be non-negative")
+        if geometric_object_rank > 0 and global_residual_rank > 0:
+            raise ValueError("selective and global residual heads are mutually exclusive")
         if intervention_object_rank < 0:
             raise ValueError("intervention_object_rank must be non-negative")
         if object_bridge_alignment_rank < 0:
@@ -261,6 +267,19 @@ class BlockTriangularDPWM(nn.Module):
             )
             nn.init.zeros_(self.geometric_object_head[-1].weight)
             nn.init.zeros_(self.geometric_object_head[-1].bias)
+        if global_residual_rank > 0:
+            # Capacity-matched comparator for selective publication.  It sees
+            # exactly the same 12 causal/geometric inputs but can publish a
+            # correction to every state coordinate.  With the frozen primary
+            # ranks (selective=16, global=10), the heads contain 276 and 284
+            # parameters respectively; the eight-parameter difference is
+            # reported rather than hidden.
+            self.global_residual_head = nn.Sequential(
+                nn.Linear(12, global_residual_rank), nn.Tanh(),
+                nn.Linear(global_residual_rank, 2 * c.dof + c.object_dim),
+            )
+            nn.init.zeros_(self.global_residual_head[-1].weight)
+            nn.init.zeros_(self.global_residual_head[-1].bias)
         if intervention_object_rank > 0:
             self.intervention_object_head = nn.Sequential(
                 nn.Linear(c.hidden_dim + c.object_dim, intervention_object_rank), nn.Tanh(),
@@ -290,6 +309,16 @@ class BlockTriangularDPWM(nn.Module):
             raise ValueError(
                 f"intervention context must end in {self.intervention_context_dim} values")
         self._intervention_context = context
+
+    def _project_state(self, state, mask, lock_angle):
+        if not self.analytic_projection:
+            return state
+        return self.surgery.project_state(state, mask, lock_angle)
+
+    def _project_action(self, action, mask):
+        if not self.analytic_projection:
+            return action
+        return self.surgery.project_action(action, mask)
 
     def _intervention_context_gain(
         self, reference: torch.Tensor, rollout_step: torch.Tensor | None = None,
@@ -461,8 +490,8 @@ class BlockTriangularDPWM(nn.Module):
     def step_robot(self, state, action, mask, lock_angle, hidden, robot_context=None):
         """Advance only the robot block, skipping all object-block compute."""
         c = self.cfg
-        state = self.surgery.project_state(state, mask, lock_angle)
-        action = self.surgery.project_action(action, mask)
+        state = self._project_state(state, mask, lock_angle)
+        action = self._project_action(action, mask)
         q, qvel, obj = state[:, :c.dof], state[:, c.dof:2*c.dof], state[:, 2*c.dof:]
         depth = torch.linspace(0.0, 1.0, c.dof, device=state.device, dtype=state.dtype)
         depth = depth.view(1, -1).expand(state.shape[0], -1)
@@ -514,7 +543,7 @@ class BlockTriangularDPWM(nn.Module):
             next_q = (1.0 - blend) * next_q + blend * integrated_q
         robot = torch.cat((next_q, next_qvel), -1)
         provisional = torch.cat((robot, obj), -1)
-        projected_robot = self.surgery.project_state(provisional, mask, lock_angle)[:, :2*c.dof]
+        projected_robot = self._project_state(provisional, mask, lock_angle)[:, :2*c.dof]
         if self.reaction_rank > 0:
             context = obj.unsqueeze(1).expand(-1, c.dof, -1)
             reaction_input = features if self.reaction_physical_features else torch.cat(
@@ -542,7 +571,7 @@ class BlockTriangularDPWM(nn.Module):
             corrected = projected_robot.clone()
             corrected[:, :c.dof] += reaction[..., 0]
             corrected[:, c.dof:] += reaction[..., 1]
-            projected_robot = self.surgery.project_state(
+            projected_robot = self._project_state(
                 torch.cat((corrected, obj), -1), mask, lock_angle)[:, :2*c.dof]
         if self.linear_physical_reaction:
             reaction = self.linear_reaction_adapter(features)
@@ -550,7 +579,7 @@ class BlockTriangularDPWM(nn.Module):
             corrected = projected_robot.clone()
             corrected[:, :c.dof] += reaction[..., 0]
             corrected[:, c.dof:] += reaction[..., 1]
-            projected_robot = self.surgery.project_state(
+            projected_robot = self._project_state(
                 torch.cat((corrected, obj), -1), mask, lock_angle
             )[:, :2*c.dof]
         if self.reaction_event_decay is not None:
@@ -608,7 +637,9 @@ class BlockTriangularDPWM(nn.Module):
                     self._intervention_novelty(mask)[:, None]
             returned_hidden = robot_hidden
         base_object_delta = next_obj - obj
-        if self.geometric_object_rank > 0:
+        geometry = None
+        previous_gate = projected_gate = None
+        if self.geometric_object_rank > 0 or self.global_residual_rank > 0:
             if previous_robot is None:
                 raise ValueError("geometric object propagation requires previous_robot")
             previous_q = previous_robot[:, :c.dof]
@@ -626,6 +657,7 @@ class BlockTriangularDPWM(nn.Module):
                 projected_tip - obj[:, :2], obj[:, 2:4],
                 previous_gate[:, None], projected_gate[:, None],
             ), -1).detach()
+        if self.geometric_object_rank > 0:
             geometric_correction = self.geometric_object_head(geometry)
             if self.intervention_residual_support.numel() > 0:
                 # Meta-train one shared correction on every observed intervention,
@@ -667,4 +699,15 @@ class BlockTriangularDPWM(nn.Module):
             next_obj = torch.cat(((1.0 - blend) * next_obj[:, :2]
                                   + blend * integrated_position, next_obj[:, 2:4]), -1)
         prediction = torch.cat((projected_robot, next_obj), -1)
-        return self.surgery.project_state(prediction, mask, lock_angle), returned_hidden
+        if self.global_residual_rank > 0:
+            global_correction = self.global_residual_head(geometry)
+            if self.intervention_residual_support.numel() > 0:
+                novelty = self._intervention_novelty(mask).to(global_correction.dtype)
+                global_correction = (
+                    self.intervention_residual_scale * global_correction * novelty[:, None]
+                )
+            if self.geometric_object_contact_gate:
+                global_correction = global_correction * torch.maximum(
+                    previous_gate, projected_gate)[:, None]
+            prediction = prediction + global_correction
+        return self._project_state(prediction, mask, lock_angle), returned_hidden

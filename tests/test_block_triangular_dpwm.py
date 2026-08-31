@@ -19,6 +19,24 @@ def test_bt_dpwm_step_shape_and_damage_projection():
     torch.testing.assert_close(prediction[:, 7], torch.zeros(3))
 
 
+def test_no_projection_ablation_preserves_parameters_and_allows_lock_drift():
+    torch.manual_seed(101)
+    projected = BlockTriangularDPWM(analytic_projection=True)
+    torch.manual_seed(101)
+    ablated = BlockTriangularDPWM(analytic_projection=False)
+    assert sum(p.numel() for p in projected.parameters()) == sum(
+        p.numel() for p in ablated.parameters()
+    )
+    state, action, mask, angle = _inputs()
+    mask[:, 2], angle[:, 2] = 1.0, 0.37
+    constrained, _ = projected.step(state, action, mask, angle, None)
+    unconstrained, _ = ablated.step(state, action, mask, angle, None)
+    torch.testing.assert_close(constrained[:, 2], angle[:, 2])
+    torch.testing.assert_close(constrained[:, 7], torch.zeros(3))
+    assert torch.any((unconstrained[:, 2] - angle[:, 2]).abs() > 1e-5)
+    assert torch.any(unconstrained[:, 7].abs() > 1e-5)
+
+
 def test_object_loss_cannot_update_robot_block():
     model = BlockTriangularDPWM()
     prediction, _ = model.step(*_inputs(), None)
@@ -523,3 +541,54 @@ def test_delayed_context_is_exact_k0_during_grace_period():
     after = model._intervention_context_gain(reference, torch.full((2,), 10.0))
     torch.testing.assert_close(before, torch.ones_like(before))
     assert torch.all(after > before)
+
+
+def test_global_residual_is_whole_model_capacity_matched_and_has_global_support():
+    torch.manual_seed(97)
+    selective = BlockTriangularDPWM(
+        compact_bridge_object_head=True, geometric_object_rank=16)
+    torch.manual_seed(97)
+    global_model = BlockTriangularDPWM(
+        compact_bridge_object_head=True, global_residual_rank=10)
+
+    selective_count = sum(p.numel() for p in selective.parameters())
+    global_count = sum(p.numel() for p in global_model.parameters())
+    assert global_count - selective_count == 8
+    assert abs(global_count - selective_count) / selective_count < 1e-3
+
+    shared = {name: value for name, value in selective.state_dict().items()
+              if not name.startswith("geometric_object_head.")}
+    global_model.load_state_dict(shared, strict=False)
+    base = BlockTriangularDPWM(compact_bridge_object_head=True)
+    base.load_state_dict(shared, strict=False)
+    with torch.no_grad():
+        selective.geometric_object_head[-1].bias.fill_(1.0)
+        global_model.global_residual_head[-1].bias.fill_(1.0)
+
+    state, action, mask, angle = _inputs(batch=2)
+    base_prediction, _ = base.step(state, action, mask, angle, None)
+    selective_prediction, _ = selective.step(state, action, mask, angle, None)
+    global_prediction, _ = global_model.step(state, action, mask, angle, None)
+
+    torch.testing.assert_close(selective_prediction[:, :10], base_prediction[:, :10])
+    assert torch.all(selective_prediction[:, 10:] != base_prediction[:, 10:])
+    free_robot = (1.0 - torch.cat((mask, mask), dim=-1)).bool()
+    assert torch.all(global_prediction[:, :10][free_robot]
+                     != base_prediction[:, :10][free_robot])
+    torch.testing.assert_close(
+        global_prediction[:, :5] * mask,
+        angle * mask,
+    )
+    torch.testing.assert_close(
+        global_prediction[:, 5:10] * mask,
+        torch.zeros_like(mask),
+    )
+
+
+def test_selective_and_global_residual_heads_are_mutually_exclusive():
+    try:
+        BlockTriangularDPWM(geometric_object_rank=16, global_residual_rank=10)
+    except ValueError as error:
+        assert "mutually exclusive" in str(error)
+    else:
+        raise AssertionError("two publication supports must not coexist")
