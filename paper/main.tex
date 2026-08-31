@@ -702,6 +702,15 @@ hardware protocol uses two fixed eye-to-hand cameras, one overhead and one
 horizontal; neither source is eye-in-hand. The present results must not be
 interpreted as sim-to-real validation.
 
+The hardware protocol is split before collection. Level A executes one frozen,
+manually validated position trajectory per intact/D2/D3 condition (at least 10
+valid trials each) and can support only lock, reach, contact, and Push
+feasibility. Level B would compare learned selectors, but is unauthorized until
+a measured bridge maps MuJoCo generalized-force actions to the arm's servo
+goal-position interface and freezes a common candidate library. Schedule and
+library hashes, all aborts, two videos, and joint logs are retained. Thus a
+fixed-trajectory result cannot be relabeled as learned recovery.
+
 Only single locks and planar pushing are evaluated. Diagnosis must supply the
 correct lock identity and angle. The primary performance table uses D2/D4
 development evidence rather than a pristine confirmation domain, and realized

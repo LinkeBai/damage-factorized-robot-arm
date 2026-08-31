@@ -143,6 +143,13 @@ pregrasp, short vertical lift, three-second retention, and at most five trials
 per intact/D2/D3 condition. Its analyzer preserves aborts and may support only
 feasibility, never a learned-grasp or method-dominance claim.
 
+The manuscript now records the predeclared hardware split rather than a vague
+sim-to-real plan. Level A uses one frozen, manually validated position
+trajectory per intact/D2/D3 condition and supports only physical feasibility.
+Level B learned-selector comparison remains unauthorized until a measured bridge
+connects MuJoCo generalized-force actions to servo goal positions and freezes a
+common candidate library. No real measurement is present or implied.
+
 The current seven-page PDF passes the automated desk audit: US Letter, no
 Author/Title/Subject/Keywords metadata, no configured identity-string match,
 and all 21 parsed fonts embedded as Type 1. Pages 1, 4, and 7 were also rendered

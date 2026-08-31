@@ -27,3 +27,11 @@ panel, intact/D2/D3 pushing table, measured safety events, and the real-arm
 conclusion sentence. The six-stage summary figure and a current independent
 review are complete; a final review after real data remains pending. These fields must be filled from actual
 measurements; the manuscript contains no fabricated real-robot values.
+
+The manuscript now predeclares two hardware levels. Level A uses frozen,
+manually validated fixed position trajectories for intact/D2/D3 and supports
+only physical lock/reach/contact/Push feasibility. Level B learned-method
+comparison remains unauthorized until the MuJoCo generalized-force action and
+servo goal-position interfaces are connected by a measured bridge and common
+candidate library. This prevents Level-A motions from being relabelled as
+sim-to-real method evidence.

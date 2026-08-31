@@ -724,6 +724,12 @@ SHA-256 与 `TRAJECTORY_LIBRARY_SAFE_TO_FREEZE`。未通过时禁止执行轨迹
 3.5°安全上限、验证动作库 PASS、计算 schedule/library 哈希、禁用 learned-method
 claim 并写入冻结时间。现场生成后不得再手工修改哈希。
 
+主稿 Limitations 已同步上述真实边界：明确当前仍为 simulation-only，并写入
+Level A 每条件至少 10 条固定位置轨迹、保留 hash/abort/双视频/关节日志，以及
+Level B 必须先验证 MuJoCo generalized-force 到 servo goal-position 的动作桥。
+重新编译后仍为 7 页，Letter、匿名元数据和 21 个嵌入字体审计均 PASS；第 7 页
+人工渲染检查无裁切、重叠或不可读文本。
+
 8 月 31 日动作接口复核发现一个必须公开的真机边界：仿真模型的 action 是 0.005 s
 MuJoCo motor 广义力，而原始臂接收 raw tick 目标位置；仓库尚无经过实验验证的
 映射和冻结候选动作库。因此真机证据分为 Level A 固定低速轨迹的锁定/可达/接触/
