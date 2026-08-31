@@ -724,6 +724,12 @@ reach-contact-success）和 LaTeX 表（含锁定最大误差、abort、样本�
 表注固定声明 `Physical feasibility only - no learned-method comparison`；无有效
 真机证据时生成器 fail closed，禁止用占位数字进入主稿。
 
+为防止填写测量后无法证明“未删失败/未换轨迹”，现场必须分别保存冻结空白
+schedule 与 completed trial log。新增逐行审计只允许填写测量、视频和日志字段，
+并强制 trial_order、condition、position、method、trajectory_id 与冻结表完全
+一致；缺行、增行、重复 order 或事后替换轨迹均 fail。该审计与原始文件有效性
+门禁串联，两者均 PASS 后才能生成论文资产。
+
 ### 11.8 8 月 31 日独立 ICRA/CCFA 严格复评
 
 当前七页稿、严格机器汇总、来源台账、聚焦契约测试和计算成本台账接受统一量表

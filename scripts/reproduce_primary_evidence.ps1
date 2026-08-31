@@ -72,6 +72,7 @@ if (-not (Test-Path -LiteralPath $ConfirmationArchive)) {
     tests\test_real_robot_preflight.py `
     tests\test_real_robot_level_a_schedule.py `
     tests\test_build_real_robot_feasibility_assets.py `
+    tests\test_real_robot_schedule_completion.py `
     tests\test_build_real_robot_paper_assets.py `
     tests\test_primary_environment_audit.py `
     tests\test_large_advantage_metric_audit.py `

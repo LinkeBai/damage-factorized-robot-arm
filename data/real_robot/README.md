@@ -53,6 +53,21 @@ python scripts/build_real_robot_feasibility_assets.py `
 The figure and table are visibly scoped to physical feasibility and cannot be
 generated when the summary contains no valid physical evidence.
 
+Before analysis, prove that measurement entry did not alter the frozen trial
+identity or remove a failed trial. Keep the blank frozen schedule and completed
+log as separate files, then run:
+
+```powershell
+python scripts/audit_real_robot_schedule_completion.py `
+  data/real_robot/level_a_schedule_frozen.csv `
+  data/real_robot/level_a_trials_completed.csv `
+  --output results/real_robot/schedule-completion-audit.json
+```
+
+This audit allows measurement/video/log fields to be filled but requires every
+trial order, condition, position, method, and trajectory ID to remain identical.
+It does not replace the separate validity and raw-file gate.
+
 ## Minimum field sequence
 
 1. Photograph the arm, gripper, block, table, both fixed eye-to-hand cameras,
