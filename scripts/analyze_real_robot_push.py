@@ -164,20 +164,58 @@ def main() -> None:
 
     def paired_summary(selected_pairs):
         endpoint, success, reach, contact = paired_values(selected_pairs)
+        reference_endpoint = np.asarray([
+            float(p[args.reference_method]["endpoint_error_m"])
+            for p in selected_pairs
+        ])
+        reference_success = np.asarray([
+            flag(p[args.reference_method]["success"]) for p in selected_pairs
+        ], dtype=float)
+        candidate_success = np.asarray([
+            flag(p[args.candidate_method]["success"]) for p in selected_pairs
+        ], dtype=float)
         def summarize(values):
             return {
                 "mean": float(values.mean()) if len(values) else None,
                 "ci95": interval(values) if len(values) else None,
             }
+        reference_failure_rate = (
+            float(1.0 - reference_success.mean()) if len(reference_success) else None
+        )
+        candidate_failure_rate = (
+            float(1.0 - candidate_success.mean()) if len(candidate_success) else None
+        )
+        relative_failure_reduction = None
+        if reference_failure_rate is not None and reference_failure_rate > 0:
+            relative_failure_reduction = float(
+                (reference_failure_rate - candidate_failure_rate)
+                / reference_failure_rate
+            )
+        relative_endpoint_reduction = None
+        if len(reference_endpoint) and float(reference_endpoint.mean()) > 0:
+            relative_endpoint_reduction = float(
+                endpoint.mean() / reference_endpoint.mean()
+            )
         return {
             "pairs": len(selected_pairs),
             "endpoint_improvement_m": summarize(endpoint),
+            "relative_endpoint_error_reduction": relative_endpoint_reduction,
             "success_improvement": summarize(success),
+            "reference_failure_rate": reference_failure_rate,
+            "candidate_failure_rate": candidate_failure_rate,
+            "relative_failure_rate_reduction": relative_failure_reduction,
+            "discordant_success_pairs": {
+                "candidate_rescues_reference_failure": int(np.sum(
+                    (reference_success == 0) & (candidate_success == 1))),
+                "candidate_breaks_reference_success": int(np.sum(
+                    (reference_success == 1) & (candidate_success == 0))),
+            },
             "reach_improvement": summarize(reach),
             "contact_improvement": summarize(contact),
         }
 
     endpoint, success, reach, contact = paired_values(pairs)
+    overall_pair_summary = paired_summary(pairs)
     condition_pairs = Counter(
         p[args.reference_method]["condition"] for p in pairs
     )
@@ -223,7 +261,21 @@ def main() -> None:
             "incomplete_or_aborted_pairs": incomplete_pair_keys,
         },
         "paired_endpoint_improvement_m": {"mean": float(endpoint.mean()) if len(endpoint) else None, "ci95": interval(endpoint) if len(endpoint) else None},
+        "paired_relative_endpoint_error_reduction": overall_pair_summary[
+            "relative_endpoint_error_reduction"],
         "paired_success_improvement": {"mean": float(success.mean()) if len(success) else None, "ci95": interval(success) if len(success) else None},
+        "paired_failure_analysis": {
+            "reference_failure_rate": overall_pair_summary["reference_failure_rate"],
+            "candidate_failure_rate": overall_pair_summary["candidate_failure_rate"],
+            "relative_failure_rate_reduction": overall_pair_summary[
+                "relative_failure_rate_reduction"],
+            "discordant_success_pairs": overall_pair_summary[
+                "discordant_success_pairs"],
+            "interpretation_rule": (
+                "Descriptive effect size under the frozen 30 mm success threshold; "
+                "always report with absolute success difference, paired CI, and counts."
+            ),
+        },
         "paired_reach_improvement": {"mean": float(reach.mean()) if len(reach) else None, "ci95": interval(reach) if len(reach) else None},
         "paired_contact_improvement": {"mean": float(contact.mean()) if len(contact) else None, "ci95": interval(contact) if len(contact) else None},
         "paired_by_condition": per_condition,

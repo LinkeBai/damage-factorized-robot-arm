@@ -47,11 +47,30 @@ def test_analyzer_reports_configurable_paired_comparison(tmp_path):
     assert payload["paired_trials"] == 1
     assert payload["paired_endpoint_improvement_m"]["mean"] == pytest.approx(0.03)
     assert payload["paired_success_improvement"]["mean"] == 1.0
+    assert payload["paired_relative_endpoint_error_reduction"] == pytest.approx(0.6)
+    assert payload["paired_failure_analysis"]["relative_failure_rate_reduction"] == 1.0
+    assert payload["paired_failure_analysis"]["discordant_success_pairs"] == {
+        "candidate_rescues_reference_failure": 1,
+        "candidate_breaks_reference_success": 0,
+    }
     assert payload["paired_comparison"]["pairs_by_condition"] == {"D3": 1}
     assert payload["paired_by_condition"]["D3"]["pairs"] == 1
     assert payload["paired_rows"][0]["pair_id"] == "P001"
     assert payload["claim_level"] == "pilot"
     assert payload["formal_gate"]["counts_met"] is False
+
+
+def test_failure_reduction_is_none_when_reference_has_no_failures(tmp_path):
+    source, output = tmp_path / "trials.csv", tmp_path / "summary.json"
+    write_rows(source, [row("nominal", "1", "0.02", "1"),
+                        row("global_matched", "2", "0.01", "1")])
+    completed = subprocess.run(
+        [sys.executable, "scripts/analyze_real_robot_push.py", str(source),
+         "--output", str(output)], cwd=Path(__file__).resolve().parents[1],
+        capture_output=True, text=True)
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["paired_failure_analysis"]["relative_failure_rate_reduction"] is None
 
 
 def test_analyzer_rejects_mismatched_pair_positions(tmp_path):

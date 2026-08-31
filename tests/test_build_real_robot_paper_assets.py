@@ -19,6 +19,7 @@ def test_builder_creates_figure_and_table_from_validated_summary(tmp_path):
                 "pairs": 2,
                 "endpoint_improvement_m": metric(0.003),
                 "success_improvement": metric(0.5),
+                "relative_failure_rate_reduction": 0.5,
                 "reach_improvement": metric(0.0),
                 "contact_improvement": metric(0.5),
             }
@@ -34,6 +35,7 @@ def test_builder_creates_figure_and_table_from_validated_summary(tmp_path):
     assert figure.read_bytes().startswith(b"%PDF")
     text = table.read_text(encoding="utf-8")
     assert "D3 & 2 & 3.00" in text
+    assert "50.0" in text
     assert "Positive values favor global_matched over nominal" in text
 
 

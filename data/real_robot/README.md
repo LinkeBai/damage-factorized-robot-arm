@@ -83,6 +83,14 @@ Freeze the success threshold before method labels are inspected. Always report
 continuous terminal error, reach rate, contact rate, maximum lock error, aborts,
 and failure codes even when a binary success rate is shown.
 
+The frozen analyzer additionally reports relative endpoint-error reduction and
+relative failure-rate reduction. These are predeclared descriptive effect sizes,
+not substitute significance tests. Always show the absolute paired success
+difference, its bootstrap interval, the reference/candidate failure rates, and
+the counts of `candidate rescues reference failure` versus `candidate breaks
+reference success`. If the reference has zero failures, relative failure-rate
+reduction is undefined and is emitted as `null`, never as an infinite gain.
+
 The two visual sources are fixed eye-to-hand cameras. Do not describe either as
 eye-in-hand.
 

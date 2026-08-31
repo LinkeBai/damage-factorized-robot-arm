@@ -68,23 +68,27 @@ def main() -> None:
     candidate = payload["paired_comparison"]["candidate_method"]
     lines = [
         "% Generated from validated real-robot summary; do not edit numbers manually.",
-        "\\begin{tabular}{lrrrrr}\\toprule",
-        "Condition & Pairs & Endpoint (mm) & Reach (pp) & Contact (pp) & Success (pp)\\\\\\midrule",
+        "\\begin{tabular}{lrrrrrr}\\toprule",
+        "Condition & Pairs & Endpoint (mm) & Reach (pp) & Contact (pp) & Success (pp) & Fail. red. (\\%)\\\\\\midrule",
     ]
     for name in conditions:
         item = by_condition[name]
+        failure_reduction = item.get("relative_failure_rate_reduction")
+        failure_text = "--" if failure_reduction is None else f"{100 * failure_reduction:.1f}"
         lines.append(
             f"{name} & {item['pairs']} & "
             f"{1000 * item['endpoint_improvement_m']['mean']:.2f} & "
             f"{100 * item['reach_improvement']['mean']:.1f} & "
             f"{100 * item['contact_improvement']['mean']:.1f} & "
-            f"{100 * item['success_improvement']['mean']:.1f}\\\\"
+            f"{100 * item['success_improvement']['mean']:.1f} & "
+            f"{failure_text}\\\\"
         )
     lines.extend([
         "\\bottomrule\\end{tabular}",
         f"% Positive values favor {candidate} over {reference}.",
         f"% Claim level: {payload['claim_level']}; raw-file check: "
         f"{payload['all_required_files_checked']}.",
+        "% Relative failure reduction is descriptive and must be read with the absolute success change and counts.",
     ])
     args.table.parent.mkdir(parents=True, exist_ok=True)
     args.table.write_text("\n".join(lines) + "\n", encoding="utf-8")
