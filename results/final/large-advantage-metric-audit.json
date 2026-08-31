@@ -1,0 +1,95 @@
+{
+  "protocol": "large_advantage_metric_audit_v1",
+  "selection_policy": {
+    "all_seeds_reported": true,
+    "posthoc_threshold_search": false,
+    "posthoc_episode_exclusion": false,
+    "model_identity_must_match_claim": true
+  },
+  "headline_pair": {
+    "structural": "100% elimination of measured locked-joint violations",
+    "learned": "19.76% mean top-1-regret reduction (3/3 seeds)",
+    "boundary": "The learned gain is from the matched global residual; selective IPWM attribution is No-Go."
+  },
+  "candidates": [
+    {
+      "rank": 1,
+      "metric": "locked-joint structural violation elimination",
+      "advantage_percent": 100.0,
+      "scope": "original 5-DoF arm; D2/D4; 3 development seeds",
+      "evidence": {
+        "without_projection_position_violation_degrees_mean": 6.62623972139617,
+        "without_projection_velocity_violation_rad_s_mean": 0.5392876366774241,
+        "with_projection_zero_violation_all_seeds": true
+      },
+      "status": "PRIMARY_ATTRIBUTABLE",
+      "paper_role": "headline correctness guarantee; not a task-success claim"
+    },
+    {
+      "rank": 2,
+      "metric": "top-1 action-regret reduction",
+      "advantage_percent": 19.76424030593306,
+      "scope": "original 5-DoF arm; D2/D4; frozen 128-candidate protocol",
+      "evidence": {
+        "positive_seeds": 3,
+        "total_seeds": 3,
+        "minimum_seed_improvement_percent": 10.657814041812527,
+        "maximum_seed_improvement_percent": 27.856440471814345
+      },
+      "status": "PRIMARY_CONTROL_RELEVANT",
+      "paper_role": "headline learned benefit; attribute to matched global residual, not selective IPWM"
+    },
+    {
+      "rank": 3,
+      "metric": "selective-prediction RMSE reduction at 50% coverage",
+      "advantage_percent": 50.5040275252541,
+      "scope": "historical five-seed rollout mixture",
+      "evidence": {
+        "seeds": 5,
+        "std_percent": 2.975191545838304,
+        "all_seed_curves_monotone": true
+      },
+      "status": "SECONDARY_DEPTH_CONFOUNDED",
+      "paper_role": "diagnostic/appendix until fixed-depth confirmation is run"
+    },
+    {
+      "rank": 4,
+      "metric": "three-member ensemble prediction improvement",
+      "advantage_percent": 30.7391,
+      "scope": "historical five-seed prediction benchmark",
+      "evidence": {
+        "bootstrap_95_ci": [
+          15.0592,
+          42.6161
+        ],
+        "positive_seeds": 5
+      },
+      "status": "GENERIC_BASELINE_NOT_CORE",
+      "paper_role": "supporting baseline only; not an IPWM novelty claim"
+    },
+    {
+      "rank": 5,
+      "metric": "fresh D3-query top-1 action-regret reduction",
+      "advantage_percent": 9.770860969155095,
+      "scope": "post-freeze D3 candidate/query resample; 3 frozen model seeds",
+      "evidence": {
+        "positive_seeds": 2,
+        "total_seeds": 3,
+        "minimum_seed_improvement_percent": -2.935175427673293,
+        "maximum_seed_improvement_percent": 16.56356050707881
+      },
+      "status": "TRANSFER_WEAK_NOT_HEADLINE",
+      "paper_role": "report completely; does not establish a large transferable gain"
+    }
+  ],
+  "next_confirmation": {
+    "priority": "fixed-depth uncertainty-risk and real-robot paired failure reduction",
+    "promotion_gate": "predeclared comparison, all trials/seeds, paired CI, and no threshold retuning",
+    "forbidden": [
+      "choose only a favorable seed",
+      "change success/contact threshold after seeing results",
+      "mix simplified-arm and original-arm evidence",
+      "claim oracle or rejected samples as deployed success"
+    ]
+  }
+}

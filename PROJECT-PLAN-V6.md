@@ -47,6 +47,9 @@
   完整pair且原始文件检查通过才标为formal。汇总保留逐pair差值和逐故障bootstrap
   CI，并可直接生成论文PDF图与LaTeX表，避免手抄数字。合成数据仅用于版式测试，
   已删除且不会进入结果目录。
+- 复现环境已冻结并机器审计通过：Python `3.12.10`、NumPy `2.5.2`、MuJoCo/
+  MuJoCo Warp `3.12.0`、PyTorch `2.11.0+cu128`、SciPy `1.18.1`等精确版本，
+  同时检查Poppler/LaTeX命令可用性；输出已去除本机绝对路径，不能泄露匿名身份。
 
 - goal现采用可审计闭环而非开放式试错：`同协议开发消融→六阶段定位首个
   失败层→一次只做一个预声明调整→重跑全部开发seed→冻结checkpoint→一次性
@@ -678,15 +681,23 @@ checkpoint 严格加载。以下数字不得与旧的不完整 checkpoint 评测
 
 - `results/final/primary-global-matched-ablation-3seed.json`
 - `results/final/primary-projection-ablation-3seed.json`
+- `results/final/large-advantage-metric-audit.json`
 
 截至本节，最诚实的主线是：**解析投影保证故障约束；控制相关适配稳定改善候选
 动作 regret；但选择性影响建模尚未通过同容量归因，且预测 RMSE 与控制收益存在
 系统性冲突。** 后续只能补确认性证据、真机和写作，不得换 seed、删掉全局残差
 或把该 No-Go 隐藏到附录。
 
+为避免“寻找大指标”退化成挑 seed、换阈值或混用简化臂结果，新增机器审计将指标
+分成 PRIMARY_ATTRIBUTABLE、PRIMARY_CONTROL_RELEVANT、诊断性和禁止作为核心
+创新四类。当前允许进入摘要的组合固定为：**锁定结构违例消除 100% + top-1
+regret 平均降低 19.76%（3/3 seeds）**。历史选择性预测在 50% coverage 下
+RMSE 降低 50.50% 只能进入诊断/附录，直到固定 rollout 深度确认；三成员集成
+约 30.74%--33.55% 的收益属于通用 ensemble 基线，不能归因给 IPWM。
+
 ### 11.8 8 月 31 日独立 ICRA/CCFA 严格复评
 
-当前七页稿、四份严格机器汇总、来源台账、57 项测试和计算成本台账接受统一量表
+当前七页稿、严格机器汇总、来源台账、聚焦契约测试和计算成本台账接受统一量表
 复评。官方 ICRA 2027 规则已核验：完整论文最多八页（含参考文献）、双匿名、
 截止 2026-09-15 23:59 PST。当前篇幅七页，格式长度通过，但匿名 class/PDF
 metadata 仍需最终检查。

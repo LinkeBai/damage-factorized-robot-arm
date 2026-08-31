@@ -1,0 +1,27 @@
+{
+  "purpose": "Frozen environment used for strict ICRA simulation evidence and paper reconstruction",
+  "python": "3.12.10",
+  "platform": "Windows-11",
+  "packages": {
+    "numpy": "2.5.2",
+    "mujoco": "3.12.0",
+    "mujoco-warp": "3.12.0",
+    "torch": "2.11.0+cu128",
+    "scipy": "1.18.1",
+    "PyYAML": "6.0.3",
+    "pyserial": "3.5",
+    "matplotlib": "3.11.1",
+    "Pillow": "12.3.0",
+    "pytest": "9.1.1"
+  },
+  "accelerator": {
+    "cuda_runtime_reported_by_torch": "12.8",
+    "cudnn": 91900,
+    "reference_device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "cuda_required_for_numerical_correctness": false,
+    "cuda_used_for_formal_evaluation": true,
+    "mujoco_warp_used_for_candidate_generation": false
+  },
+  "external_commands": ["pdfinfo", "pdffonts", "pdftotext", "pdftoppm", "latexmk"],
+  "installation_note": "Install the matching PyTorch CUDA wheel from the official PyTorch cu128 index; standard MuJoCo candidate generation remains serial CPU physics."
+}

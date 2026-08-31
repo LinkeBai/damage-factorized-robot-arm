@@ -1,0 +1,11 @@
+# Python 3.12.10. For torch use the official PyTorch cu128 wheel index.
+numpy==2.5.2
+mujoco==3.12.0
+mujoco-warp==3.12.0
+torch==2.11.0+cu128
+scipy==1.18.1
+PyYAML==6.0.3
+pyserial==3.5
+matplotlib==3.11.1
+Pillow==12.3.0
+pytest==9.1.1

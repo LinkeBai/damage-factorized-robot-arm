@@ -1,0 +1,92 @@
+{
+  "status": "PASS",
+  "lock": "config\\environment\\primary-environment-lock.json",
+  "python": {
+    "expected": "3.12.10",
+    "actual": "3.12.10"
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "packages": {
+    "numpy": {
+      "expected": "2.5.2",
+      "actual": "2.5.2",
+      "match": true
+    },
+    "mujoco": {
+      "expected": "3.12.0",
+      "actual": "3.12.0",
+      "match": true
+    },
+    "mujoco-warp": {
+      "expected": "3.12.0",
+      "actual": "3.12.0",
+      "match": true
+    },
+    "torch": {
+      "expected": "2.11.0+cu128",
+      "actual": "2.11.0+cu128",
+      "match": true
+    },
+    "scipy": {
+      "expected": "1.18.1",
+      "actual": "1.18.1",
+      "match": true
+    },
+    "PyYAML": {
+      "expected": "6.0.3",
+      "actual": "6.0.3",
+      "match": true
+    },
+    "pyserial": {
+      "expected": "3.5",
+      "actual": "3.5",
+      "match": true
+    },
+    "matplotlib": {
+      "expected": "3.11.1",
+      "actual": "3.11.1",
+      "match": true
+    },
+    "Pillow": {
+      "expected": "12.3.0",
+      "actual": "12.3.0",
+      "match": true
+    },
+    "pytest": {
+      "expected": "9.1.1",
+      "actual": "9.1.1",
+      "match": true
+    }
+  },
+  "accelerator": {
+    "cuda_available": true,
+    "torch_cuda": "12.8",
+    "cudnn": 91900,
+    "device": "NVIDIA GeForce RTX 4060 Laptop GPU"
+  },
+  "external_commands": {
+    "pdfinfo": {
+      "available": true,
+      "resolved_executable": "pdfinfo.EXE"
+    },
+    "pdffonts": {
+      "available": true,
+      "resolved_executable": "pdffonts.EXE"
+    },
+    "pdftotext": {
+      "available": true,
+      "resolved_executable": "pdftotext.EXE"
+    },
+    "pdftoppm": {
+      "available": true,
+      "resolved_executable": "pdftoppm.EXE"
+    },
+    "latexmk": {
+      "available": true,
+      "resolved_executable": "latexmk.EXE"
+    }
+  },
+  "python_executable_name": "python.exe",
+  "errors": [],
+  "scope_note": "Exact lock documents the evidence-producing host. CPU/CUDA metric equivalence was separately audited; the named GPU is not required for numerical correctness."
+}

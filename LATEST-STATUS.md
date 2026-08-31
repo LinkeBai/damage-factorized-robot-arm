@@ -161,4 +161,17 @@ bootstrap intervals, and failure codes remain machine-readable. A paper-asset
 builder generates the vector PDF figure and LaTeX table directly from that
 validated summary. Its synthetic layout smoke data were deleted after visual QA.
 
+The evidence-producing software environment is now pinned and audited:
+Python 3.12.10; NumPy 2.5.2; MuJoCo/MuJoCo Warp 3.12.0; PyTorch
+2.11.0+cu128; SciPy 1.18.1; PyYAML 6.0.3; Matplotlib 3.11.1; Pillow 12.3.0;
+and pytest 9.1.1. The audit also checks the PDF/LaTeX command-line tools and
+stores no identifying absolute paths.
+
+The large-metric audit is also frozen and machine-readable. Its only primary,
+attributable headline pair is: analytic projection eliminates 100% of measured
+locked-joint violations (3/3 seeds), while the matched global residual reduces
+top-1 action regret by 19.76% (3/3 seeds). The historical 50.50% selective-RMSE
+reduction is retained as a depth-confounded diagnostic, not relabelled as an
+IPWM control gain. See `results/final/large-advantage-metric-audit.json`.
+
 See `PROJECT-PLAN-V6.md` and `paper/main.pdf` for the full plan and manuscript.

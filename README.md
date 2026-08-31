@@ -9,6 +9,7 @@ GenkiArm 与 Panda 仅承担跨机械臂和任务可行性验证。
 - [最新状态与证据边界](LATEST-STATUS.md)
 - [当前项目计划（V6）](PROJECT-PLAN-V6.md)
 - [严格主结果来源台账](reports/primary-result-provenance-ledger-20260831.md)
+- [大幅优势指标机器审计](results/final/large-advantage-metric-audit.json)
 - [当前英文主稿](paper/main.pdf)
 - [8月30日给学长的完整进度](reports/to-senior-2100-progress-20260830.md)
 - [近期顶会项目复现与迁移审计](reports/reproduction-first-audit-20260830.md)
@@ -48,6 +49,12 @@ external/     外部完整工程的本地参考归档，不纳入 Git
 
 ## 快速验证
 
+严格证据环境使用 Python 3.12.10；精确包版本见
+`requirements-primary-lock.txt`和
+`config/environment/primary-environment-lock.json`。CUDA PyTorch需从官方cu128
+索引安装；GPU用于正式评测加速，但CPU/CUDA指标等价性已单独审计，RTX 4060并非
+数值正确性的必要条件。
+
 ```powershell
 python -m pytest
 python scripts/run_offline_pipeline.py --help
@@ -56,15 +63,15 @@ python scripts/analyze_seed_significance.py results/final/heldout_5seeds_merged.
 python scripts/run_push_benchmark.py --seeds 7,17,27,42,51 --epochs 60
 ```
 
-严格三 seed 主证据（需要本地 `runs/` 中的正式 checkpoint 评测输出）可用一条命令
-重新汇总并验证：
+严格三seed主证据可用一条命令重新汇总并验证。必要的小型原始运行摘要已跟踪；
+D3确认候选压缩包缺失时会按冻结seed确定性重建并校验SHA-256：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/reproduce_primary_evidence.ps1
 ```
 
-该入口重新生成主结果、决策损失、同容量全局残差和无投影消融 JSON，并运行
-57 项配对数据、损失、投影和选择性状态发布测试。
+该入口重新生成主结果、决策损失、同容量全局残差、无投影消融、D3确认、环境、
+大幅优势指标边界和PDF匿名审计JSON，并运行全部聚焦契约测试。
 
 TD-MPC2 原始臂 adapter 需要可选依赖
 `pip install -e ".[tdmpc2]"`，并对单独下载的上游仓库应用
