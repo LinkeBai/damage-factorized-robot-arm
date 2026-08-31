@@ -13,7 +13,9 @@ def filled_manifest(tmp_path: Path) -> Path:
     calibration_left = tmp_path / "left.yaml"
     calibration_horizontal = tmp_path / "horizontal.yaml"
     sync_video = tmp_path / "sync.mp4"
-    for path in (calibration_left, calibration_horizontal, sync_video):
+    bridge = tmp_path / "action_bridge.yaml"
+    validation = tmp_path / "action_validation.json"
+    for path in (calibration_left, calibration_horizontal, sync_video, bridge, validation):
         path.write_text("x", encoding="utf-8")
     directories = [tmp_path / name for name in ("left", "horizontal", "logs", "backup1", "backup2")]
     for path in directories:
@@ -41,6 +43,9 @@ def filled_manifest(tmp_path: Path) -> Path:
         "schedule_sha256_before_trials": "79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d",
         "physical_reset_fixture_description": "three marked positions",
         "action_library_hash": "abc",
+        "action_interface_bridge_file": str(bridge),
+        "action_interface_validation_file": str(validation),
+        "learned_method_comparison_authorized": True,
     })
     payload["data_roots"].update(dict(zip(
         ("left_video_directory", "horizontal_video_directory", "control_log_directory", "backup_copy_1", "backup_copy_2"),

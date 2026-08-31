@@ -77,6 +77,8 @@ def audit(manifest_path: Path, schedule_path: Path, require_paths: bool = True) 
         "randomization.schedule_sha256_before_trials": manifest.get("randomization", {}).get("schedule_sha256_before_trials"),
         "randomization.physical_reset_fixture_description": manifest.get("randomization", {}).get("physical_reset_fixture_description"),
         "randomization.action_library_hash": manifest.get("randomization", {}).get("action_library_hash"),
+        "randomization.action_interface_bridge_file": manifest.get("randomization", {}).get("action_interface_bridge_file"),
+        "randomization.action_interface_validation_file": manifest.get("randomization", {}).get("action_interface_validation_file"),
         "freeze_record.freeze_timestamp_local": manifest.get("freeze_record", {}).get("freeze_timestamp_local"),
         "freeze_record.operator_signature_or_initials": manifest.get("freeze_record", {}).get("operator_signature_or_initials"),
     }
@@ -89,6 +91,7 @@ def audit(manifest_path: Path, schedule_path: Path, require_paths: bool = True) 
         "hardware.joint_direction_check_complete": manifest.get("hardware", {}).get("joint_direction_check_complete"),
         "hardware.low_speed_stop_check_complete": manifest.get("hardware", {}).get("low_speed_stop_check_complete"),
         "freeze_record.frozen_before_first_method_trial": manifest.get("freeze_record", {}).get("frozen_before_first_method_trial"),
+        "randomization.learned_method_comparison_authorized": manifest.get("randomization", {}).get("learned_method_comparison_authorized"),
     }
     for name, value in required_true.items():
         if value is not True:
@@ -120,6 +123,8 @@ def audit(manifest_path: Path, schedule_path: Path, require_paths: bool = True) 
         ("data_roots.control_log_directory", manifest.get("data_roots", {}).get("control_log_directory"), "dir"),
         ("data_roots.backup_copy_1", manifest.get("data_roots", {}).get("backup_copy_1"), "dir"),
         ("data_roots.backup_copy_2", manifest.get("data_roots", {}).get("backup_copy_2"), "dir"),
+        ("randomization.action_interface_bridge_file", manifest.get("randomization", {}).get("action_interface_bridge_file"), "file"),
+        ("randomization.action_interface_validation_file", manifest.get("randomization", {}).get("action_interface_validation_file"), "file"),
     ]
     if require_paths:
         for name, value, kind in path_fields:

@@ -18,6 +18,13 @@ python scripts/audit_real_robot_preflight.py data/real_robot/session_20260901.ya
   --output results/real_robot/preflight-audit.json
 ```
 
+The formal nominal/global comparison also requires a validated action-interface
+bridge. The simulator uses generalized motor force while the arm accepts servo
+goal positions; these are not interchangeable. See
+`reports/real-robot-action-interface-audit-20260831.md`. Without the bridge and
+common action-library hash, collect only the Level-A fixed-trajectory physical
+feasibility packet and do not attach learned-method labels to its motions.
+
 ## Minimum field sequence
 
 1. Photograph the arm, gripper, block, table, both fixed eye-to-hand cameras,

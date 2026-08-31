@@ -45,6 +45,9 @@ randomization:
   schedule_sha256_before_trials: ""
   physical_reset_fixture_description: ""
   action_library_hash: ""
+  action_interface_bridge_file: ""
+  action_interface_validation_file: ""
+  learned_method_comparison_authorized: false
 
 data_roots:
   left_video_directory: ""
