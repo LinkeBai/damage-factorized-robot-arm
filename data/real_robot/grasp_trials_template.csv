@@ -1,0 +1,4 @@
+trial_id,condition,method,position_id,trial_order,aborted,max_lock_error_rad,pregrasp_reached,gripper_closed,lift_height_m,retained_after_3s,success,camera_left_video,camera_horizontal_video,control_log,failure_code
+G001,intact,fixed_pregrasp,A,1,0,,,,,,,,,,
+G002,D2,fixed_pregrasp,A,2,0,,,,,,,,,,
+G003,D3,fixed_pregrasp,A,3,0,,,,,,,,,,

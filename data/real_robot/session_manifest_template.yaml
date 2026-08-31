@@ -30,6 +30,9 @@ frozen_task_definition:
   attribution_method: si_ipwm
   minimum_complete_pairs_per_fault: 10
   preserve_aborts_and_failures: true
+  secondary_grasp_scope: fixed_pregrasp_short_lift_feasibility_only
+  secondary_grasp_hold_seconds: 3
+  secondary_grasp_max_repetitions_per_condition: 5
 
 safety:
   maximum_commanded_joint_speed_rad_s: ""

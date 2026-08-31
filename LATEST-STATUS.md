@@ -137,4 +137,9 @@ simulation control signal. `si_ipwm` is an optional third row for structural
 attribution. The analyzer rejects duplicate rows and mismatched reset positions
 and reports paired endpoint, success, reach, and contact differences.
 
+The optional grasp packet is now executable but deliberately narrow: one fixed
+pregrasp, short vertical lift, three-second retention, and at most five trials
+per intact/D2/D3 condition. Its analyzer preserves aborts and may support only
+feasibility, never a learned-grasp or method-dominance claim.
+
 See `PROJECT-PLAN-V6.md` and `paper/main.pdf` for the full plan and manuscript.

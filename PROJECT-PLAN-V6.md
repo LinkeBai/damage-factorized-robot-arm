@@ -31,6 +31,10 @@
   `SIMULATION_EVIDENCE_COMPLETE_REAL_ROBOT_PENDING`。三seed realized-cost oracle
   的平均终点误差为`0.03758 m`，nominal为`0.04675 m`，即仍有`9.17 mm`
   或`19.63%`终点headroom（3/3为正）；oracle仅用于上界诊断，不是可部署基线。
+- 次要夹取不再停留在计划文字：已增加固定预抓取短抬升模板、严格文件/数值/
+  abort校验和按intact/D2/D3汇总的分析器。该面板冻结为每条件最多5次、保持3秒，
+  只能支持reach/closure/retention feasibility，禁止包装为learned grasping或方法
+  性能比较。Push仍拥有真机时间和论文主证据的最高优先级。
 
 - goal现采用可审计闭环而非开放式试错：`同协议开发消融→六阶段定位首个
   失败层→一次只做一个预声明调整→重跑全部开发seed→冻结checkpoint→一次性

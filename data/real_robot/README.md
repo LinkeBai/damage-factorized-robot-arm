@@ -55,3 +55,20 @@ and failure codes even when a binary success rate is shown.
 
 The two visual sources are fixed eye-to-hand cameras. Do not describe either as
 eye-in-hand.
+
+## Secondary fixed-pregrasp grasp feasibility
+
+Grasp is deliberately secondary and does not train or evaluate a learned grasp
+generator. Place the same cube in a marked pose, move to one frozen pregrasp,
+close the gripper, lift vertically by the smallest safe repeatable distance,
+and hold for three seconds. Run at most five intact/D2/D3 repetitions after the
+Push packet is secure. Record every trial in `grasp_trials_template.csv` and
+analyze it with:
+
+```powershell
+python scripts/analyze_real_robot_grasp.py data/real_robot/grasp_trials.csv `
+  --require-files --output results/real_robot/grasp-feasibility-summary.json
+```
+
+This panel may support only reach/closure/retention feasibility. It cannot be
+described as learned grasping, task-general recovery, or a method comparison.

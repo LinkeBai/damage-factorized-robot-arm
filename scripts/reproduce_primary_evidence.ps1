@@ -59,6 +59,7 @@ if (-not (Test-Path -LiteralPath $ConfirmationArchive)) {
 
 & $Python -m json.tool results\final\primary-result-provenance-ledger.json | Out-Null
 & $Python -m pytest `
+    tests\test_analyze_real_robot_grasp.py `
     tests\test_analyze_real_robot_push.py `
     tests\test_primary_evidence_audit.py `
     tests\test_decision_focused.py `
