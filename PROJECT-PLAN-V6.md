@@ -35,6 +35,9 @@
   abort校验和按intact/D2/D3汇总的分析器。该面板冻结为每条件最多5次、保持3秒，
   只能支持reach/closure/retention feasibility，禁止包装为learned grasping或方法
   性能比较。Push仍拥有真机时间和论文主证据的最高优先级。
+- ICRA desk审计已机器化并通过：当前PDF 7页、US Letter、匿名作者可见、身份相关
+  metadata为空、未出现配置的本地/GitHub身份字符串、21/21字体均为嵌入Type 1；
+  第1/4/7页渲染抽查无裁切或重叠。真机图加入后必须重新运行该审计。
 
 - goal现采用可审计闭环而非开放式试错：`同协议开发消融→六阶段定位首个
   失败层→一次只做一个预声明调整→重跑全部开发seed→冻结checkpoint→一次性

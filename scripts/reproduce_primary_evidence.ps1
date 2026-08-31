@@ -56,12 +56,16 @@ if (-not (Test-Path -LiteralPath $ConfirmationArchive)) {
     --output results\final\confirmation-d3-query-seed91031-summary.json
 
 & $Python scripts\audit_primary_evidence_contract.py
+& $Python scripts\audit_icra_pdf.py paper\main.pdf `
+    --source paper\main.tex `
+    --output results\final\icra-pdf-anonymity-audit.json
 
 & $Python -m json.tool results\final\primary-result-provenance-ledger.json | Out-Null
 & $Python -m pytest `
     tests\test_analyze_real_robot_grasp.py `
     tests\test_analyze_real_robot_push.py `
     tests\test_primary_evidence_audit.py `
+    tests\test_icra_pdf_audit.py `
     tests\test_decision_focused.py `
     tests\test_primary_candidate_protocol.py `
     tests\test_block_triangular_dpwm.py `

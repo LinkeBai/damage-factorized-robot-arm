@@ -1,0 +1,153 @@
+{
+  "status": "PASS",
+  "pdf": "paper\\main.pdf",
+  "source": "paper\\main.tex",
+  "pages": 7,
+  "max_pages": 8,
+  "page_size": "612 x 792 pts (letter)",
+  "metadata": {
+    "Author": null,
+    "Title": null,
+    "Subject": null,
+    "Keywords": null,
+    "Creator": "TeX",
+    "Producer": "pdfTeX-1.40.29"
+  },
+  "anonymous_author_visible": true,
+  "forbidden_identity_strings": [
+    "LinkeBai",
+    "github.com/LinkeBai",
+    "C:/Users/asus",
+    "damage-factorized-robot-arm"
+  ],
+  "forbidden_identity_matches": [],
+  "fonts": [
+    {
+      "name": "MPOVQF+NimbusRomNo9L-Regu",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "QVCFWU+NimbusRomNo9L-MediItal",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "XIAIVA+NimbusRomNo9L-Medi",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "JCERAN+CMSY7",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "PBEHIO+CMMI10",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "NSDLOF+CMMI7",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "XMHSYU+CMR10",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "ASLNBZ+CMSY10",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "XSBJNE+MSBM10",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "RTNSCO+CMR7",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "DAMBZS+NimbusRomNo9L-ReguItal",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "TMHVPV+MSAM10",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "HCZSAE+CMMI5",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "WBHEWL+CMR5",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "UAGOMC+CMBX10",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "IXNPPI+CMEX10",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "PDJFLL+CMSY8",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "KZNTBL+CMR8",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "MNUQIJ+CMMI8",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "BHRVYJ+CMSY5",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    },
+    {
+      "name": "TELFBD+NimbusMonL-Regu",
+      "type": "Type 1",
+      "embedded": "yes",
+      "subset": "yes"
+    }
+  ],
+  "errors": []
+}

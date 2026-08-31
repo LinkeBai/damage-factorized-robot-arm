@@ -17,10 +17,13 @@
   development evidence.
 - Do not claim K monotonicity, rollout-risk probability, strict forward
   triangular causality, control success, or real-arm success without evidence.
-- Add one six-stage evidence-chain figure and one labeled real-arm setup image
-  with calibration insets; the current state-isolation diagram alone does not
-  visualize the paper's primary contribution.
+- Done: six-stage evidence-chain figure is present and visually verified.
+- Pending: add one labeled real-arm setup image with calibration insets after
+  physical collection.
 - Fill real-arm table with every repetition, including aborts.
-- Run PDF compliance and anonymity audit before submission.
+- Done on 2026-08-31: machine PDF audit passes seven pages, US Letter size,
+  anonymous visible author, empty identifying metadata, no local/repository
+  identity string, and 21/21 embedded Type-1 font rows. Re-run after every
+  subsequent manuscript edit and again on the uploaded PDF.
 - Optional accompanying video: maximum 180 seconds and 20 MB; submit within
   the official upload window.

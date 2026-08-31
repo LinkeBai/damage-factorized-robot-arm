@@ -116,6 +116,7 @@ The machine-readable sources are:
 - `results/final/primary-projection-ablation-3seed.json`
 - `results/final/confirmation-d3-query-seed91031-summary.json`
 - `results/final/confirmation-d3-query-seed91031-audit.json`
+- `results/final/icra-pdf-anonymity-audit.json`
 - `reports/primary-result-provenance-ledger-20260831.md`
 
 With formal local run outputs present, regenerate all summaries and focused
@@ -141,5 +142,11 @@ The optional grasp packet is now executable but deliberately narrow: one fixed
 pregrasp, short vertical lift, three-second retention, and at most five trials
 per intact/D2/D3 condition. Its analyzer preserves aborts and may support only
 feasibility, never a learned-grasp or method-dominance claim.
+
+The current seven-page PDF passes the automated desk audit: US Letter, no
+Author/Title/Subject/Keywords metadata, no configured identity-string match,
+and all 21 parsed fonts embedded as Type 1. Pages 1, 4, and 7 were also rendered
+and visually inspected with no clipping or overlap. This check must be repeated
+after inserting the real-arm panel.
 
 See `PROJECT-PLAN-V6.md` and `paper/main.pdf` for the full plan and manuscript.
