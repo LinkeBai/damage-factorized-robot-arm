@@ -149,4 +149,9 @@ and all 21 parsed fonts embedded as Type 1. Pages 1, 4, and 7 were also rendered
 and visually inspected with no clipping or overlap. This check must be repeated
 after inserting the real-arm panel.
 
+The frozen primary hardware schedule is ready: seed 20260901, 25 paired blocks,
+50 trials (5 intact pairs and 10 each for D2/D3), randomized block and within-
+block nominal/global order, SHA-256
+`79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d`.
+
 See `PROJECT-PLAN-V6.md` and `paper/main.pdf` for the full plan and manuscript.

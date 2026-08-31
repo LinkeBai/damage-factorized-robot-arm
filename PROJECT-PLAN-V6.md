@@ -38,6 +38,10 @@
 - ICRA desk审计已机器化并通过：当前PDF 7页、US Letter、匿名作者可见、身份相关
   metadata为空、未出现配置的本地/GitHub身份字符串、21/21字体均为嵌入Type 1；
   第1/4/7页渲染抽查无裁切或重叠。真机图加入后必须重新运行该审计。
+- 真机Push主排程已用seed `20260901`预生成并冻结：25个paired blocks、50次
+  trials（intact 5对，D2/D3各10对），pair内`nominal/global_matched`顺序随机且
+  共享位置；SHA-256为`79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d`。
+  若现场必须缩短，只能在trial 1前记录dated deviation，禁止看结果后删改排程。
 
 - goal现采用可审计闭环而非开放式试错：`同协议开发消融→六阶段定位首个
   失败层→一次只做一个预声明调整→重跑全部开发seed→冻结checkpoint→一次性

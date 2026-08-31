@@ -43,6 +43,26 @@ python scripts/analyze_real_robot_push.py data/real_robot/push_trials.csv `
   --require-files --output results/real_robot/push-summary.json
 ```
 
+Generate and freeze the randomized block order before the first method trial:
+
+```powershell
+python scripts/generate_real_robot_push_schedule.py `
+  --seed 20260901 --fault-pairs 10 --intact-pairs 5 `
+  --methods nominal,global_matched `
+  --output data/real_robot/push_trials.csv
+```
+
+Copy the emitted SHA-256 into the session manifest. If time has been formally
+reserved for attribution, add `si_ipwm` to `--methods` before generation;
+never append it after looking at nominal/global outcomes.
+
+The repository already contains the primary two-method schedule at
+`push_schedule_seed20260901.csv`: 25 paired blocks and 50 trials, comprising 5
+intact, 10 D2, and 10 D3 pairs. Its frozen SHA-256 is
+`79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d`.
+Use it unchanged or create a dated protocol deviation before trial 1; do not
+silently shorten or reorder it after collection begins.
+
 The analyzer labels fewer than ten complete reference/candidate pairs as `pilot`.
 Ten or more pairs only changes the evidence level to `formal`; it does not imply
 statistical significance or a positive result.

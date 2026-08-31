@@ -1,0 +1,24 @@
+{
+  "protocol": "original_5dof_real_push_v1",
+  "status": "freeze_before_first_method_trial",
+  "seed": 20260901,
+  "conditions": {
+    "intact": 5,
+    "D2": 10,
+    "D3": 10
+  },
+  "methods": [
+    "nominal",
+    "global_matched"
+  ],
+  "positions": [
+    "A",
+    "B",
+    "C"
+  ],
+  "blocks": 25,
+  "trials": 50,
+  "output": "data\\real_robot\\push_schedule_seed20260901.csv",
+  "sha256": "79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d",
+  "rule": "block order and within-block method order randomized; all methods share pair and position"
+}
