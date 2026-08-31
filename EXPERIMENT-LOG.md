@@ -115,3 +115,13 @@
 1. **Push 主结果做实**：6 方法完整 multi-step 对比 + 5 seeds 显著性检验 + bootstrap/CI。
 2. 结果稳定后，作为论文新主结果，更新 `paper/main.md`（Push 实验部分）。
 3. 真机 pilot（若恢复可用）或转投 RSS/CoRL。
+
+---
+
+## 2026-08-31 响应保真 Pareto 收尾
+
+D2/D4、3 seeds、400x128x50 统一评测中，同容量全局残差 weight=0 的 response
+RMSE 平均改善 26.45%（3/3），Spearman +0.0467（3/3）；控制指标仅 2/3 同向。
+weight=0.03 在 seed27 上使 response 退化 11.84% 且未改善 regret/endpoint，
+No-Go。停止继续搜权重，不作选择性、D3 或真机归因。证据：
+`results/final/response-fidelity-pareto-development-3seed.json`。

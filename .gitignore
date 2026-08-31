@@ -63,3 +63,5 @@ ponytail-main/
 *.pem
 *.key
 .env
+cache/
+.venv-cuda/

@@ -182,3 +182,10 @@ reduction is retained as a depth-confounded diagnostic, not relabelled as an
 IPWM control gain. See `results/final/large-advantage-metric-audit.json`.
 
 See `PROJECT-PLAN-V6.md` and `paper/main.pdf` for the full plan and manuscript.
+
+## Response-fidelity development result (frozen 2026-08-31)
+
+The same-capacity global residual at decision weight zero improves response RMSE
+by **26.45% (3/3 seeds)** on D2/D4. Control metrics improve on average but only
+in 2/3 seeds. Weight 0.03 fails on seed27 (response -11.84%, no regret/endpoint
+gain). This is a Pareto diagnostic, not selective-IPWM, D3, or real evidence.

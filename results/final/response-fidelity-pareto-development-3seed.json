@@ -1,0 +1,95 @@
+{
+  "status": "DEVELOPMENT_PARETO_FROZEN",
+  "scope": "D2/D4 development only; not D3 confirmation and not real robot",
+  "model_identity": "same-capacity global residual with analytic projection; this is not selective IPWM",
+  "weight0": {
+    "decision_weight": 0.0,
+    "rows": [
+      {
+        "seed": 7,
+        "source": "runs/icra_primary_pareto_global_w0_eval/seed7/summary.json",
+        "response_rmse_improvement_pct": 44.823257006162315,
+        "top1_regret_improvement_pct": 19.990857005925637,
+        "endpoint_error_improvement_pct": 4.538088722874747,
+        "success_delta_pp": 2.0000000000000018,
+        "spearman_delta": 0.037109323619603604,
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      {
+        "seed": 17,
+        "source": "runs/icra_primary_pareto_global_w0_eval/seed17/summary.json",
+        "response_rmse_improvement_pct": 20.26757824032725,
+        "top1_regret_improvement_pct": 20.579897149331536,
+        "endpoint_error_improvement_pct": 3.9383293811700564,
+        "success_delta_pp": 1.7500000000000016,
+        "spearman_delta": 0.0945766682236839,
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      },
+      {
+        "seed": 27,
+        "source": "runs/icra_primary_pareto_global_w0_eval/seed27/summary.json",
+        "response_rmse_improvement_pct": 14.24921214418108,
+        "top1_regret_improvement_pct": -17.61744413684439,
+        "endpoint_error_improvement_pct": -3.0026301823750026,
+        "success_delta_pp": -0.2500000000000002,
+        "spearman_delta": 0.008319814780701776,
+        "locked_position_violation_max": 0.0,
+        "locked_velocity_violation_max": 0.0
+      }
+    ],
+    "aggregate": {
+      "response_rmse_improvement_pct": {
+        "mean": 26.446682463556883,
+        "positive_seeds": 3,
+        "total_seeds": 3
+      },
+      "top1_regret_improvement_pct": {
+        "mean": 7.651103339470928,
+        "positive_seeds": 2,
+        "total_seeds": 3
+      },
+      "endpoint_error_improvement_pct": {
+        "mean": 1.8245959738899336,
+        "positive_seeds": 2,
+        "total_seeds": 3
+      },
+      "success_delta_pp": {
+        "mean": 1.1666666666666676,
+        "positive_seeds": 2,
+        "total_seeds": 3
+      },
+      "spearman_delta": {
+        "mean": 0.04666860220799642,
+        "positive_seeds": 3,
+        "total_seeds": 3
+      }
+    }
+  },
+  "weight003_seed27": {
+    "decision_weight": 0.03,
+    "row": {
+      "seed": 27,
+      "source": "runs/icra_primary_pareto_global_w003_cuda_eval/seed27/summary.json",
+      "response_rmse_improvement_pct": -11.836711737221385,
+      "top1_regret_improvement_pct": -0.022125049259586155,
+      "endpoint_error_improvement_pct": -0.0037708841406055627,
+      "success_delta_pp": 0.7500000000000007,
+      "spearman_delta": 0.06671859115347317,
+      "locked_position_violation_max": 0.0,
+      "locked_velocity_violation_max": 0.0
+    }
+  },
+  "selection": {
+    "chosen_development_ablation": "weight0",
+    "reason": "weight0 improves response RMSE in 3/3 seeds; weight0.03 reverses the seed27 response gain and does not improve regret or endpoint",
+    "promotion": "ablation/supporting result only",
+    "not_supported": [
+      "selective-IPWM attribution",
+      "3/3 seed control-outcome improvement",
+      "D3 confirmation improvement",
+      "real-robot benefit"
+    ]
+  }
+}

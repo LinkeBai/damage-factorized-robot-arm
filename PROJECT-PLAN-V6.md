@@ -785,3 +785,13 @@ metadata 仍需最终检查。
 满足前两项且方向与论文一致，再完成图表与匿名检查，客观上才可能接近
 **3.9--4.1/5 或 ICRA 6/10**。仅润色、堆附录或继续发明网络不能使当前稿达到
 4+/5。完整报告：`paper/ccfa-review-reports/current-icra-review.md`。
+
+### 11.9 响应保真 Pareto 收尾（D2/D4 开发集）
+
+同容量全局残差（不是选择性 IPWM）在 weight=0 时将 response RMSE 平均降低
+**26.45%（3/3 seeds）**，Spearman 平均 +0.0467（3/3）；regret、endpoint、
+success 均值分别改善 7.65%、1.82%、+1.17 pp，但仅 2/3 同向。固定
+weight=0.03 的 seed27 复核使 response 退化 11.84%，且 regret/endpoint 未改善，
+判为 No-Go。停止继续搜权重；该结果只支持预测--决策 Pareto 诊断，不支持选择性
+归因、D3 确认或真机收益。机器证据：
+`results/final/response-fidelity-pareto-development-3seed.json`。
