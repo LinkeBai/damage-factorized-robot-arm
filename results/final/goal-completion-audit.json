@@ -1,0 +1,76 @@
+{
+  "objective": "frozen ICRA fault-adaptation and control-diagnosis paper",
+  "status": "INCOMPLETE",
+  "required_checks_passed": 4,
+  "required_checks_total": 9,
+  "checks": [
+    {
+      "name": "simulation contract 9/9",
+      "passed": true,
+      "required": true,
+      "evidence": "results/final/primary-evidence-contract-audit.json"
+    },
+    {
+      "name": "model identity/provenance ledger",
+      "passed": true,
+      "required": true,
+      "evidence": "results/final/primary-result-provenance-ledger.json"
+    },
+    {
+      "name": "large advantages have explicit attribution boundary",
+      "passed": true,
+      "required": true,
+      "evidence": "results/final/large-advantage-metric-audit.json"
+    },
+    {
+      "name": "paper PDF anonymity/layout audit",
+      "passed": true,
+      "required": true,
+      "evidence": "results/final/icra-pdf-anonymity-audit.json"
+    },
+    {
+      "name": "real-robot preflight",
+      "passed": false,
+      "required": true,
+      "evidence": "results\\real_robot\\preflight-audit.json"
+    },
+    {
+      "name": "frozen/completed schedule identity",
+      "passed": false,
+      "required": true,
+      "evidence": "results\\real_robot\\schedule-completion-audit.json"
+    },
+    {
+      "name": "formal original-arm Level-A Push",
+      "passed": false,
+      "required": true,
+      "evidence": "results\\real_robot\\push-summary.json"
+    },
+    {
+      "name": "real Push includes intact/D2/D3",
+      "passed": false,
+      "required": true,
+      "evidence": "results\\real_robot\\push-summary.json"
+    },
+    {
+      "name": "fixed-pregrasp grasp feasibility",
+      "passed": false,
+      "required": false,
+      "evidence": "results\\real_robot\\grasp-feasibility-summary.json"
+    },
+    {
+      "name": "independent ICRA/CCFA score at least 4.0/5",
+      "passed": false,
+      "required": true,
+      "evidence": "results\\final\\independent-final-score.json"
+    }
+  ],
+  "missing_required": [
+    "real-robot preflight",
+    "frozen/completed schedule identity",
+    "formal original-arm Level-A Push",
+    "real Push includes intact/D2/D3",
+    "independent ICRA/CCFA score at least 4.0/5"
+  ],
+  "completion_rule": "COMPLETE requires every required check; optional grasp cannot compensate for missing Push, provenance, paper, or score evidence."
+}

@@ -58,6 +58,10 @@ if (-not (Test-Path -LiteralPath $ConfirmationArchive)) {
 & $Python scripts\audit_primary_evidence_contract.py
 & $Python scripts\audit_primary_environment.py
 & $Python scripts\audit_large_advantage_metrics.py
+& $Python scripts\audit_goal_completion.py 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Write-Output "Goal completion remains fail-closed until real-robot and final-score evidence exist."
+}
 & $Python scripts\audit_icra_pdf.py paper\main.pdf `
     --source paper\main.tex `
     --output results\final\icra-pdf-anonymity-audit.json
@@ -73,6 +77,7 @@ if (-not (Test-Path -LiteralPath $ConfirmationArchive)) {
     tests\test_real_robot_level_a_schedule.py `
     tests\test_build_real_robot_feasibility_assets.py `
     tests\test_real_robot_schedule_completion.py `
+    tests\test_goal_completion_audit.py `
     tests\test_build_real_robot_paper_assets.py `
     tests\test_primary_environment_audit.py `
     tests\test_large_advantage_metric_audit.py `
