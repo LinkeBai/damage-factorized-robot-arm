@@ -2,12 +2,18 @@ param(
     [Parameter(Mandatory = $true)][string]$Manifest,
     [Parameter(Mandatory = $true)][string]$FrozenSchedule,
     [Parameter(Mandatory = $true)][string]$CompletedLog,
+    [Parameter(Mandatory = $true)][string]$TrajectoryLibrary,
     [string]$Python = ".\.venv-cuda\Scripts\python.exe"
 )
 
 $ErrorActionPreference = "Stop"
 $Repository = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $Repository
+
+& $Python scripts\audit_level_a_trajectory_library.py `
+    $TrajectoryLibrary $FrozenSchedule `
+    --output results\real_robot\trajectory-library-audit.json
+if ($LASTEXITCODE -ne 0) { throw "Level-A trajectory-library safety audit failed" }
 
 & $Python scripts\audit_real_robot_preflight.py $Manifest `
     --mode level_a `
@@ -31,5 +37,5 @@ if ($LASTEXITCODE -ne 0) { throw "Real-robot validity/statistics gate failed" }
     --table paper\generated\real-robot-feasibility-table.tex
 if ($LASTEXITCODE -ne 0) { throw "Real-robot paper-asset generation failed" }
 
-Write-Output "Level-A chain PASS: preflight, schedule identity, raw files, statistics, and paper assets."
+Write-Output "Level-A chain PASS: trajectory safety, preflight, schedule identity, raw files, statistics, and paper assets."
 Write-Output "Run scripts\audit_goal_completion.py after integrating the generated assets and final independent score."

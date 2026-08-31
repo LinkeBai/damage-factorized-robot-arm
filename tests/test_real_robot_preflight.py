@@ -1,4 +1,6 @@
 from pathlib import Path
+import hashlib
+import json
 
 import yaml
 
@@ -17,8 +19,12 @@ def filled_manifest(tmp_path: Path) -> Path:
     sync_video = tmp_path / "sync.mp4"
     bridge = tmp_path / "action_bridge.yaml"
     validation = tmp_path / "action_validation.json"
-    for path in (calibration_left, calibration_horizontal, sync_video, bridge, validation):
+    library = tmp_path / "action_library.csv"
+    for path in (calibration_left, calibration_horizontal, sync_video, bridge, library):
         path.write_text("x", encoding="utf-8")
+    library_hash = hashlib.sha256(library.read_bytes()).hexdigest()
+    validation.write_text(json.dumps({
+        "status": "PASS", "library_sha256": library_hash}), encoding="utf-8")
     directories = [tmp_path / name for name in ("left", "horizontal", "logs", "backup1", "backup2")]
     for path in directories:
         path.mkdir()
@@ -44,7 +50,9 @@ def filled_manifest(tmp_path: Path) -> Path:
         "schedule_file": str(SCHEDULE),
         "schedule_sha256_before_trials": "79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d",
         "physical_reset_fixture_description": "three marked positions",
-        "action_library_hash": "abc",
+        "action_library_hash": library_hash,
+        "action_library_file": str(library),
+        "action_library_validation_file": str(validation),
         "action_interface_bridge_file": str(bridge),
         "action_interface_validation_file": str(validation),
         "learned_method_comparison_authorized": True,

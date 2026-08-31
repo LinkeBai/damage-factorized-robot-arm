@@ -92,6 +92,8 @@ def audit(manifest_path: Path, schedule_path: Path, require_paths: bool = True,
         "randomization.schedule_sha256_before_trials": manifest.get("randomization", {}).get("schedule_sha256_before_trials"),
         "randomization.physical_reset_fixture_description": manifest.get("randomization", {}).get("physical_reset_fixture_description"),
         "randomization.action_library_hash": manifest.get("randomization", {}).get("action_library_hash"),
+        "randomization.action_library_file": manifest.get("randomization", {}).get("action_library_file"),
+        "randomization.action_library_validation_file": manifest.get("randomization", {}).get("action_library_validation_file"),
         "freeze_record.freeze_timestamp_local": manifest.get("freeze_record", {}).get("freeze_timestamp_local"),
         "freeze_record.operator_signature_or_initials": manifest.get("freeze_record", {}).get("operator_signature_or_initials"),
     }
@@ -120,6 +122,22 @@ def audit(manifest_path: Path, schedule_path: Path, require_paths: bool = True,
     recorded_hash = manifest.get("randomization", {}).get("schedule_sha256_before_trials")
     if nonempty(recorded_hash) and recorded_hash != schedule_hash:
         errors.append("manifest schedule hash does not match the schedule file")
+    library_value = manifest.get("randomization", {}).get("action_library_file")
+    library_hash = manifest.get("randomization", {}).get("action_library_hash")
+    validation_value = manifest.get("randomization", {}).get("action_library_validation_file")
+    if nonempty(library_value) and Path(str(library_value)).is_file():
+        actual_library_hash = sha256(Path(str(library_value)))
+        if library_hash != actual_library_hash:
+            errors.append("manifest action-library hash does not match the library file")
+    if nonempty(validation_value) and Path(str(validation_value)).is_file():
+        try:
+            validation = json.loads(Path(str(validation_value)).read_text(encoding="utf-8"))
+            if validation.get("status") != "PASS":
+                errors.append("action-library validation status is not PASS")
+            if validation.get("library_sha256") != library_hash:
+                errors.append("action-library validation hash does not match manifest")
+        except (json.JSONDecodeError, OSError):
+            errors.append("action-library validation file is not valid JSON")
 
     task = manifest.get("frozen_task_definition", {})
     frozen_invariants = {
@@ -146,6 +164,8 @@ def audit(manifest_path: Path, schedule_path: Path, require_paths: bool = True,
         ("data_roots.control_log_directory", manifest.get("data_roots", {}).get("control_log_directory"), "dir"),
         ("data_roots.backup_copy_1", manifest.get("data_roots", {}).get("backup_copy_1"), "dir"),
         ("data_roots.backup_copy_2", manifest.get("data_roots", {}).get("backup_copy_2"), "dir"),
+        ("randomization.action_library_file", manifest.get("randomization", {}).get("action_library_file"), "file"),
+        ("randomization.action_library_validation_file", manifest.get("randomization", {}).get("action_library_validation_file"), "file"),
     ]
     if mode == "level_b":
         path_fields.extend([

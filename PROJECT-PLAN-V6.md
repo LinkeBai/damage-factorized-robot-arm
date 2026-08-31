@@ -714,6 +714,11 @@ Level-A现场后处理已合并为一条 fail-fast 命令，依次执行 preflig
 逐行一致性、`--require-files` 原始文件与统计门禁、最后才生成 PDF/LaTeX 资产；
 四阶段均检查退出码，任何失败立即停止。现场不得绕过流水线单独运行图表生成器。
 
+Level-A trajectory ID 现必须绑定实际 waypoint 动作库，而非任意字符串。新增安全
+审计核对 schedule/library ID 完全一致、waypoint 时间严格递增、五关节均在实测
+限位内、最大速度不超过 5°/s，且 D2 的 J2、D3 的 J3 指令全程恒定；输出动作库
+SHA-256 与 `TRAJECTORY_LIBRARY_SAFE_TO_FREEZE`。未通过时禁止执行轨迹。
+
 8 月 31 日动作接口复核发现一个必须公开的真机边界：仿真模型的 action 是 0.005 s
 MuJoCo motor 广义力，而原始臂接收 raw tick 目标位置；仓库尚无经过实验验证的
 映射和冻结候选动作库。因此真机证据分为 Level A 固定低速轨迹的锁定/可达/接触/

@@ -45,6 +45,21 @@ analyzer now reports a separate `physical_feasibility_by_condition` table and a
 formal Level-A gate (ten valid trials each for intact/D2/D3 plus raw-file checks),
 whose claim boundary explicitly excludes learned-method superiority.
 
+Store the actual time-indexed joint-position waypoints in a trajectory-library
+CSV with columns `trajectory_id,condition,waypoint_index,time_s,j1,...,j5`, then
+audit it against the frozen schedule before execution:
+
+```powershell
+python scripts/audit_level_a_trajectory_library.py `
+  data/real_robot/level_a_trajectory_library.csv `
+  data/real_robot/level_a_schedule_frozen.csv `
+  --output results/real_robot/trajectory-library-audit.json
+```
+
+The audit requires every scheduled ID to exist, measured joint limits, at most
+5 deg/s, contiguous times, and constant J2/J3 commands under D2/D3. Record the
+library path, SHA-256, and PASS audit path in the session manifest.
+
 After the strict analyzer accepts the Level-A packet, generate its paper assets
 directly from the JSON (never manually transcribe measurements):
 
@@ -81,11 +96,13 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File scripts/run_real_robot_level_a_pipeline.ps1 `
   -Manifest data/real_robot/session_20260901.yaml `
   -FrozenSchedule data/real_robot/level_a_schedule_frozen.csv `
+  -TrajectoryLibrary data/real_robot/level_a_trajectory_library.csv `
   -CompletedLog data/real_robot/level_a_trials_completed.csv
 ```
 
-It stops at the first failed gate and produces paper assets only after preflight,
-schedule identity, measurement validity, and all raw files have passed. Do not
+It stops at the first failed gate and produces paper assets only after trajectory
+safety, preflight, schedule identity, measurement validity, and all raw files
+have passed. Do not
 run the asset builder separately to bypass an earlier failure.
 
 ## Minimum field sequence
