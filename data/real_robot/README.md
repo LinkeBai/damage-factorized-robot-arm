@@ -73,6 +73,21 @@ This audit allows measurement/video/log fields to be filled but requires every
 trial order, condition, position, method, and trajectory ID to remain identical.
 It does not replace the separate validity and raw-file gate.
 
+When collection is complete, run the entire Level-A evidence chain with one
+fail-fast command:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File scripts/run_real_robot_level_a_pipeline.ps1 `
+  -Manifest data/real_robot/session_20260901.yaml `
+  -FrozenSchedule data/real_robot/level_a_schedule_frozen.csv `
+  -CompletedLog data/real_robot/level_a_trials_completed.csv
+```
+
+It stops at the first failed gate and produces paper assets only after preflight,
+schedule identity, measurement validity, and all raw files have passed. Do not
+run the asset builder separately to bypass an earlier failure.
+
 ## Minimum field sequence
 
 1. Photograph the arm, gripper, block, table, both fixed eye-to-hand cameras,

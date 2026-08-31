@@ -710,6 +710,10 @@ RMSE 降低 50.50% 只能进入诊断/附录，直到固定 rollout 深度确认
 50 条 nominal/global 配对、动作语义桥和学习方法授权，并输出
 `LEVEL_B_METHOD_TRIALS_MAY_START`。Level-B缺口不再错误阻塞Level-A采集。
 
+Level-A现场后处理已合并为一条 fail-fast 命令，依次执行 preflight、冻结/完成日志
+逐行一致性、`--require-files` 原始文件与统计门禁、最后才生成 PDF/LaTeX 资产；
+四阶段均检查退出码，任何失败立即停止。现场不得绕过流水线单独运行图表生成器。
+
 8 月 31 日动作接口复核发现一个必须公开的真机边界：仿真模型的 action 是 0.005 s
 MuJoCo motor 广义力，而原始臂接收 raw tick 目标位置；仓库尚无经过实验验证的
 映射和冻结候选动作库。因此真机证据分为 Level A 固定低速轨迹的锁定/可达/接触/

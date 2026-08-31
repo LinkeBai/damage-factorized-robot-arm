@@ -78,6 +78,7 @@ if ($LASTEXITCODE -ne 0) {
     tests\test_build_real_robot_feasibility_assets.py `
     tests\test_real_robot_schedule_completion.py `
     tests\test_goal_completion_audit.py `
+    tests\test_level_a_pipeline_contract.py `
     tests\test_build_real_robot_paper_assets.py `
     tests\test_primary_environment_audit.py `
     tests\test_large_advantage_metric_audit.py `
