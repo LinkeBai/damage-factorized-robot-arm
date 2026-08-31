@@ -42,6 +42,11 @@
   trials（intact 5对，D2/D3各10对），pair内`nominal/global_matched`顺序随机且
   共享位置；SHA-256为`79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d`。
   若现场必须缩短，只能在trial 1前记录dated deviation，禁止看结果后删改排程。
+- 真机统计已补齐反偏差规则：任何一方abort/缺失的pair均进入
+  `incomplete_or_aborted_pairs`，不得静默从分母删除；D2和D3必须分别达到10个
+  完整pair且原始文件检查通过才标为formal。汇总保留逐pair差值和逐故障bootstrap
+  CI，并可直接生成论文PDF图与LaTeX表，避免手抄数字。合成数据仅用于版式测试，
+  已删除且不会进入结果目录。
 
 - goal现采用可审计闭环而非开放式试错：`同协议开发消融→六阶段定位首个
   失败层→一次只做一个预声明调整→重跑全部开发seed→冻结checkpoint→一次性

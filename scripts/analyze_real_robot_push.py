@@ -117,10 +117,21 @@ def main() -> None:
             "contact_rate": float(np.mean([flag(row["contact"]) for row in selected])),
             "max_lock_error_rad": float(max(float(row["max_lock_error_rad"]) for row in selected)),
         }
+    all_indexed = {}
+    for row in rows:
+        all_indexed.setdefault((row["condition"], row["pair_id"]), {})[
+            row["method"]
+        ] = row
     indexed = {}
-    for row in valid: indexed.setdefault((row["condition"], row["pair_id"]), {})[row["method"]] = row
-    pairs = [pair for pair in indexed.values()
-             if args.reference_method in pair and args.candidate_method in pair]
+    for row in valid:
+        indexed.setdefault((row["condition"], row["pair_id"]), {})[
+            row["method"]
+        ] = row
+    pair_items = [
+        (key, pair) for key, pair in indexed.items()
+        if args.reference_method in pair and args.candidate_method in pair
+    ]
+    pairs = [pair for _, pair in pair_items]
     mismatched_positions = [
         (pair[args.reference_method]["pair_id"],
          pair[args.reference_method]["position_id"],
@@ -131,24 +142,76 @@ def main() -> None:
     ]
     if mismatched_positions:
         raise SystemExit(f"Paired rows have mismatched reset positions: {mismatched_positions[:10]}")
-    endpoint = np.asarray([
-        float(p[args.reference_method]["endpoint_error_m"])
-        - float(p[args.candidate_method]["endpoint_error_m"]) for p in pairs
-    ])
-    success = np.asarray([
-        flag(p[args.candidate_method]["success"])
-        - flag(p[args.reference_method]["success"]) for p in pairs
-    ], dtype=float)
-    reach = np.asarray([
-        flag(p[args.candidate_method]["reached"])
-        - flag(p[args.reference_method]["reached"]) for p in pairs
-    ], dtype=float)
-    contact = np.asarray([
-        flag(p[args.candidate_method]["contact"])
-        - flag(p[args.reference_method]["contact"]) for p in pairs
-    ], dtype=float)
+    def paired_values(selected_pairs):
+        endpoint = np.asarray([
+            float(p[args.reference_method]["endpoint_error_m"])
+            - float(p[args.candidate_method]["endpoint_error_m"])
+            for p in selected_pairs
+        ])
+        success = np.asarray([
+            flag(p[args.candidate_method]["success"])
+            - flag(p[args.reference_method]["success"]) for p in selected_pairs
+        ], dtype=float)
+        reach = np.asarray([
+            flag(p[args.candidate_method]["reached"])
+            - flag(p[args.reference_method]["reached"]) for p in selected_pairs
+        ], dtype=float)
+        contact = np.asarray([
+            flag(p[args.candidate_method]["contact"])
+            - flag(p[args.reference_method]["contact"]) for p in selected_pairs
+        ], dtype=float)
+        return endpoint, success, reach, contact
+
+    def paired_summary(selected_pairs):
+        endpoint, success, reach, contact = paired_values(selected_pairs)
+        def summarize(values):
+            return {
+                "mean": float(values.mean()) if len(values) else None,
+                "ci95": interval(values) if len(values) else None,
+            }
+        return {
+            "pairs": len(selected_pairs),
+            "endpoint_improvement_m": summarize(endpoint),
+            "success_improvement": summarize(success),
+            "reach_improvement": summarize(reach),
+            "contact_improvement": summarize(contact),
+        }
+
+    endpoint, success, reach, contact = paired_values(pairs)
     condition_pairs = Counter(
         p[args.reference_method]["condition"] for p in pairs
+    )
+    per_condition = {
+        condition: paired_summary([
+            pair for key, pair in pair_items if key[0] == condition
+        ])
+        for condition in sorted({key[0] for key in all_indexed})
+    }
+    required_methods = {args.reference_method, args.candidate_method}
+    incomplete_pair_keys = [
+        {"condition": condition, "pair_id": pair_id,
+         "present_methods": sorted(pair),
+         "aborted_methods": sorted(
+             method for method, row in pair.items() if flag(row["aborted"])
+         )}
+        for (condition, pair_id), pair in sorted(all_indexed.items())
+        if not required_methods.issubset(indexed.get((condition, pair_id), {}))
+    ]
+    per_pair = [{
+        "condition": key[0], "pair_id": key[1],
+        "position_id": pair[args.reference_method]["position_id"],
+        "endpoint_improvement_m": float(pair[args.reference_method]["endpoint_error_m"])
+        - float(pair[args.candidate_method]["endpoint_error_m"]),
+        "success_improvement": flag(pair[args.candidate_method]["success"])
+        - flag(pair[args.reference_method]["success"]),
+        "reach_improvement": flag(pair[args.candidate_method]["reached"])
+        - flag(pair[args.reference_method]["reached"]),
+        "contact_improvement": flag(pair[args.candidate_method]["contact"])
+        - flag(pair[args.reference_method]["contact"]),
+    } for key, pair in pair_items]
+    formal_counts_met = all(
+        per_condition.get(condition, {}).get("pairs", 0) >= 10
+        for condition in ("D2", "D3")
     )
     payload = {
         "source": str(args.csv), "rows": len(rows), "valid_rows": len(valid),
@@ -157,15 +220,26 @@ def main() -> None:
             "reference_method": args.reference_method,
             "candidate_method": args.candidate_method,
             "pairs_by_condition": dict(condition_pairs),
+            "incomplete_or_aborted_pairs": incomplete_pair_keys,
         },
         "paired_endpoint_improvement_m": {"mean": float(endpoint.mean()) if len(endpoint) else None, "ci95": interval(endpoint) if len(endpoint) else None},
         "paired_success_improvement": {"mean": float(success.mean()) if len(success) else None, "ci95": interval(success) if len(success) else None},
         "paired_reach_improvement": {"mean": float(reach.mean()) if len(reach) else None, "ci95": interval(reach) if len(reach) else None},
         "paired_contact_improvement": {"mean": float(contact.mean()) if len(contact) else None, "ci95": interval(contact) if len(contact) else None},
+        "paired_by_condition": per_condition,
+        "paired_rows": per_pair,
         "failure_codes": dict(Counter(row["failure_code"] or "none" for row in rows)),
         "conditions": dict(Counter(row["condition"] for row in valid)),
         "all_required_files_checked": args.require_files,
-        "claim_level": "formal" if len(pairs) >= 10 else "pilot" if pairs else "no paired evidence",
+        "claim_level": (
+            "formal" if formal_counts_met and args.require_files
+            else "pilot" if pairs else "no paired evidence"
+        ),
+        "formal_gate": {
+            "minimum_complete_pairs_each_D2_D3": 10,
+            "counts_met": formal_counts_met,
+            "raw_files_required_and_checked": args.require_files,
+        },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")

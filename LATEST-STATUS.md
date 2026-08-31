@@ -154,4 +154,11 @@ The frozen primary hardware schedule is ready: seed 20260901, 25 paired blocks,
 block nominal/global order, SHA-256
 `79139bca3b61866643e00ef35d724cdd4185fb14a8f115faa942635f27f4510d`.
 
+The real Push analyzer no longer drops aborted or one-sided pairs silently.
+Formal evidence requires at least ten complete pairs separately for D2 and D3
+and `--require-files`; incomplete pairs, per-pair differences, per-condition
+bootstrap intervals, and failure codes remain machine-readable. A paper-asset
+builder generates the vector PDF figure and LaTeX table directly from that
+validated summary. Its synthetic layout smoke data were deleted after visual QA.
+
 See `PROJECT-PLAN-V6.md` and `paper/main.pdf` for the full plan and manuscript.

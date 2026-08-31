@@ -67,6 +67,16 @@ The analyzer labels fewer than ten complete reference/candidate pairs as `pilot`
 Ten or more pairs only changes the evidence level to `formal`; it does not imply
 statistical significance or a positive result.
 
+After strict analysis passes, build the paper-ready vector figure and generated
+LaTeX table directly from the summary (never transcribe numbers manually):
+
+```powershell
+python scripts/build_real_robot_paper_assets.py `
+  results/real_robot/push-summary.json `
+  --figure paper/generated/real-robot-push.pdf `
+  --table paper/generated/real-robot-push-table.tex
+```
+
 ## Success definition
 
 Freeze the success threshold before method labels are inspected. Always report

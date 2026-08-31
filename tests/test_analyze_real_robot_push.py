@@ -48,6 +48,10 @@ def test_analyzer_reports_configurable_paired_comparison(tmp_path):
     assert payload["paired_endpoint_improvement_m"]["mean"] == pytest.approx(0.03)
     assert payload["paired_success_improvement"]["mean"] == 1.0
     assert payload["paired_comparison"]["pairs_by_condition"] == {"D3": 1}
+    assert payload["paired_by_condition"]["D3"]["pairs"] == 1
+    assert payload["paired_rows"][0]["pair_id"] == "P001"
+    assert payload["claim_level"] == "pilot"
+    assert payload["formal_gate"]["counts_met"] is False
 
 
 def test_analyzer_rejects_mismatched_pair_positions(tmp_path):
@@ -60,3 +64,25 @@ def test_analyzer_rejects_mismatched_pair_positions(tmp_path):
     )
     assert completed.returncode != 0
     assert "mismatched reset positions" in (completed.stdout + completed.stderr)
+
+
+def test_analyzer_reports_aborted_method_as_incomplete_pair(tmp_path):
+    source, output = tmp_path / "trials.csv", tmp_path / "summary.json"
+    aborted = row("global_matched", "2", "", "")
+    aborted.update({"aborted": "1", "failure_code": "safety_stop"})
+    write_rows(source, [row("nominal", "1", "0.05", "0"), aborted])
+    completed = subprocess.run(
+        [sys.executable, "scripts/analyze_real_robot_push.py", str(source),
+         "--output", str(output)],
+        cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["paired_trials"] == 0
+    assert payload["claim_level"] == "no paired evidence"
+    incomplete = payload["paired_comparison"]["incomplete_or_aborted_pairs"]
+    assert incomplete == [{
+        "condition": "D3", "pair_id": "P001",
+        "present_methods": ["global_matched", "nominal"],
+        "aborted_methods": ["global_matched"],
+    }]
