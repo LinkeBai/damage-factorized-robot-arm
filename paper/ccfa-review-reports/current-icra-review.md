@@ -12,7 +12,8 @@ instructions.
 - Paper type: empirical robotics/world-model diagnosis study.
 - Reviewed artifact: `paper/main.pdf`, seven pages, compiled 2026-08-31.
 - Supporting evidence: strict three-seed JSON summaries, provenance ledger,
-  projection/global/decision-loss ablations, tests, and repository status.
+  projection/global/decision-loss ablations, post-freeze D3 candidate-query
+  confirmation, tests, and repository status.
 - Official ICRA 2027 policy checked 2026-08-31: eight pages total including
   references, double-column PDF, double-anonymous review, and September 15,
   2026 deadline. Source: <https://2027.ieee-icra.org/contribute/call-for-icra-2027-papers-now-accepting-submissions/>.
@@ -31,6 +32,11 @@ both in 3/3 development seeds. The central negative result is that
 contact-response RMSE worsens by 270.04%, and selective IPWM fails to beat a
 same-capacity global residual. Removing projection causes 4.42--8.75 degree
 maximum joint drift, while projection yields exact zero violation.
+After checkpoint freeze, a registered D3 seed-91031 candidate archive gives
+only 9.77% regret reduction (2/3 seeds), 2.00% endpoint reduction (2/3), and
++2.17 success points (3/3) for global residual versus nominal. Selective IPWM
+again fails matched attribution. Because D3 was historically inspected, this
+is fresh-query evidence rather than pristine unseen-domain confirmation.
 
 ## Likely stance and calibrated score
 
@@ -40,9 +46,9 @@ confidence: 4/5. Equivalent project score: approximately 3.6/5, not 4+/5.**
 The paper is substantially more credible than the previous selective-IPWM
 victory story because it now exposes the strongest matched baseline and retains
 negative results. The decisive reject axis is not a correctness failure. It is
-that the only stable task-level advantage belongs to a generic same-capacity
+that the only stable development task-level advantage belongs to a generic same-capacity
 global residual relative to nominal, while the named selective mechanism fails
-attribution; all primary rows are development evidence; and no physical robot
+attribution; the post-freeze D3 query does not confirm a large effect; and no physical robot
 result yet substantiates the robotics claim. This combination leaves the work
 as a useful but narrow diagnostic study rather than a clearly differentiated
 ICRA contribution.
@@ -53,11 +59,11 @@ ICRA contribution.
 |:---|:---:|:---:|:---|:---|
 | Contribution and novelty | 3 | 4 | Title/abstract, lines 5--27; contributions, lines 53--65; selective attribution No-Go, lines 310--316 | The six-stage framing and projection audit are useful, but the learned selective mechanism is not supported over the global residual. Raise to 4 only if the paper establishes a reusable diagnostic insight across at least another fault/task/model family or obtains a mechanism-specific result under a frozen confirmation protocol. |
 | Significance and impact | 4 | 3 | Introduction, lines 30--65; limitations, lines 653--676 | Diagnosed joint locks and contact planning are relevant to ICRA, but one planar block-pushing model limits reach. Retain 4 if real-arm evidence shows the diagnosed failure modes; otherwise a strict reviewer may score 3. |
-| Technical soundness | 4 | 4 | Projection equations/propositions; paired soft-regret objective; strict checkpoint loader; provenance ledger | The protocol now distinguishes prediction and decision metrics and discloses D3 inspection. Remaining concern: three development seeds and open-loop candidate selection do not establish closed-loop recovery. Raise confidence, not necessarily score, with untouched confirmation and paired real trials. |
-| Evidence and evaluation | 3 | 5 | Strict table, lines 290--337; decision ablation, lines 339--346; projection ablation; machine summaries | Matched baselines and ablations are strong, but no real robot, no untouched confirmation, no stable success-rate gain, no receding-horizon MPC, and no second task/arm primary evidence. Raise to 4 with valid real-arm paired trials plus one untouched confirmation set and confidence intervals/effect sizes. |
+| Technical soundness | 4 | 4 | Projection equations/propositions; paired soft-regret objective; strict checkpoint loader; provenance ledger | The protocol distinguishes prediction and decision metrics, discloses D3 inspection, and retains the failed fresh-query gate. Remaining concern: open-loop candidate selection does not establish closed-loop recovery. Raise confidence, not necessarily score, with paired real trials. |
+| Evidence and evaluation | 3 | 5 | Strict table, decision/projection ablations, D3 seed-91031 query confirmation, machine summaries | Matched baselines and ablations are strong, but the fresh D3 query misses the preregistered regret gate, there is no real robot, no pristine unseen domain, no receding-horizon MPC, and no second task/arm primary evidence. Raise to 4 with valid real-arm paired trials plus confidence intervals/effect sizes and coherent cross-setting diagnosis. |
 | Clarity and organization | 4 | 4 | Seven-page PDF; new six-stage pass/No-Go figure; historical sections after the primary table | The primary finding is now visually recoverable, but historical simplified/GenkiArm material still occupies disproportionate space. Compress it to protect the new storyline. |
 | Positioning and related work | 3 | 3 | Related work, lines 68--105; 15 references | Representative work is cited, but the closest fault-aware world-model, counterfactual action-ranking, and diagnostic/evaluation papers are not compared experimentally. Raise to 4 with a compact closest-work matrix tied to the exact contribution type and at least one reproduced or directly matched modern baseline. |
-| Reproducibility and auditability | 4 | 5 | One-command summarizer, machine-readable JSON, provenance ledger, 57 focused tests, compute ledger | Strong audit trail. Training remains dependent on staged local runs, large checkpoints/candidate data are not packaged, and training wall time is missing. Raise to 5 with immutable hashes, archival data/checkpoints, environment lock, and one clean end-to-end command. |
+| Reproducibility and auditability | 4 | 5 | One-command reconstruction, raw run summaries, machine-readable JSON, provenance ledger, 60 focused tests, compute ledger | The confirmation archive is deterministically regenerated to the registered SHA-256 and `main` is synchronized. Training checkpoints, environment lock, and training wall time remain incomplete. Raise to 5 with archival checkpoints and a clean-machine end-to-end training/evaluation run. |
 | Ethics, limitations, and responsible research | 4 | 5 | Limitations, lines 653--676; hardware safety protocol; failure ledger | Limitations and absent hardware evidence are disclosed. Add explicit real-arm abort/safety accounting and energy/compute scope after data collection to reach 5. |
 
 ### Weighted readiness view
@@ -110,24 +116,28 @@ explicitly states that the model is not a fully identified dynamic twin. The
 planned real-arm protocol is appropriate, but promised experiments are not
 evidence.
 
-**Repair condition:** report every valid/aborted paired carrier versus frozen
-method trial on the original five-DoF arm, including lock drift, reach, contact,
+**Repair condition:** report every valid/aborted paired nominal versus frozen
+global-residual trial on the original five-DoF arm, with selective IPWM as an
+optional attribution row, including lock drift, reach, contact,
 continuous terminal error, success, camera setup, and failure codes. If method
 benefit is absent, use the real arm to validate the six-stage failure diagnosis
 rather than claiming recovery.
 
-### M3 — All primary performance rows are development evidence
+### M3 — Fresh-query confirmation does not confirm a large effect
 
 **Severity:** major. **Criterion:** technical soundness and evidence.
 
-D3 was historically inspected and the paper correctly excludes it from a
-confirmation claim. However, no untouched domain or seed remains to test the
-frozen final narrative. Three seeds establish direction, but not independence
-from the development loop.
+D3 was historically inspected and therefore cannot provide pristine domain
+confirmation. The project nevertheless registered a new candidate seed before
+generation and evaluated all three frozen checkpoints once. Global residual
+improves success in 3/3 seeds but regret by only 9.77% on average with 2/3
+positive, missing the predeclared moderate and strong gates. This bounds rather
+than validates transfer of the 19.76% development effect.
 
-**Repair condition:** run one predeclared untouched confirmation package with
-frozen code, checkpoints, metrics, and no retuning. A negative confirmation
-must remain reported.
+**Repair condition:** retain the negative query result and do not tune on D3.
+Obtain independent evidence through the frozen physical protocol or a truly
+new setting chosen before inspection, with diagnosis rather than dominance as
+the primary hypothesis.
 
 ### M4 — Limited task breadth and weak success movement
 
@@ -189,14 +199,14 @@ safe, but final anonymity/template compliance remains unverified.
   reusable staged diagnosis.
 - **Negative signal:** scope is narrow and physical validation is absent.
 - **Score-change condition:** valid real-arm failure-stage evidence, even without
-  a large method win, plus an untouched confirmation would sustain 6.
+  a large method win, could sustain 6 because the negative D3 query is retained.
 
 ### Critical reviewer
 
 - **Likely score:** 4/10, reject; **confidence:** 5/5.
 - **Positive signal:** unusually transparent ablations.
 - **Negative signal:** the named selective innovation loses to a generic matched
-  residual, success gain is tiny, and all primary data are development data.
+  residual, success gain is tiny, and the D3 query misses its preregistered gate.
 - **Fatal concern:** novelty may collapse to “hard projection plus residual
   training and a diagnostic checklist.”
 - **Score-change condition:** mechanism-specific confirmation or multi-setting
@@ -215,10 +225,10 @@ safe, but final anonymity/template compliance remains unverified.
 
 - **Likely score:** 5/10; **confidence:** 5/5.
 - **Positive signal:** 400x128x50 matched evaluation and honest No-Go reporting.
-- **Negative signal:** three development seeds, no confidence interval for the
-  primary aggregate in the manuscript, no real robot, and no closed-loop MPC.
-- **Score-change condition:** untouched confirmation, paired statistics, and
-  complete real-arm evidence.
+- **Negative signal:** the post-freeze D3 query misses its regret gate, the
+  manuscript lacks a primary confidence interval, and there is no real robot or
+  closed-loop MPC.
+- **Score-change condition:** paired statistics and complete real-arm evidence.
 
 ### Novelty and positioning reviewer
 
@@ -250,7 +260,7 @@ safe, but final anonymity/template compliance remains unverified.
 ### AC or meta-review synthesis
 
 - **Agreement:** the protocol and transparency are strengths; selective
-  attribution, untouched confirmation, and physical evidence are missing.
+  attribution fails, D3 transfer is weak, and physical evidence is missing.
 - **Disagreement:** whether the six-stage diagnosis plus regret/RMSE decoupling is
   itself sufficiently novel for ICRA.
 - **Decisive accept axis:** demonstrate that the diagnosis transfers beyond one
@@ -264,34 +274,37 @@ safe, but final anonymity/template compliance remains unverified.
 | Priority | Concern | Required action | Evidence that closes it | Expected movement |
 |---:|---|---|---|---|
 | P0 | No real-arm evidence | Execute frozen low-speed paired push protocol; retain aborts and both videos | Validity ledger, raw hashes, paired terminal/contact/lock table, setup panel | Evidence +0.5 to +1 dimension; overall may move 5→6 if coherent |
-| P0 | No untouched confirmation | Predeclare and run one frozen confirmation package without retuning | Config hash, candidate hash, per-seed rows, unchanged evaluator | Soundness/evidence increase; removes development-only cap |
+| Done | No post-freeze query confirmation | Registered and ran D3 seed 91031 once with frozen checkpoints; retained the failed gate | Candidate SHA-256, per-seed rows, unchanged model checkpoints | Raises confidence/auditability but not performance score |
 | P0 | Selective attribution failed | Reframe primary contribution as diagnostic unless new frozen evidence changes it | Abstract/introduction/method/figure all agree; no hidden dominance language | Prevents score loss rather than creating novelty |
 | Done | Six-stage insight was not visualized | Added a compact six-stage pipeline with per-stage metrics and pass/No-Go markers | Legible vector Fig. 2 in the compiled PDF | Clarity increased from 3 to 4 |
 | P1 | Historical evidence dominates space | Compress GenkiArm/simplified matrices into one retrospective boundary table | At least half a page recovered for primary evidence | Writing risk moderate→low |
 | P1 | Primary uncertainty absent in PDF | Add seed rows and paired/bootstrap interval or explicitly descriptive range | Machine-generated table/plot matching JSON | Evidence confidence increases |
-| P2 | Packaging incomplete | Hash formal checkpoints/data/configs and provide clean-environment command | Archive manifest and successful clean run | Reproducibility 4→5 |
+| P2 | Packaging incomplete | Archive formal checkpoints and environment lock; run clean-machine end-to-end training/evaluation | Immutable checkpoint manifest and successful clean run | Reproducibility 4→5 |
 | P2 | Anonymity mode unverified | Use official double-anonymous template/options and inspect metadata | Submission PDF desk-check log | Desk risk low |
 
 ## Score-change conditions
 
 | Change | Condition | Likely affected dimensions | Expected movement |
 |---|---|---|---|
-| Raise score | Valid real-arm paired evidence, untouched confirmation, six-stage figure, and coherent diagnostic framing | Evidence, soundness, clarity, significance | Overall 5→6 is plausible; project score approaches 3.9--4.1/5 |
+| Raise score | Valid real-arm paired evidence, retained negative D3 query, six-stage figure, and coherent diagnostic framing | Evidence, soundness, clarity, significance | Overall 5→6 is plausible; project score approaches 3.9--4.1/5 |
 | Lower score | Real-arm trials contradict even the constraint/diagnostic story, confirmation reverses regret direction, or a close paper already provides the same six-stage contribution | Evidence, novelty, soundness | Overall 5→4 or lower |
 | No quick change | Making selective IPWM a strong novel mechanism without new evidence | Novelty | Rhetorical editing alone cannot raise the score |
 
 ## Recommended next owner
 
-Experiment execution first: real-arm validity packet and untouched confirmation.
-Then visual composition for the six-stage evidence figure, followed by manuscript
-compression and final submission/anonymity checking.
+Experiment execution first: real-arm validity packet. The D3 query confirmation
+and six-stage figure are complete. Then compress historical material and perform
+final submission/anonymity checking.
 
 ## Checks run
 
 - Read the complete seven-page PDF and the active LaTeX source.
 - Verified the four primary machine-readable summaries and provenance ledger.
-- Regenerated all primary summaries with the one-command script; 57 focused
-  tests passed.
+- Regenerated all primary and D3-query summaries with the one-command script;
+  60 focused tests passed.
+- Independently regenerated the 25,600-row D3 archive and obtained the exact
+  registered SHA-256 `43a00365...72e2702`.
+- Verified GitHub `main` and the working branch at commit `8d49a67`.
 - Compiled the PDF and visually inspected all pages; no clipped table or
   unresolved reference remains.
 - Checked the official ICRA 2027 call for papers for deadline, page limit,
@@ -302,7 +315,8 @@ compression and final submission/anonymity checking.
 ## Unresolved or unverified
 
 - No real-arm trial data or setup photograph.
-- No untouched confirmation result.
+- No pristine unseen-domain confirmation; the available post-freeze D3 query
+  is explicitly non-pristine and misses its regret gate.
 - No independent clean-machine end-to-end training reproduction.
 - No final PDF metadata/anonymity audit against PaperPlaza's exact template.
 - Novelty relative to the most recent 2025--2026 fault-aware world-model papers
