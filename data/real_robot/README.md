@@ -40,6 +40,19 @@ analyzer now reports a separate `physical_feasibility_by_condition` table and a
 formal Level-A gate (ten valid trials each for intact/D2/D3 plus raw-file checks),
 whose claim boundary explicitly excludes learned-method superiority.
 
+After the strict analyzer accepts the Level-A packet, generate its paper assets
+directly from the JSON (never manually transcribe measurements):
+
+```powershell
+python scripts/build_real_robot_feasibility_assets.py `
+  results/real_robot/push-summary.json `
+  --figure paper/generated/real-robot-feasibility.pdf `
+  --table paper/generated/real-robot-feasibility-table.tex
+```
+
+The figure and table are visibly scoped to physical feasibility and cannot be
+generated when the summary contains no valid physical evidence.
+
 ## Minimum field sequence
 
 1. Photograph the arm, gripper, block, table, both fixed eye-to-hand cameras,

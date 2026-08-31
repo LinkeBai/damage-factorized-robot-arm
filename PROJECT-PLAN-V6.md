@@ -719,6 +719,11 @@ Level A 已有独立随机表生成器和正式汇总口径：必须先人工验
 endpoint、success、abort 和 failure code，且只有每种条件至少 10 条有效记录并
 通过双视频/控制日志文件检查才标记 formal。该表仅支持物理机制/可行性结论。
 
+Level A 的论文资产也已闭环：严格 JSON 可直接生成双面板矢量 PDF（终点误差与
+reach-contact-success）和 LaTeX 表（含锁定最大误差、abort、样本量），图底部与
+表注固定声明 `Physical feasibility only - no learned-method comparison`；无有效
+真机证据时生成器 fail closed，禁止用占位数字进入主稿。
+
 ### 11.8 8 月 31 日独立 ICRA/CCFA 严格复评
 
 当前七页稿、严格机器汇总、来源台账、聚焦契约测试和计算成本台账接受统一量表
