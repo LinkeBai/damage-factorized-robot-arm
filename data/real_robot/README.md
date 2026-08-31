@@ -9,6 +9,15 @@ hash, and set the freeze record. The binary success threshold is fixed at 30 mm
 to match the simulation protocol; changing it requires a dated deviation and
 both old- and new-threshold results.
 
+Run the hard preflight immediately before trial 1. Exit code 0 and
+`FORMAL_TRIALS_MAY_START` are both required; `--skip-path-existence` is only for
+schema tests and is forbidden during the real session:
+
+```powershell
+python scripts/audit_real_robot_preflight.py data/real_robot/session_20260901.yaml `
+  --output results/real_robot/preflight-audit.json
+```
+
 ## Minimum field sequence
 
 1. Photograph the arm, gripper, block, table, both fixed eye-to-hand cameras,
