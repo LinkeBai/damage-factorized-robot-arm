@@ -20,23 +20,41 @@ def exists(path: str) -> bool:
     return (ROOT / path).is_file()
 
 
+def load_json(path: str) -> dict:
+    return json.loads((ROOT / path).read_text(encoding="utf-8"))
+
+
 def main() -> None:
     cfg = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    strict_path = "results/final/primary-strict-development-3seed-summary.json"
+    global_path = "results/final/primary-global-matched-ablation-3seed.json"
+    projection_path = "results/final/primary-projection-ablation-3seed.json"
+    decision_path = "results/final/primary-decision-loss-ablation-3seed.json"
+    confirmation_path = "results/final/confirmation-d3-query-seed91031-summary.json"
+    strict = load_json(strict_path)
+    global_result = load_json(global_path)
+    projection = load_json(projection_path)
+    decision = load_json(decision_path)
+    confirmation = load_json(confirmation_path)
+    three_seed = lambda payload: payload.get("seeds", [7, 17, 27]) == [7, 17, 27]
     coverage = {
         "nominal_world_model": {
             "implementation": "src/robotarm/models/world_model.py",
             "implemented": exists("src/robotarm/models/world_model.py"),
-            "same_protocol_result": None,
+            "same_protocol_result": strict_path if three_seed(strict) else None,
+            "formal_row": "shared_baseline",
         },
         "fault_conditioned_world_model": {
             "implementation": "src/robotarm/training/g1_mechanism.py",
             "implemented": exists("src/robotarm/training/g1_mechanism.py"),
-            "same_protocol_result": None,
+            "same_protocol_result": strict_path if three_seed(strict) else None,
+            "formal_row": "carrier_no_intervention",
         },
         "analytic_projection": {
             "implementation": "src/robotarm/models/topology_surgery.py",
             "implemented": exists("src/robotarm/models/topology_surgery.py"),
-            "same_protocol_result": None,
+            "same_protocol_result": projection_path if three_seed(projection) else None,
+            "formal_row": "projected versus identical frozen checkpoint without projection",
         },
         "projection_global_residual_matched": {
             "implementation": "scripts/run_bt_dpwm_gate_y0.py --global-residual-matched",
@@ -44,13 +62,13 @@ def main() -> None:
                 exists("src/robotarm/models/block_triangular_dpwm.py")
                 and exists("scripts/run_bt_dpwm_gate_y0.py")
             ),
-            "same_protocol_result": None,
-            "note": "Same 12-D input, global 14-D publication, hard projection retained; frozen ranks differ by 8 parameters over the full model. Formal run remains missing.",
+            "same_protocol_result": global_path if three_seed(global_result) else None,
+            "note": "Same 12-D input, global 14-D publication, hard projection retained; the full model differs by 8 parameters.",
         },
         "si_ipwm": {
             "implementation": "src/robotarm/models/selective_intervention_rollout.py",
             "implemented": exists("src/robotarm/models/selective_intervention_rollout.py"),
-            "same_protocol_result": None,
+            "same_protocol_result": strict_path if three_seed(strict) else None,
         },
         "si_ipwm_without_projection": {
             "implementation": "scripts/run_bt_dpwm_gate_y0.py --disable-analytic-projection",
@@ -59,33 +77,62 @@ def main() -> None:
                 and exists("src/robotarm/models/selective_intervention_rollout.py")
                 and exists("scripts/run_bt_dpwm_gate_y0.py")
             ),
-            "same_protocol_result": None,
-            "note": "Exact same-capacity switch is implemented; formal same-protocol result remains missing. Existing Z82 cannot fill this cell.",
+            "same_protocol_result": projection_path if three_seed(projection) else None,
+            "note": "Exact same-checkpoint switch; formal three-seed lock-stress result is recorded.",
         },
         "si_ipwm_without_path_support": {
             "implementation": "scripts/run_bt_dpwm_gate_y0.py --evaluate-selective-publication (full_state_ipwm row)",
             "implemented": exists("scripts/run_bt_dpwm_gate_y0.py"),
-            "same_protocol_result": None,
+            "same_protocol_result": strict_path if three_seed(strict) else None,
+            "note": "Full-state and selective publication are explicitly compared and equal in 3/3 seeds.",
         },
         "si_ipwm_without_paired_counterfactual_loss": {
             "implementation": "scripts/run_bt_dpwm_gate_y0.py --decision-weight 0",
             "implemented": exists("src/robotarm/training/decision_focused.py"),
-            "same_protocol_result": None,
-            "note": "The paired loss and zero-weight ablation are implemented; formal same-protocol runs remain missing.",
+            "same_protocol_result": decision_path if three_seed(decision) else None,
+            "note": "Decision weight 10 versus zero is reported for all three seeds.",
+        },
+        "oracle_realized_candidate_selector": {
+            "implementation": "src/robotarm/training/decision_focused.py (evaluation only)",
+            "implemented": exists("src/robotarm/training/decision_focused.py"),
+            "same_protocol_result": strict_path if three_seed(strict) else None,
+            "note": "Privileged realized-cost selector is a headroom upper bound, never a deployable baseline.",
         },
     }
-    expected = list(cfg["methods"]) + list(cfg["ablations"])
+    expected = list(cfg["methods"]) + list(cfg["ablations"]) + [
+        "oracle_realized_candidate_selector"
+    ]
     rows = [{"name": name, **coverage[name]} for name in expected]
+    result_cells = sum(row["same_protocol_result"] is not None for row in rows)
+    simulation_complete = (
+        all(bool(row["implemented"]) for row in rows)
+        and result_cells == len(rows)
+        and projection["with_projection_zero_violation_all_seeds"] is True
+        and global_result["verdict"] == "STRUCTURAL_ATTRIBUTION_NO_GO"
+        and confirmation["verdict"] == "STRUCTURAL_ATTRIBUTION_NO_GO"
+    )
     payload = {
         "contract": str(CONTRACT.relative_to(ROOT)),
         "platform": cfg["platform"]["embodiment"],
         "heldout_lock": cfg["interventions"]["heldout_lock"],
-        "status": "INCOMPLETE",
+        "status": (
+            "SIMULATION_EVIDENCE_COMPLETE_REAL_ROBOT_PENDING"
+            if simulation_complete else "INCOMPLETE"
+        ),
         "implemented_cells": sum(bool(row["implemented"]) for row in rows),
         "required_cells": len(rows),
-        "same_protocol_result_cells": sum(row["same_protocol_result"] is not None for row in rows),
+        "same_protocol_result_cells": result_cells,
         "cells": rows,
-        "blocking_fact": "The frozen contract is not an executable unified ablation yet.",
+        "blocking_fact": (
+            "Original 5-DoF real-robot measurements are still absent; simulation contract cells are complete."
+            if simulation_complete else "One or more frozen simulation evidence cells is missing or inconsistent."
+        ),
+        "post_freeze_query_confirmation": {
+            "source": confirmation_path,
+            "candidate_sha256": "43a00365caf59e504ef7b730fc9d91bc7bfd0d9efce79899a7b9d725072e2702",
+            "scope": "D3 fresh candidate/query sample after checkpoint freeze; not pristine unseen-domain evidence",
+            "verdict": confirmation["verdict"],
+        },
         "development_smoke": {
             "path": "runs/ipwm_decision_metrics_smoke_20260831/seed7/summary.json",
             "scope": "D2/D4 only, 4 groups, 32 candidates, 2 epochs; not paper evidence",

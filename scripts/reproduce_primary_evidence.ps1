@@ -55,9 +55,12 @@ if (-not (Test-Path -LiteralPath $ConfirmationArchive)) {
     --seeds 7,17,27 `
     --output results\final\confirmation-d3-query-seed91031-summary.json
 
+& $Python scripts\audit_primary_evidence_contract.py
+
 & $Python -m json.tool results\final\primary-result-provenance-ledger.json | Out-Null
 & $Python -m pytest `
     tests\test_analyze_real_robot_push.py `
+    tests\test_primary_evidence_audit.py `
     tests\test_decision_focused.py `
     tests\test_primary_candidate_protocol.py `
     tests\test_block_triangular_dpwm.py `

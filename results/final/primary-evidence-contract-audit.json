@@ -2,64 +2,81 @@
   "contract": "config\\experiment\\icra_2027_primary_5dof_recovery_v1.yaml",
   "platform": "original_5dof",
   "heldout_lock": "D3",
-  "status": "INCOMPLETE",
-  "implemented_cells": 8,
-  "required_cells": 8,
-  "same_protocol_result_cells": 0,
+  "status": "SIMULATION_EVIDENCE_COMPLETE_REAL_ROBOT_PENDING",
+  "implemented_cells": 9,
+  "required_cells": 9,
+  "same_protocol_result_cells": 9,
   "cells": [
     {
       "name": "nominal_world_model",
       "implementation": "src/robotarm/models/world_model.py",
       "implemented": true,
-      "same_protocol_result": null
+      "same_protocol_result": "results/final/primary-strict-development-3seed-summary.json",
+      "formal_row": "shared_baseline"
     },
     {
       "name": "fault_conditioned_world_model",
       "implementation": "src/robotarm/training/g1_mechanism.py",
       "implemented": true,
-      "same_protocol_result": null
+      "same_protocol_result": "results/final/primary-strict-development-3seed-summary.json",
+      "formal_row": "carrier_no_intervention"
     },
     {
       "name": "analytic_projection",
       "implementation": "src/robotarm/models/topology_surgery.py",
       "implemented": true,
-      "same_protocol_result": null
+      "same_protocol_result": "results/final/primary-projection-ablation-3seed.json",
+      "formal_row": "projected versus identical frozen checkpoint without projection"
     },
     {
       "name": "projection_global_residual_matched",
       "implementation": "scripts/run_bt_dpwm_gate_y0.py --global-residual-matched",
       "implemented": true,
-      "same_protocol_result": null,
-      "note": "Same 12-D input, global 14-D publication, hard projection retained; frozen ranks differ by 8 parameters over the full model. Formal run remains missing."
+      "same_protocol_result": "results/final/primary-global-matched-ablation-3seed.json",
+      "note": "Same 12-D input, global 14-D publication, hard projection retained; the full model differs by 8 parameters."
     },
     {
       "name": "si_ipwm",
       "implementation": "src/robotarm/models/selective_intervention_rollout.py",
       "implemented": true,
-      "same_protocol_result": null
+      "same_protocol_result": "results/final/primary-strict-development-3seed-summary.json"
     },
     {
       "name": "si_ipwm_without_projection",
       "implementation": "scripts/run_bt_dpwm_gate_y0.py --disable-analytic-projection",
       "implemented": true,
-      "same_protocol_result": null,
-      "note": "Exact same-capacity switch is implemented; formal same-protocol result remains missing. Existing Z82 cannot fill this cell."
+      "same_protocol_result": "results/final/primary-projection-ablation-3seed.json",
+      "note": "Exact same-checkpoint switch; formal three-seed lock-stress result is recorded."
     },
     {
       "name": "si_ipwm_without_path_support",
       "implementation": "scripts/run_bt_dpwm_gate_y0.py --evaluate-selective-publication (full_state_ipwm row)",
       "implemented": true,
-      "same_protocol_result": null
+      "same_protocol_result": "results/final/primary-strict-development-3seed-summary.json",
+      "note": "Full-state and selective publication are explicitly compared and equal in 3/3 seeds."
     },
     {
       "name": "si_ipwm_without_paired_counterfactual_loss",
       "implementation": "scripts/run_bt_dpwm_gate_y0.py --decision-weight 0",
       "implemented": true,
-      "same_protocol_result": null,
-      "note": "The paired loss and zero-weight ablation are implemented; formal same-protocol runs remain missing."
+      "same_protocol_result": "results/final/primary-decision-loss-ablation-3seed.json",
+      "note": "Decision weight 10 versus zero is reported for all three seeds."
+    },
+    {
+      "name": "oracle_realized_candidate_selector",
+      "implementation": "src/robotarm/training/decision_focused.py (evaluation only)",
+      "implemented": true,
+      "same_protocol_result": "results/final/primary-strict-development-3seed-summary.json",
+      "note": "Privileged realized-cost selector is a headroom upper bound, never a deployable baseline."
     }
   ],
-  "blocking_fact": "The frozen contract is not an executable unified ablation yet.",
+  "blocking_fact": "Original 5-DoF real-robot measurements are still absent; simulation contract cells are complete.",
+  "post_freeze_query_confirmation": {
+    "source": "results/final/confirmation-d3-query-seed91031-summary.json",
+    "candidate_sha256": "43a00365caf59e504ef7b730fc9d91bc7bfd0d9efce79899a7b9d725072e2702",
+    "scope": "D3 fresh candidate/query sample after checkpoint freeze; not pristine unseen-domain evidence",
+    "verdict": "STRUCTURAL_ATTRIBUTION_NO_GO"
+  },
   "development_smoke": {
     "path": "runs/ipwm_decision_metrics_smoke_20260831/seed7/summary.json",
     "scope": "D2/D4 only, 4 groups, 32 candidates, 2 epochs; not paper evidence",

@@ -9,6 +9,8 @@
   "rows": [
     {
       "seed": 7,
+      "oracle_endpoint_error": 0.03569677766841778,
+      "nominal_endpoint_error": 0.04618002191389678,
       "response_rmse_reduction_percent": 4.346925263574324,
       "spearman_delta": 0.03655800468509662,
       "top1_regret_reduction_percent": 10.557046661162975,
@@ -26,10 +28,16 @@
         "top1_regret_reduction_percent": 29.168813416556308,
         "endpoint_error_reduction_percent": 6.621560205551699,
         "success_gain_percentage_points": 1.5000000000000013
+      },
+      "oracle_headroom_from_nominal": {
+        "absolute_endpoint_error_m": 0.010483244245479001,
+        "relative_endpoint_error_reduction_percent": 22.70082128809973
       }
     },
     {
       "seed": 17,
+      "oracle_endpoint_error": 0.03865047203405993,
+      "nominal_endpoint_error": 0.04779734399518929,
       "response_rmse_reduction_percent": -32.11163156788838,
       "spearman_delta": 0.004175832471685827,
       "top1_regret_reduction_percent": -1.079041081789666,
@@ -47,10 +55,16 @@
         "top1_regret_reduction_percent": 9.873254863296275,
         "endpoint_error_reduction_percent": 1.889422937041392,
         "success_gain_percentage_points": 1.250000000000001
+      },
+      "oracle_headroom_from_nominal": {
+        "absolute_endpoint_error_m": 0.009146871961129364,
+        "relative_endpoint_error_reduction_percent": 19.136778734086104
       }
     },
     {
       "seed": 27,
+      "oracle_endpoint_error": 0.03839394345763139,
+      "nominal_endpoint_error": 0.046282022895757106,
       "response_rmse_reduction_percent": -26.455378156787795,
       "spearman_delta": 0.019961182722716783,
       "top1_regret_reduction_percent": 3.83237112544382,
@@ -68,6 +82,10 @@
         "top1_regret_reduction_percent": 15.785278973380837,
         "endpoint_error_reduction_percent": 2.690364999288268,
         "success_gain_percentage_points": 0.7500000000000007
+      },
+      "oracle_headroom_from_nominal": {
+        "absolute_endpoint_error_m": 0.007888079438125715,
+        "relative_endpoint_error_reduction_percent": 17.04350619222578
       }
     }
   ],
@@ -151,6 +169,15 @@
       "positive_seeds": 3,
       "total_seeds": 3
     }
+  },
+  "oracle_headroom_aggregate": {
+    "oracle_endpoint_error_mean": 0.037580397720036365,
+    "nominal_endpoint_error_mean": 0.046753129601614395,
+    "absolute_headroom_m_mean": 0.009172731881578028,
+    "relative_headroom_percent_mean": 19.627035404803873,
+    "positive_headroom_seeds": 3,
+    "total_seeds": 3,
+    "definition": "Per seed, oracle endpoint cost equals the realized selected cost minus top-1 regret on the same candidate groups."
   },
   "gate": {
     "spearman_delta_at_least_0_10_each_passing_seed": 0,

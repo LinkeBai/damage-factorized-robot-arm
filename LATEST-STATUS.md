@@ -34,6 +34,10 @@ or exceeds the selective result on aggregate. Full-state and selective
 publication are exactly identical under the current formal protocol. Selective
 or path-support attribution is No-Go.
 
+The realized-cost oracle gives 0.03758 m mean endpoint error versus 0.04675 m
+for nominal, i.e. 9.17 mm or 19.63% endpoint headroom with 3/3 positive seeds.
+This is a privileged upper bound, not a deployable method or performance claim.
+
 The response result is intentionally negative: better candidate choice appears
 while contact-response RMSE becomes much worse. This supports the six-stage
 diagnosis that constraint, reachability, contact, response prediction, action

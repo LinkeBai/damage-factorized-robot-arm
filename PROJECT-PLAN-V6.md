@@ -26,6 +26,11 @@
   选择性结构归因，不能预设为赢家。真机分析器现支持显式reference/candidate、
   配对位置一致性、重复行拦截，以及reach/contact/success/endpoint四类配对统计；
   相关回归测试通过。
+- 旧合同审计曾错误保留“正式结果0/8”的实验前状态。现已改为从权威JSON动态
+  验证，仿真合同为`9/9`同协议单元完整（额外显式包含oracle），状态为
+  `SIMULATION_EVIDENCE_COMPLETE_REAL_ROBOT_PENDING`。三seed realized-cost oracle
+  的平均终点误差为`0.03758 m`，nominal为`0.04675 m`，即仍有`9.17 mm`
+  或`19.63%`终点headroom（3/3为正）；oracle仅用于上界诊断，不是可部署基线。
 
 - goal现采用可审计闭环而非开放式试错：`同协议开发消融→六阶段定位首个
   失败层→一次只做一个预声明调整→重跑全部开发seed→冻结checkpoint→一次性

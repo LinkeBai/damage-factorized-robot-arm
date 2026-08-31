@@ -40,6 +40,11 @@ def main() -> None:
         )
         row = {
             "seed": seed,
+            "oracle_endpoint_error": (
+                shared["closed_loop_outcome"]["endpoint_error"]
+                - shared["action_ranking"]["top1_regret"]
+            ),
+            "nominal_endpoint_error": shared["closed_loop_outcome"]["endpoint_error"],
             "response_rmse_reduction_percent": relative_reduction(
                 carrier["response"]["contact_candidate_terminal_object_rmse"],
                 selective["response"]["contact_candidate_terminal_object_rmse"],
@@ -96,6 +101,14 @@ def main() -> None:
                 - shared["closed_loop_outcome"]["success_rate"]
             ),
         }
+        row["oracle_headroom_from_nominal"] = {
+            "absolute_endpoint_error_m": (
+                row["nominal_endpoint_error"] - row["oracle_endpoint_error"]
+            ),
+            "relative_endpoint_error_reduction_percent": relative_reduction(
+                row["nominal_endpoint_error"], row["oracle_endpoint_error"]
+            ),
+        }
         rows.append(row)
     metric_names = [
         "response_rmse_reduction_percent",
@@ -139,6 +152,32 @@ def main() -> None:
             "success_gain_percentage_points",
         )
     }
+    oracle_aggregate = {
+        "oracle_endpoint_error_mean": float(np.mean([
+            row["oracle_endpoint_error"] for row in rows
+        ])),
+        "nominal_endpoint_error_mean": float(np.mean([
+            row["nominal_endpoint_error"] for row in rows
+        ])),
+        "absolute_headroom_m_mean": float(np.mean([
+            row["oracle_headroom_from_nominal"]["absolute_endpoint_error_m"]
+            for row in rows
+        ])),
+        "relative_headroom_percent_mean": float(np.mean([
+            row["oracle_headroom_from_nominal"][
+                "relative_endpoint_error_reduction_percent"
+            ] for row in rows
+        ])),
+        "positive_headroom_seeds": int(sum(
+            row["oracle_headroom_from_nominal"]["absolute_endpoint_error_m"] > 0
+            for row in rows
+        )),
+        "total_seeds": len(rows),
+        "definition": (
+            "Per seed, oracle endpoint cost equals the realized selected cost "
+            "minus top-1 regret on the same candidate groups."
+        ),
+    }
     gate = {
         "spearman_delta_at_least_0_10_each_passing_seed": int(sum(
             row["spearman_delta"] >= 0.10 for row in rows
@@ -170,6 +209,7 @@ def main() -> None:
         "rows": rows,
         "aggregate": aggregate,
         "versus_nominal_shared_aggregate": nominal_aggregate,
+        "oracle_headroom_aggregate": oracle_aggregate,
         "gate": gate,
         "verdict": (
             "PASS" if gate["magnitude_gate_passed"]
