@@ -80,6 +80,7 @@ if ($LASTEXITCODE -ne 0) {
     tests\test_goal_completion_audit.py `
     tests\test_level_a_pipeline_contract.py `
     tests\test_level_a_trajectory_library.py `
+    tests\test_prepare_real_robot_level_a_session.py `
     tests\test_build_real_robot_paper_assets.py `
     tests\test_primary_environment_audit.py `
     tests\test_large_advantage_metric_audit.py `

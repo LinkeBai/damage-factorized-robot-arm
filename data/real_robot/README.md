@@ -60,6 +60,13 @@ The audit requires every scheduled ID to exist, measured joint limits, at most
 5 deg/s, contiguous times, and constant J2/J3 commands under D2/D3. Record the
 library path, SHA-256, and PASS audit path in the session manifest.
 
+After the action-library audit passes and all real identifiers/paths are known,
+use `scripts/prepare_real_robot_level_a_session.py --help` to generate the
+session manifest. It reads the measured 5 deg/s and 3.5 deg lock-drift limits,
+hashes the frozen schedule/library, verifies the PASS report, writes the actual
+camera/calibration/data/backup paths, disables learned-method claims, and records
+the freeze time. Do not hand-edit hashes after generation.
+
 After the strict analyzer accepts the Level-A packet, generate its paper assets
 directly from the JSON (never manually transcribe measurements):
 

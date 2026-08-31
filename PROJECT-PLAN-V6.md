@@ -719,6 +719,11 @@ Level-A trajectory ID 现必须绑定实际 waypoint 动作库，而非任意字
 限位内、最大速度不超过 5°/s，且 D2 的 J2、D3 的 J3 指令全程恒定；输出动作库
 SHA-256 与 `TRAJECTORY_LIBRARY_SAFE_TO_FREEZE`。未通过时禁止执行轨迹。
 
+会话 manifest 也不再建议手填：新增生成器要求操作者提供真实资产 ID、双相机
+序列号、两份标定、同步视频、三类数据目录和两份备份目录；自动读取 5°/s 与
+3.5°安全上限、验证动作库 PASS、计算 schedule/library 哈希、禁用 learned-method
+claim 并写入冻结时间。现场生成后不得再手工修改哈希。
+
 8 月 31 日动作接口复核发现一个必须公开的真机边界：仿真模型的 action 是 0.005 s
 MuJoCo motor 广义力，而原始臂接收 raw tick 目标位置；仓库尚无经过实验验证的
 映射和冻结候选动作库。因此真机证据分为 Level A 固定低速轨迹的锁定/可达/接触/
