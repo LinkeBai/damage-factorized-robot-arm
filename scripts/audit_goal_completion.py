@@ -53,7 +53,8 @@ def build(real_root: Path, score_path: Path) -> dict:
           "results/final/icra-pdf-anonymity-audit.json")
 
     check("real-robot preflight", bool(preflight) and preflight.get("status") == "PASS"
-          and preflight.get("authorization") == "FORMAL_TRIALS_MAY_START",
+          and preflight.get("authorization") in {
+              "LEVEL_A_TRIALS_MAY_START", "LEVEL_B_METHOD_TRIALS_MAY_START"},
           display_path(real_root / "preflight-audit.json"))
     check("frozen/completed schedule identity", bool(schedule)
           and schedule.get("status") == "PASS"

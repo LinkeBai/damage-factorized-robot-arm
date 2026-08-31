@@ -703,7 +703,12 @@ RMSE 降低 50.50% 只能进入诊断/附录，直到固定 rollout 深度确认
 正式真机试验新增 fail-closed preflight：固定 schedule 必须保持 SHA-256
 `79139bca...f4510d`、25 对/50 次及 intact/D2/D3=5/10/10 对；会话清单、双
 眼在手外相机标定/同步视频、三类日志目录、两份备份、安全检查和冻结签字必须
-完整且路径真实存在。审计未输出 `FORMAL_TRIALS_MAY_START` 时不得开始正式试验。
+完整且路径真实存在。审计未输出对应模式的允许开跑状态时不得开始正式试验。
+
+门禁现已纠正为两个明确模式：`--mode level_a` 验证 30 条固定安全轨迹及普通
+安全/相机/日志条件，输出 `LEVEL_A_TRIALS_MAY_START`；`--mode level_b` 才要求
+50 条 nominal/global 配对、动作语义桥和学习方法授权，并输出
+`LEVEL_B_METHOD_TRIALS_MAY_START`。Level-B缺口不再错误阻塞Level-A采集。
 
 8 月 31 日动作接口复核发现一个必须公开的真机边界：仿真模型的 action 是 0.005 s
 MuJoCo motor 广义力，而原始臂接收 raw tick 目标位置；仓库尚无经过实验验证的

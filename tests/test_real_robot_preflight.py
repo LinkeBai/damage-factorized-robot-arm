@@ -3,6 +3,8 @@ from pathlib import Path
 import yaml
 
 from scripts.audit_real_robot_preflight import audit
+from scripts.generate_real_robot_level_a_schedule import FIELDS, build
+import csv
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,7 +65,7 @@ def filled_manifest(tmp_path: Path) -> Path:
 def test_filled_preflight_passes(tmp_path: Path) -> None:
     result = audit(filled_manifest(tmp_path), SCHEDULE)
     assert result["status"] == "PASS"
-    assert result["authorization"] == "FORMAL_TRIALS_MAY_START"
+    assert result["authorization"] == "LEVEL_B_METHOD_TRIALS_MAY_START"
     assert result["schedule_trials"] == 50
     assert result["schedule_pairs"] == 25
 
@@ -73,3 +75,27 @@ def test_template_preflight_fails_closed() -> None:
     assert result["status"] == "FAIL"
     assert result["authorization"] == "DO_NOT_START_FORMAL_TRIALS"
     assert any("session_id" in error for error in result["errors"])
+
+
+def test_level_a_does_not_require_unvalidated_action_bridge(tmp_path: Path) -> None:
+    manifest_path = filled_manifest(tmp_path)
+    payload = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+    payload["randomization"].update({
+        "action_interface_bridge_file": "",
+        "action_interface_validation_file": "",
+        "learned_method_comparison_authorized": False,
+    })
+    schedule = tmp_path / "level_a.csv"
+    rows = build(2, 10, {"intact": "i1", "D2": "d2", "D3": "d3"})
+    with schedule.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FIELDS)
+        writer.writeheader(); writer.writerows(rows)
+    from scripts.audit_real_robot_preflight import sha256
+    payload["randomization"].update({
+        "schedule_file": str(schedule),
+        "schedule_sha256_before_trials": sha256(schedule),
+    })
+    manifest_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    result = audit(manifest_path, schedule, mode="level_a")
+    assert result["status"] == "PASS"
+    assert result["authorization"] == "LEVEL_A_TRIALS_MAY_START"

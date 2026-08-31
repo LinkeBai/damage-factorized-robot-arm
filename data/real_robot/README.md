@@ -9,12 +9,15 @@ hash, and set the freeze record. The binary success threshold is fixed at 30 mm
 to match the simulation protocol; changing it requires a dated deviation and
 both old- and new-threshold results.
 
-Run the hard preflight immediately before trial 1. Exit code 0 and
-`FORMAL_TRIALS_MAY_START` are both required; `--skip-path-existence` is only for
-schema tests and is forbidden during the real session:
+Run the hard preflight immediately before trial 1. Exit code 0 and the
+mode-specific `LEVEL_A_TRIALS_MAY_START` or
+`LEVEL_B_METHOD_TRIALS_MAY_START` authorization are both required;
+`--skip-path-existence` is only for schema tests and is forbidden during the
+real session:
 
 ```powershell
 python scripts/audit_real_robot_preflight.py data/real_robot/session_20260901.yaml `
+  --mode level_a --schedule data/real_robot/level_a_schedule_frozen.csv `
   --output results/real_robot/preflight-audit.json
 ```
 
@@ -24,6 +27,8 @@ goal positions; these are not interchangeable. See
 `reports/real-robot-action-interface-audit-20260831.md`. Without the bridge and
 common action-library hash, collect only the Level-A fixed-trajectory physical
 feasibility packet and do not attach learned-method labels to its motions.
+Run that stronger gate with `--mode level_b`; it outputs
+`LEVEL_B_METHOD_TRIALS_MAY_START` only when the action bridge is present.
 
 After manually validating one low-speed fixed trajectory for each condition,
 generate the Level-A randomized order with the three actual trajectory IDs:

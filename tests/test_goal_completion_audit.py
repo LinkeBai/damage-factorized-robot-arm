@@ -21,7 +21,7 @@ def test_current_goal_fails_closed_without_real_evidence(tmp_path: Path) -> None
 def test_real_and_score_checks_require_explicit_verified_fields(tmp_path: Path) -> None:
     real = tmp_path / "real"
     write(real / "preflight-audit.json", {
-        "status": "PASS", "authorization": "FORMAL_TRIALS_MAY_START"})
+        "status": "PASS", "authorization": "LEVEL_A_TRIALS_MAY_START"})
     write(real / "schedule-completion-audit.json", {
         "status": "PASS", "changed_identity_rows": []})
     write(real / "push-summary.json", {
