@@ -1,0 +1,37 @@
+{
+  "review_only": true,
+  "original_audit_unchanged": true,
+  "trial": "V2-P20-D4-03",
+  "cycle": 6,
+  "issued_events": 28,
+  "planned_events": 29,
+  "exact_prefix_match": true,
+  "starting_command": [
+    2088,
+    2764,
+    2411,
+    2723,
+    2068
+  ],
+  "selected_endpoint": [
+    2088,
+    2782,
+    2382,
+    2723,
+    2068
+  ],
+  "last_issued_target": [
+    2088,
+    2781,
+    2383,
+    2723,
+    2068
+  ],
+  "limitation": "Command-prefix reconstruction only; does not independently establish visual authenticity or precise stop decision timestamp.",
+  "source_sha256": {
+    "data\\real_robot\\final_push_v2_trials\\V2-P20-D4-03\\commands.csv": "e63a10ad831e90054850d583734974021f099a9f4848f65926140c3d5e451266",
+    "data\\real_robot\\final_push_v2_trials\\V2-P20-D4-03\\run_manifest.json": "451577b38e845c4ed6276bd04ef185f5e9fe8d1a65164427b6082710791d24b4",
+    "data\\real_robot\\final_push_v2_trials\\V2-P20-D4-03\\source_snapshot\\hardware\\safety_limits.yaml": "700905db0e0aa90f4af848b6a2f96e6666ac8f30dd71ad55a6b20412981ffa42",
+    "src\\robotarm\\deployment\\fixed_raw_trajectory.py": "11f74970306d439f08b16af035afcf940988dde1c38f067fcad27d2c15a75a24"
+  }
+}

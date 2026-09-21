@@ -1,0 +1,16 @@
+{
+  "trial_id": "V2-P20-D4-03",
+  "acquisition_elapsed_s": 49.385545,
+  "inference_each_cycle_s": [
+    3.027829800004838,
+    2.606296299985843,
+    2.828897600003984,
+    3.0795797999890056,
+    3.3576006999937817,
+    3.9412750999908894,
+    6.133441300014965
+  ],
+  "return_elapsed_s": 15.247356,
+  "assistant_processing_s": null,
+  "assistant_processing_note": "not separately measurable from host timestamps"
+}

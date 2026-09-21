@@ -1,0 +1,96 @@
+{
+  "status": "FAIL_CLOSED",
+  "is_genuine_physical_ipwm_closed_loop_evidence": false,
+  "task_outcome": "INVALID",
+  "success": false,
+  "criterion": "at least 3 consecutive distinct reliable frames with each-axis error <= 5px",
+  "adjudication_version": "three_distinct_frames_v2",
+  "endpoint_error_role": "last-ten-frame median diagnostic only; not an additional success gate",
+  "endpoint_error_xy_px": [
+    -6.059999999999945,
+    3.410000000000082
+  ],
+  "observed_displacement_px": 9.311949312576886,
+  "recomputed_maximum_consecutive_goal_frames": 0,
+  "replan_cycles": 43,
+  "candidate_count_each_cycle": [
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000
+  ],
+  "locked_joint_drift": {
+    "j3_maximum_feedback_to_target_ticks": 3,
+    "j4_maximum_feedback_to_target_ticks": 3
+  },
+  "files": {
+    "run_manifest.json": {
+      "bytes": 1411762,
+      "sha256": "d92778308304691f1a88d94ddde22f2c62e8f6154b6af88290fcee01f6bf15bd"
+    },
+    "live_task_gate.json": {
+      "bytes": 1397723,
+      "sha256": "763f27b41898cf31b03ef1ad08d8c37f312651c207c0ef5309e237ecf1d4dad2"
+    },
+    "servo_telemetry.csv": {
+      "bytes": 1774395,
+      "sha256": "855dc23e380c41edbae8ae0c975d91cc413bdf32bb4fe2bd81f5430ad0157cd8"
+    },
+    "commands.csv": {
+      "bytes": 129720,
+      "sha256": "30965c1039de469b77de234390148d72ed80c5ab284f7eae6c872c0458de440d"
+    },
+    "daheng_FDE23080341_raw.avi": {
+      "bytes": 568590708,
+      "sha256": "51467dd855c82a2a372d3109184711d363564984147f708ceadd0777f09f47b5"
+    },
+    "directshow_index1_raw.avi": {
+      "bytes": 102760768,
+      "sha256": "0e0833118c64c61a038a80886b9000dcf4284a8058ca3ee0936432dde2b79f61"
+    }
+  },
+  "errors": [
+    "acquisition_not_complete",
+    "fewer_than_two_proven_observation_plan_action_cycles"
+  ],
+  "trial": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01"
+}

@@ -1,0 +1,74 @@
+{
+  "last_cycle": {
+    "cycle": 5,
+    "observation_monotonic_ns": 180863906000000,
+    "object_px": [
+      1098.9777777777779,
+      567.7533333333333
+    ],
+    "joint_raw": [
+      2089,
+      2695,
+      2563,
+      2614,
+      2077
+    ],
+    "candidate_count_scored": 10000,
+    "candidate_bank_sha256": "30e0052f4b5add55744ff1c0d0a428339c4504f482cb69bbb20006411eca63af",
+    "selected_index": 9900,
+    "selected_first_target_raw": [
+      2087,
+      2705,
+      2554,
+      2595,
+      2074
+    ],
+    "remaining_fraction": 0.5,
+    "inference_s": 2.368328600015957,
+    "execution_reference_index": 24,
+    "scoring_horizon": 50,
+    "fault_mask": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "selected_target_feedback_error_raw": [
+      -2,
+      10,
+      -9,
+      -19,
+      -3
+    ],
+    "cycle_evidence": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P20-D5-02\\ipwm_replan_cycles\\cycle_05.npz",
+    "cycle_evidence_sha256": "eb7f60fecc2822d4e82eba1b9dfc1ebc1eb93c03c14b69018ba2fb43c11beadd"
+  },
+  "first_stable_goal": {
+    "monotonic_ns": 180866453000000,
+    "overhead_frame_sequence": 273,
+    "current_px": [
+      1101.55,
+      567.52
+    ],
+    "goal_error_px": [
+      -4.759999999999991,
+      -2.480000000000018
+    ],
+    "radial_error_px": 5.36730845023835,
+    "gate_mode": "axiswise",
+    "detected": true,
+    "inside_gate": true,
+    "consecutive_pass_frames": 3,
+    "stable_gate_pass": true
+  },
+  "last_command_monotonic_ns": 180863656000000,
+  "no_command_after_final_observation": true,
+  "success_after_observation_plus_inference_s": 0.17867139998404324,
+  "adjudication": "INVALID retained; exact inference/archival/decision boundaries absent in this historical packet",
+  "source_hashes": {
+    "run_manifest.json": "431b09053f0023fa8bdbb78cdcf275dbe1670b08610e6dfff3f417b6c4b76688",
+    "live_task_gate.json": "b610669841b3b6e976f75bcd94c4cf098676e79ad868e151a068b08d778fc9d6",
+    "commands.csv": "9108cbbc50e40ba94ca078c16cc45bf9419424307e69373d8df56f3fb1369b8e"
+  }
+}

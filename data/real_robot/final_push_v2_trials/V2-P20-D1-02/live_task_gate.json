@@ -1,0 +1,3634 @@
+{
+  "criterion": "at least 3 consecutive reliable overhead detections with axiswise endpoint error <= 5 px",
+  "goal_px": [
+    1106.31,
+    570.0
+  ],
+  "gate_mode": "axiswise",
+  "tolerance_px": 5.0,
+  "required_consecutive_frames": 3,
+  "processed_overhead_samples": 201,
+  "maximum_consecutive_pass_frames": 34,
+  "stable_goal_ever": true,
+  "first_stable_goal_monotonic_ns": 175861390000000,
+  "samples": [
+    {
+      "monotonic_ns": 175842859000000,
+      "overhead_frame_sequence": 4,
+      "current_px": [
+        1084.62,
+        569.66
+      ],
+      "goal_error_px": [
+        -21.690000000000055,
+        -0.34000000000003183
+      ],
+      "radial_error_px": 21.692664658819634,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175842968000000,
+      "overhead_frame_sequence": 5,
+      "current_px": [
+        1084.57,
+        569.3
+      ],
+      "goal_error_px": [
+        -21.74000000000001,
+        -0.7000000000000455
+      ],
+      "radial_error_px": 21.751266629785043,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843078000000,
+      "overhead_frame_sequence": 6,
+      "current_px": [
+        1084.98,
+        569.35
+      ],
+      "goal_error_px": [
+        -21.329999999999927,
+        -0.6499999999999773
+      ],
+      "radial_error_px": 21.33990159302514,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843187000000,
+      "overhead_frame_sequence": 8,
+      "current_px": [
+        1084.42,
+        569.67
+      ],
+      "goal_error_px": [
+        -21.889999999999873,
+        -0.3300000000000409
+      ],
+      "radial_error_px": 21.89248729587377,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843296000000,
+      "overhead_frame_sequence": 9,
+      "current_px": [
+        1084.78,
+        569.61
+      ],
+      "goal_error_px": [
+        -21.529999999999973,
+        -0.38999999999998636
+      ],
+      "radial_error_px": 21.533531990827672,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843406000000,
+      "overhead_frame_sequence": 10,
+      "current_px": [
+        1084.97,
+        569.54
+      ],
+      "goal_error_px": [
+        -21.339999999999918,
+        -0.4600000000000364
+      ],
+      "radial_error_px": 21.34495724989855,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843515000000,
+      "overhead_frame_sequence": 11,
+      "current_px": [
+        1084.66,
+        569.61
+      ],
+      "goal_error_px": [
+        -21.649999999999864,
+        -0.38999999999998636
+      ],
+      "radial_error_px": 21.6535124171575,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843625000000,
+      "overhead_frame_sequence": 12,
+      "current_px": [
+        1084.46,
+        569.43
+      ],
+      "goal_error_px": [
+        -21.84999999999991,
+        -0.57000000000005
+      ],
+      "radial_error_px": 21.85743351814197,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843734000000,
+      "overhead_frame_sequence": 13,
+      "current_px": [
+        1084.42,
+        569.64
+      ],
+      "goal_error_px": [
+        -21.889999999999873,
+        -0.36000000000001364
+      ],
+      "radial_error_px": 21.892960055689006,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843843000000,
+      "overhead_frame_sequence": 15,
+      "current_px": [
+        1084.29,
+        569.19
+      ],
+      "goal_error_px": [
+        -22.019999999999982,
+        -0.8099999999999454
+      ],
+      "radial_error_px": 22.034892783946084,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175843953000000,
+      "overhead_frame_sequence": 16,
+      "current_px": [
+        1084.37,
+        569.56
+      ],
+      "goal_error_px": [
+        -21.940000000000055,
+        -0.44000000000005457
+      ],
+      "radial_error_px": 21.94441158928629,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844062000000,
+      "overhead_frame_sequence": 17,
+      "current_px": [
+        1084.63,
+        569.58
+      ],
+      "goal_error_px": [
+        -21.679999999999836,
+        -0.4199999999999591
+      ],
+      "radial_error_px": 21.684067884047792,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844171000000,
+      "overhead_frame_sequence": 18,
+      "current_px": [
+        1084.43,
+        569.35
+      ],
+      "goal_error_px": [
+        -21.87999999999988,
+        -0.6499999999999773
+      ],
+      "radial_error_px": 21.889652806748554,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844296000000,
+      "overhead_frame_sequence": 19,
+      "current_px": [
+        1084.76,
+        569.9
+      ],
+      "goal_error_px": [
+        -21.549999999999955,
+        -0.10000000000002274
+      ],
+      "radial_error_px": 21.550232017312435,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844406000000,
+      "overhead_frame_sequence": 21,
+      "current_px": [
+        1084.43,
+        569.79
+      ],
+      "goal_error_px": [
+        -21.87999999999988,
+        -0.21000000000003638
+      ],
+      "radial_error_px": 21.8810077464452,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844515000000,
+      "overhead_frame_sequence": 22,
+      "current_px": [
+        1084.53,
+        569.74
+      ],
+      "goal_error_px": [
+        -21.779999999999973,
+        -0.2599999999999909
+      ],
+      "radial_error_px": 21.781551827177026,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844625000000,
+      "overhead_frame_sequence": 23,
+      "current_px": [
+        1084.71,
+        569.29
+      ],
+      "goal_error_px": [
+        -21.59999999999991,
+        -0.7100000000000364
+      ],
+      "radial_error_px": 21.61166583121246,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844734000000,
+      "overhead_frame_sequence": 24,
+      "current_px": [
+        1084.72,
+        569.47
+      ],
+      "goal_error_px": [
+        -21.589999999999918,
+        -0.5299999999999727
+      ],
+      "radial_error_px": 21.596504346768633,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844843000000,
+      "overhead_frame_sequence": 25,
+      "current_px": [
+        1083.8,
+        569.77
+      ],
+      "goal_error_px": [
+        -22.50999999999999,
+        -0.2300000000000182
+      ],
+      "radial_error_px": 22.511175002651452,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175844953000000,
+      "overhead_frame_sequence": 26,
+      "current_px": [
+        1084.52,
+        569.76
+      ],
+      "goal_error_px": [
+        -21.789999999999964,
+        -0.2400000000000091
+      ],
+      "radial_error_px": 21.791321667122403,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845062000000,
+      "overhead_frame_sequence": 28,
+      "current_px": [
+        1084.29,
+        569.71
+      ],
+      "goal_error_px": [
+        -22.019999999999982,
+        -0.2899999999999636
+      ],
+      "radial_error_px": 22.021909544814665,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845171000000,
+      "overhead_frame_sequence": 29,
+      "current_px": [
+        1084.13,
+        569.22
+      ],
+      "goal_error_px": [
+        -22.179999999999836,
+        -0.7799999999999727
+      ],
+      "radial_error_px": 22.193710820860776,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845281000000,
+      "overhead_frame_sequence": 30,
+      "current_px": [
+        1084.91,
+        569.5
+      ],
+      "goal_error_px": [
+        -21.399999999999864,
+        -0.5
+      ],
+      "radial_error_px": 21.40584032454681,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845390000000,
+      "overhead_frame_sequence": 31,
+      "current_px": [
+        1084.37,
+        569.39
+      ],
+      "goal_error_px": [
+        -21.940000000000055,
+        -0.6100000000000136
+      ],
+      "radial_error_px": 21.948478307162947,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845500000000,
+      "overhead_frame_sequence": 32,
+      "current_px": [
+        1084.43,
+        570.0
+      ],
+      "goal_error_px": [
+        -21.87999999999988,
+        0.0
+      ],
+      "radial_error_px": 21.87999999999988,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845609000000,
+      "overhead_frame_sequence": 33,
+      "current_px": [
+        1084.94,
+        569.65
+      ],
+      "goal_error_px": [
+        -21.36999999999989,
+        -0.35000000000002274
+      ],
+      "radial_error_px": 21.372865975343487,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845718000000,
+      "overhead_frame_sequence": 35,
+      "current_px": [
+        1084.78,
+        569.39
+      ],
+      "goal_error_px": [
+        -21.529999999999973,
+        -0.6100000000000136
+      ],
+      "radial_error_px": 21.53863969706534,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845828000000,
+      "overhead_frame_sequence": 36,
+      "current_px": [
+        1084.56,
+        569.5
+      ],
+      "goal_error_px": [
+        -21.75,
+        -0.5
+      ],
+      "radial_error_px": 21.755746367339366,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175845921000000,
+      "overhead_frame_sequence": 37,
+      "current_px": [
+        1084.6,
+        569.72
+      ],
+      "goal_error_px": [
+        -21.710000000000036,
+        -0.2799999999999727
+      ],
+      "radial_error_px": 21.71180554444981,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846031000000,
+      "overhead_frame_sequence": 38,
+      "current_px": [
+        1084.65,
+        569.48
+      ],
+      "goal_error_px": [
+        -21.659999999999854,
+        -0.5199999999999818
+      ],
+      "radial_error_px": 21.666241021459946,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846140000000,
+      "overhead_frame_sequence": 39,
+      "current_px": [
+        1084.62,
+        569.61
+      ],
+      "goal_error_px": [
+        -21.690000000000055,
+        -0.38999999999998636
+      ],
+      "radial_error_px": 21.69350594071881,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846250000000,
+      "overhead_frame_sequence": 40,
+      "current_px": [
+        1084.24,
+        569.66
+      ],
+      "goal_error_px": [
+        -22.069999999999936,
+        -0.34000000000003183
+      ],
+      "radial_error_px": 22.07261878436714,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846359000000,
+      "overhead_frame_sequence": 42,
+      "current_px": [
+        1084.97,
+        569.29
+      ],
+      "goal_error_px": [
+        -21.339999999999918,
+        -0.7100000000000364
+      ],
+      "radial_error_px": 21.351807885984655,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846468000000,
+      "overhead_frame_sequence": 43,
+      "current_px": [
+        1083.92,
+        569.74
+      ],
+      "goal_error_px": [
+        -22.389999999999873,
+        -0.2599999999999909
+      ],
+      "radial_error_px": 22.391509551613403,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846578000000,
+      "overhead_frame_sequence": 44,
+      "current_px": [
+        1084.55,
+        569.39
+      ],
+      "goal_error_px": [
+        -21.75999999999999,
+        -0.6100000000000136
+      ],
+      "radial_error_px": 21.768548412790402,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846687000000,
+      "overhead_frame_sequence": 45,
+      "current_px": [
+        1084.88,
+        569.53
+      ],
+      "goal_error_px": [
+        -21.429999999999836,
+        -0.4700000000000273
+      ],
+      "radial_error_px": 21.435153370106615,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846796000000,
+      "overhead_frame_sequence": 46,
+      "current_px": [
+        1083.83,
+        569.79
+      ],
+      "goal_error_px": [
+        -22.480000000000018,
+        -0.21000000000003638
+      ],
+      "radial_error_px": 22.48098085048784,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175846906000000,
+      "overhead_frame_sequence": 47,
+      "current_px": [
+        1084.79,
+        569.17
+      ],
+      "goal_error_px": [
+        -21.519999999999982,
+        -0.8300000000000409
+      ],
+      "radial_error_px": 21.536000092867738,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847015000000,
+      "overhead_frame_sequence": 49,
+      "current_px": [
+        1084.42,
+        569.74
+      ],
+      "goal_error_px": [
+        -21.889999999999873,
+        -0.2599999999999909
+      ],
+      "radial_error_px": 21.891544029601803,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847125000000,
+      "overhead_frame_sequence": 50,
+      "current_px": [
+        1084.38,
+        569.02
+      ],
+      "goal_error_px": [
+        -21.929999999999836,
+        -0.9800000000000182
+      ],
+      "radial_error_px": 21.95188602375643,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847234000000,
+      "overhead_frame_sequence": 51,
+      "current_px": [
+        1084.1,
+        569.5
+      ],
+      "goal_error_px": [
+        -22.210000000000036,
+        -0.5
+      ],
+      "radial_error_px": 22.215627382543165,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847343000000,
+      "overhead_frame_sequence": 52,
+      "current_px": [
+        1084.23,
+        569.65
+      ],
+      "goal_error_px": [
+        -22.079999999999927,
+        -0.35000000000002274
+      ],
+      "radial_error_px": 22.08277382939011,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847453000000,
+      "overhead_frame_sequence": 53,
+      "current_px": [
+        1084.21,
+        569.64
+      ],
+      "goal_error_px": [
+        -22.09999999999991,
+        -0.36000000000001364
+      ],
+      "radial_error_px": 22.10293193221198,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847562000000,
+      "overhead_frame_sequence": 54,
+      "current_px": [
+        1084.81,
+        569.95
+      ],
+      "goal_error_px": [
+        -21.5,
+        -0.049999999999954525
+      ],
+      "radial_error_px": 21.500058139456275,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847671000000,
+      "overhead_frame_sequence": 55,
+      "current_px": [
+        1084.88,
+        569.66
+      ],
+      "goal_error_px": [
+        -21.429999999999836,
+        -0.34000000000003183
+      ],
+      "radial_error_px": 21.432696983814076,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847781000000,
+      "overhead_frame_sequence": 57,
+      "current_px": [
+        1084.47,
+        569.34
+      ],
+      "goal_error_px": [
+        -21.839999999999918,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 21.849970251695915,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175847890000000,
+      "overhead_frame_sequence": 58,
+      "current_px": [
+        1083.86,
+        569.69
+      ],
+      "goal_error_px": [
+        -22.450000000000045,
+        -0.30999999999994543
+      ],
+      "radial_error_px": 22.45214020978851,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848000000000,
+      "overhead_frame_sequence": 59,
+      "current_px": [
+        1084.24,
+        569.18
+      ],
+      "goal_error_px": [
+        -22.069999999999936,
+        -0.82000000000005
+      ],
+      "radial_error_px": 22.085228094814806,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848109000000,
+      "overhead_frame_sequence": 60,
+      "current_px": [
+        1084.59,
+        569.71
+      ],
+      "goal_error_px": [
+        -21.720000000000027,
+        -0.2899999999999636
+      ],
+      "radial_error_px": 21.721935917408494,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848218000000,
+      "overhead_frame_sequence": 61,
+      "current_px": [
+        1084.33,
+        569.17
+      ],
+      "goal_error_px": [
+        -21.980000000000018,
+        -0.8300000000000409
+      ],
+      "radial_error_px": 21.995665482089894,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848328000000,
+      "overhead_frame_sequence": 62,
+      "current_px": [
+        1084.4,
+        569.59
+      ],
+      "goal_error_px": [
+        -21.909999999999854,
+        -0.40999999999996817
+      ],
+      "radial_error_px": 21.913835812107237,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848437000000,
+      "overhead_frame_sequence": 64,
+      "current_px": [
+        1084.85,
+        569.56
+      ],
+      "goal_error_px": [
+        -21.460000000000036,
+        -0.44000000000005457
+      ],
+      "radial_error_px": 21.464510243655727,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848546000000,
+      "overhead_frame_sequence": 65,
+      "current_px": [
+        1084.78,
+        569.54
+      ],
+      "goal_error_px": [
+        -21.529999999999973,
+        -0.4600000000000364
+      ],
+      "radial_error_px": 21.5349135127123,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848656000000,
+      "overhead_frame_sequence": 66,
+      "current_px": [
+        1083.87,
+        569.29
+      ],
+      "goal_error_px": [
+        -22.440000000000055,
+        -0.7100000000000364
+      ],
+      "radial_error_px": 22.451229365003655,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848765000000,
+      "overhead_frame_sequence": 67,
+      "current_px": [
+        1084.9,
+        570.06
+      ],
+      "goal_error_px": [
+        -21.409999999999854,
+        0.05999999999994543
+      ],
+      "radial_error_px": 21.410084072697934,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848875000000,
+      "overhead_frame_sequence": 68,
+      "current_px": [
+        1084.43,
+        569.39
+      ],
+      "goal_error_px": [
+        -21.87999999999988,
+        -0.6100000000000136
+      ],
+      "radial_error_px": 21.888501547616155,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175848984000000,
+      "overhead_frame_sequence": 70,
+      "current_px": [
+        1084.75,
+        569.74
+      ],
+      "goal_error_px": [
+        -21.559999999999945,
+        -0.2599999999999909
+      ],
+      "radial_error_px": 21.561567661002705,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849093000000,
+      "overhead_frame_sequence": 71,
+      "current_px": [
+        1084.82,
+        569.42
+      ],
+      "goal_error_px": [
+        -21.49000000000001,
+        -0.5800000000000409
+      ],
+      "radial_error_px": 21.49782547142851,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849203000000,
+      "overhead_frame_sequence": 72,
+      "current_px": [
+        1084.62,
+        569.63
+      ],
+      "goal_error_px": [
+        -21.690000000000055,
+        -0.37000000000000455
+      ],
+      "radial_error_px": 21.69315560263196,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849312000000,
+      "overhead_frame_sequence": 73,
+      "current_px": [
+        1084.61,
+        569.34
+      ],
+      "goal_error_px": [
+        -21.700000000000045,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 21.71003454626459,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849421000000,
+      "overhead_frame_sequence": 74,
+      "current_px": [
+        1084.58,
+        569.58
+      ],
+      "goal_error_px": [
+        -21.730000000000018,
+        -0.4199999999999591
+      ],
+      "radial_error_px": 21.73405852573331,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849531000000,
+      "overhead_frame_sequence": 75,
+      "current_px": [
+        1084.86,
+        569.69
+      ],
+      "goal_error_px": [
+        -21.450000000000045,
+        -0.30999999999994543
+      ],
+      "radial_error_px": 21.452239976282243,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849640000000,
+      "overhead_frame_sequence": 76,
+      "current_px": [
+        1084.82,
+        569.44
+      ],
+      "goal_error_px": [
+        -21.49000000000001,
+        -0.5599999999999454
+      ],
+      "radial_error_px": 21.497295178696326,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849750000000,
+      "overhead_frame_sequence": 78,
+      "current_px": [
+        1086.95,
+        569.5
+      ],
+      "goal_error_px": [
+        -19.3599999999999,
+        -0.5
+      ],
+      "radial_error_px": 19.366455535280483,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849859000000,
+      "overhead_frame_sequence": 79,
+      "current_px": [
+        1086.88,
+        569.04
+      ],
+      "goal_error_px": [
+        -19.429999999999836,
+        -0.9600000000000364
+      ],
+      "radial_error_px": 19.453701447282306,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175849968000000,
+      "overhead_frame_sequence": 80,
+      "current_px": [
+        1087.1,
+        569.49
+      ],
+      "goal_error_px": [
+        -19.210000000000036,
+        -0.5099999999999909
+      ],
+      "radial_error_px": 19.216768719012084,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850078000000,
+      "overhead_frame_sequence": 81,
+      "current_px": [
+        1087.08,
+        568.9
+      ],
+      "goal_error_px": [
+        -19.230000000000018,
+        -1.1000000000000227
+      ],
+      "radial_error_px": 19.26143556436022,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850187000000,
+      "overhead_frame_sequence": 82,
+      "current_px": [
+        1087.31,
+        569.29
+      ],
+      "goal_error_px": [
+        -19.0,
+        -0.7100000000000364
+      ],
+      "radial_error_px": 19.013261161620857,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850296000000,
+      "overhead_frame_sequence": 83,
+      "current_px": [
+        1087.77,
+        569.25
+      ],
+      "goal_error_px": [
+        -18.539999999999964,
+        -0.75
+      ],
+      "radial_error_px": 18.555163701783897,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850406000000,
+      "overhead_frame_sequence": 85,
+      "current_px": [
+        1088.87,
+        569.67
+      ],
+      "goal_error_px": [
+        -17.440000000000055,
+        -0.3300000000000409
+      ],
+      "radial_error_px": 17.443121853613302,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850515000000,
+      "overhead_frame_sequence": 86,
+      "current_px": [
+        1088.68,
+        569.05
+      ],
+      "goal_error_px": [
+        -17.62999999999988,
+        -0.9500000000000455
+      ],
+      "radial_error_px": 17.65557702257267,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850625000000,
+      "overhead_frame_sequence": 87,
+      "current_px": [
+        1089.1,
+        569.51
+      ],
+      "goal_error_px": [
+        -17.210000000000036,
+        -0.4900000000000091
+      ],
+      "radial_error_px": 17.216974182474726,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850734000000,
+      "overhead_frame_sequence": 88,
+      "current_px": [
+        1089.21,
+        568.96
+      ],
+      "goal_error_px": [
+        -17.09999999999991,
+        -1.0399999999999636
+      ],
+      "radial_error_px": 17.131596539727312,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850843000000,
+      "overhead_frame_sequence": 89,
+      "current_px": [
+        1089.53,
+        568.93
+      ],
+      "goal_error_px": [
+        -16.779999999999973,
+        -1.07000000000005
+      ],
+      "radial_error_px": 16.81408040899053,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175850968000000,
+      "overhead_frame_sequence": 90,
+      "current_px": [
+        1089.87,
+        569.21
+      ],
+      "goal_error_px": [
+        -16.440000000000055,
+        -0.7899999999999636
+      ],
+      "radial_error_px": 16.45897019864857,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851062000000,
+      "overhead_frame_sequence": 92,
+      "current_px": [
+        1090.33,
+        569.05
+      ],
+      "goal_error_px": [
+        -15.980000000000018,
+        -0.9500000000000455
+      ],
+      "radial_error_px": 16.008213516816944,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851171000000,
+      "overhead_frame_sequence": 93,
+      "current_px": [
+        1091.15,
+        569.25
+      ],
+      "goal_error_px": [
+        -15.159999999999854,
+        -0.75
+      ],
+      "radial_error_px": 15.178540773078142,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851281000000,
+      "overhead_frame_sequence": 94,
+      "current_px": [
+        1091.25,
+        569.4
+      ],
+      "goal_error_px": [
+        -15.059999999999945,
+        -0.6000000000000227
+      ],
+      "radial_error_px": 15.071947452137643,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851390000000,
+      "overhead_frame_sequence": 95,
+      "current_px": [
+        1091.49,
+        569.54
+      ],
+      "goal_error_px": [
+        -14.819999999999936,
+        -0.4600000000000364
+      ],
+      "radial_error_px": 14.827137282698846,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851500000000,
+      "overhead_frame_sequence": 96,
+      "current_px": [
+        1091.46,
+        569.43
+      ],
+      "goal_error_px": [
+        -14.849999999999909,
+        -0.57000000000005
+      ],
+      "radial_error_px": 14.860935367600431,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851609000000,
+      "overhead_frame_sequence": 97,
+      "current_px": [
+        1091.53,
+        569.17
+      ],
+      "goal_error_px": [
+        -14.779999999999973,
+        -0.8300000000000409
+      ],
+      "radial_error_px": 14.803286797194712,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851718000000,
+      "overhead_frame_sequence": 99,
+      "current_px": [
+        1091.7,
+        569.27
+      ],
+      "goal_error_px": [
+        -14.6099999999999,
+        -0.7300000000000182
+      ],
+      "radial_error_px": 14.628226139898068,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851828000000,
+      "overhead_frame_sequence": 100,
+      "current_px": [
+        1091.6,
+        569.08
+      ],
+      "goal_error_px": [
+        -14.710000000000036,
+        -0.9199999999999591
+      ],
+      "radial_error_px": 14.738741465946168,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175851937000000,
+      "overhead_frame_sequence": 101,
+      "current_px": [
+        1092.12,
+        569.56
+      ],
+      "goal_error_px": [
+        -14.190000000000055,
+        -0.44000000000005457
+      ],
+      "radial_error_px": 14.196820066479733,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852046000000,
+      "overhead_frame_sequence": 102,
+      "current_px": [
+        1092.36,
+        569.38
+      ],
+      "goal_error_px": [
+        -13.950000000000045,
+        -0.6200000000000045
+      ],
+      "radial_error_px": 13.963770980648503,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852156000000,
+      "overhead_frame_sequence": 103,
+      "current_px": [
+        1092.15,
+        569.3
+      ],
+      "goal_error_px": [
+        -14.159999999999854,
+        -0.7000000000000455
+      ],
+      "radial_error_px": 14.177291701872962,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852265000000,
+      "overhead_frame_sequence": 104,
+      "current_px": [
+        1092.43,
+        569.31
+      ],
+      "goal_error_px": [
+        -13.879999999999882,
+        -0.6900000000000546
+      ],
+      "radial_error_px": 13.897139993538124,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852375000000,
+      "overhead_frame_sequence": 106,
+      "current_px": [
+        1092.21,
+        569.22
+      ],
+      "goal_error_px": [
+        -14.099999999999909,
+        -0.7799999999999727
+      ],
+      "radial_error_px": 14.12155798770084,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852484000000,
+      "overhead_frame_sequence": 107,
+      "current_px": [
+        1091.87,
+        569.35
+      ],
+      "goal_error_px": [
+        -14.440000000000055,
+        -0.6499999999999773
+      ],
+      "radial_error_px": 14.454622098138767,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852593000000,
+      "overhead_frame_sequence": 108,
+      "current_px": [
+        1092.38,
+        569.28
+      ],
+      "goal_error_px": [
+        -13.929999999999836,
+        -0.7200000000000273
+      ],
+      "radial_error_px": 13.948594911316174,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852703000000,
+      "overhead_frame_sequence": 109,
+      "current_px": [
+        1092.29,
+        568.96
+      ],
+      "goal_error_px": [
+        -14.019999999999982,
+        -1.0399999999999636
+      ],
+      "radial_error_px": 14.058520548051968,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852812000000,
+      "overhead_frame_sequence": 110,
+      "current_px": [
+        1091.99,
+        569.35
+      ],
+      "goal_error_px": [
+        -14.319999999999936,
+        -0.6499999999999773
+      ],
+      "radial_error_px": 14.334744504175793,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175852921000000,
+      "overhead_frame_sequence": 111,
+      "current_px": [
+        1091.66,
+        569.49
+      ],
+      "goal_error_px": [
+        -14.649999999999864,
+        -0.5099999999999909
+      ],
+      "radial_error_px": 14.658874445195169,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853031000000,
+      "overhead_frame_sequence": 113,
+      "current_px": [
+        1091.83,
+        569.34
+      ],
+      "goal_error_px": [
+        -14.480000000000018,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 14.495033632247996,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853140000000,
+      "overhead_frame_sequence": 114,
+      "current_px": [
+        1092.33,
+        569.47
+      ],
+      "goal_error_px": [
+        -13.980000000000018,
+        -0.5299999999999727
+      ],
+      "radial_error_px": 13.990042887711263,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853250000000,
+      "overhead_frame_sequence": 115,
+      "current_px": [
+        1092.33,
+        569.37
+      ],
+      "goal_error_px": [
+        -13.980000000000018,
+        -0.6299999999999955
+      ],
+      "radial_error_px": 13.994188079342099,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853359000000,
+      "overhead_frame_sequence": 116,
+      "current_px": [
+        1092.02,
+        569.41
+      ],
+      "goal_error_px": [
+        -14.289999999999964,
+        -0.5900000000000318
+      ],
+      "radial_error_px": 14.302174659820059,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853484000000,
+      "overhead_frame_sequence": 117,
+      "current_px": [
+        1092.18,
+        569.34
+      ],
+      "goal_error_px": [
+        -14.129999999999882,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 14.145405614544838,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853593000000,
+      "overhead_frame_sequence": 119,
+      "current_px": [
+        1092.24,
+        569.36
+      ],
+      "goal_error_px": [
+        -14.069999999999936,
+        -0.6399999999999864
+      ],
+      "radial_error_px": 14.084548271066353,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853687000000,
+      "overhead_frame_sequence": 120,
+      "current_px": [
+        1092.26,
+        569.09
+      ],
+      "goal_error_px": [
+        -14.049999999999955,
+        -0.9099999999999682
+      ],
+      "radial_error_px": 14.079438909274712,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853796000000,
+      "overhead_frame_sequence": 121,
+      "current_px": [
+        1092.05,
+        569.01
+      ],
+      "goal_error_px": [
+        -14.259999999999991,
+        -0.9900000000000091
+      ],
+      "radial_error_px": 14.294324048376676,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175853906000000,
+      "overhead_frame_sequence": 122,
+      "current_px": [
+        1092.06,
+        569.2
+      ],
+      "goal_error_px": [
+        -14.25,
+        -0.7999999999999545
+      ],
+      "radial_error_px": 14.27243847420615,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854015000000,
+      "overhead_frame_sequence": 123,
+      "current_px": [
+        1092.02,
+        569.24
+      ],
+      "goal_error_px": [
+        -14.289999999999964,
+        -0.7599999999999909
+      ],
+      "radial_error_px": 14.310195666027735,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854125000000,
+      "overhead_frame_sequence": 124,
+      "current_px": [
+        1091.97,
+        569.3
+      ],
+      "goal_error_px": [
+        -14.339999999999918,
+        -0.7000000000000455
+      ],
+      "radial_error_px": 14.357074910997634,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854234000000,
+      "overhead_frame_sequence": 125,
+      "current_px": [
+        1091.94,
+        569.18
+      ],
+      "goal_error_px": [
+        -14.36999999999989,
+        -0.82000000000005
+      ],
+      "radial_error_px": 14.39337694913869,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854343000000,
+      "overhead_frame_sequence": 127,
+      "current_px": [
+        1091.99,
+        569.27
+      ],
+      "goal_error_px": [
+        -14.319999999999936,
+        -0.7300000000000182
+      ],
+      "radial_error_px": 14.338594770757636,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854453000000,
+      "overhead_frame_sequence": 128,
+      "current_px": [
+        1092.17,
+        569.05
+      ],
+      "goal_error_px": [
+        -14.139999999999873,
+        -0.9500000000000455
+      ],
+      "radial_error_px": 14.171877081036108,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854562000000,
+      "overhead_frame_sequence": 129,
+      "current_px": [
+        1092.52,
+        569.34
+      ],
+      "goal_error_px": [
+        -13.789999999999964,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 13.805785019331532,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854671000000,
+      "overhead_frame_sequence": 130,
+      "current_px": [
+        1091.93,
+        569.2
+      ],
+      "goal_error_px": [
+        -14.379999999999882,
+        -0.7999999999999545
+      ],
+      "radial_error_px": 14.402235937520137,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854781000000,
+      "overhead_frame_sequence": 131,
+      "current_px": [
+        1093.05,
+        569.73
+      ],
+      "goal_error_px": [
+        -13.259999999999991,
+        -0.2699999999999818
+      ],
+      "radial_error_px": 13.262748583909739,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175854890000000,
+      "overhead_frame_sequence": 132,
+      "current_px": [
+        1092.71,
+        569.22
+      ],
+      "goal_error_px": [
+        -13.599999999999909,
+        -0.7799999999999727
+      ],
+      "radial_error_px": 13.622349283438503,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855000000000,
+      "overhead_frame_sequence": 134,
+      "current_px": [
+        1092.97,
+        569.46
+      ],
+      "goal_error_px": [
+        -13.339999999999918,
+        -0.5399999999999636
+      ],
+      "radial_error_px": 13.350925061582728,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855109000000,
+      "overhead_frame_sequence": 135,
+      "current_px": [
+        1093.54,
+        569.26
+      ],
+      "goal_error_px": [
+        -12.769999999999982,
+        -0.7400000000000091
+      ],
+      "radial_error_px": 12.791422907558001,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855218000000,
+      "overhead_frame_sequence": 136,
+      "current_px": [
+        1093.7,
+        569.19
+      ],
+      "goal_error_px": [
+        -12.6099999999999,
+        -0.8099999999999454
+      ],
+      "radial_error_px": 12.635988287427201,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855328000000,
+      "overhead_frame_sequence": 137,
+      "current_px": [
+        1094.13,
+        569.57
+      ],
+      "goal_error_px": [
+        -12.179999999999836,
+        -0.42999999999995
+      ],
+      "radial_error_px": 12.187587948400454,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855437000000,
+      "overhead_frame_sequence": 138,
+      "current_px": [
+        1093.57,
+        569.37
+      ],
+      "goal_error_px": [
+        -12.740000000000009,
+        -0.6299999999999955
+      ],
+      "radial_error_px": 12.755567411918618,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855546000000,
+      "overhead_frame_sequence": 139,
+      "current_px": [
+        1094.58,
+        569.21
+      ],
+      "goal_error_px": [
+        -11.730000000000018,
+        -0.7899999999999636
+      ],
+      "radial_error_px": 11.756572629810117,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855656000000,
+      "overhead_frame_sequence": 141,
+      "current_px": [
+        1094.72,
+        569.32
+      ],
+      "goal_error_px": [
+        -11.589999999999918,
+        -0.67999999999995
+      ],
+      "radial_error_px": 11.609931093680016,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855765000000,
+      "overhead_frame_sequence": 142,
+      "current_px": [
+        1095.41,
+        569.44
+      ],
+      "goal_error_px": [
+        -10.899999999999864,
+        -0.5599999999999454
+      ],
+      "radial_error_px": 10.914375841063793,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855875000000,
+      "overhead_frame_sequence": 143,
+      "current_px": [
+        1095.53,
+        569.55
+      ],
+      "goal_error_px": [
+        -10.779999999999973,
+        -0.4500000000000455
+      ],
+      "radial_error_px": 10.789388305182062,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175855984000000,
+      "overhead_frame_sequence": 144,
+      "current_px": [
+        1095.92,
+        569.36
+      ],
+      "goal_error_px": [
+        -10.389999999999873,
+        -0.6399999999999864
+      ],
+      "radial_error_px": 10.409692598727272,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856109000000,
+      "overhead_frame_sequence": 145,
+      "current_px": [
+        1096.42,
+        569.15
+      ],
+      "goal_error_px": [
+        -9.889999999999873,
+        -0.8500000000000227
+      ],
+      "radial_error_px": 9.926459590407726,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856218000000,
+      "overhead_frame_sequence": 146,
+      "current_px": [
+        1097.04,
+        569.69
+      ],
+      "goal_error_px": [
+        -9.269999999999982,
+        -0.30999999999994543
+      ],
+      "radial_error_px": 9.275181938916326,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856328000000,
+      "overhead_frame_sequence": 148,
+      "current_px": [
+        1097.26,
+        569.41
+      ],
+      "goal_error_px": [
+        -9.049999999999955,
+        -0.5900000000000318
+      ],
+      "radial_error_px": 9.069211652618943,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856437000000,
+      "overhead_frame_sequence": 149,
+      "current_px": [
+        1097.6,
+        569.23
+      ],
+      "goal_error_px": [
+        -8.710000000000036,
+        -0.7699999999999818
+      ],
+      "radial_error_px": 8.743969350358029,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856546000000,
+      "overhead_frame_sequence": 150,
+      "current_px": [
+        1098.18,
+        569.46
+      ],
+      "goal_error_px": [
+        -8.129999999999882,
+        -0.5399999999999636
+      ],
+      "radial_error_px": 8.147913843432443,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856656000000,
+      "overhead_frame_sequence": 151,
+      "current_px": [
+        1098.23,
+        569.34
+      ],
+      "goal_error_px": [
+        -8.079999999999927,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 8.10691063229383,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856765000000,
+      "overhead_frame_sequence": 152,
+      "current_px": [
+        1098.94,
+        569.03
+      ],
+      "goal_error_px": [
+        -7.369999999999891,
+        -0.9700000000000273
+      ],
+      "radial_error_px": 7.433559039921486,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856875000000,
+      "overhead_frame_sequence": 154,
+      "current_px": [
+        1098.84,
+        569.69
+      ],
+      "goal_error_px": [
+        -7.470000000000027,
+        -0.30999999999994543
+      ],
+      "radial_error_px": 7.4764296291746355,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175856984000000,
+      "overhead_frame_sequence": 155,
+      "current_px": [
+        1099.03,
+        569.55
+      ],
+      "goal_error_px": [
+        -7.279999999999973,
+        -0.4500000000000455
+      ],
+      "radial_error_px": 7.293894707219158,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857093000000,
+      "overhead_frame_sequence": 156,
+      "current_px": [
+        1099.26,
+        569.46
+      ],
+      "goal_error_px": [
+        -7.0499999999999545,
+        -0.5399999999999636
+      ],
+      "radial_error_px": 7.070650606556607,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857203000000,
+      "overhead_frame_sequence": 157,
+      "current_px": [
+        1098.85,
+        569.4
+      ],
+      "goal_error_px": [
+        -7.460000000000036,
+        -0.6000000000000227
+      ],
+      "radial_error_px": 7.484089791016712,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857328000000,
+      "overhead_frame_sequence": 158,
+      "current_px": [
+        1098.81,
+        569.1
+      ],
+      "goal_error_px": [
+        -7.5,
+        -0.8999999999999773
+      ],
+      "radial_error_px": 7.5538069872085005,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857437000000,
+      "overhead_frame_sequence": 160,
+      "current_px": [
+        1098.52,
+        569.01
+      ],
+      "goal_error_px": [
+        -7.789999999999964,
+        -0.9900000000000091
+      ],
+      "radial_error_px": 7.852655601769344,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857546000000,
+      "overhead_frame_sequence": 161,
+      "current_px": [
+        1099.43,
+        568.95
+      ],
+      "goal_error_px": [
+        -6.879999999999882,
+        -1.0499999999999545
+      ],
+      "radial_error_px": 6.959662348131429,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857656000000,
+      "overhead_frame_sequence": 162,
+      "current_px": [
+        1099.01,
+        568.95
+      ],
+      "goal_error_px": [
+        -7.2999999999999545,
+        -1.0499999999999545
+      ],
+      "radial_error_px": 7.3751271175485,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857765000000,
+      "overhead_frame_sequence": 163,
+      "current_px": [
+        1099.28,
+        569.11
+      ],
+      "goal_error_px": [
+        -7.029999999999973,
+        -0.8899999999999864
+      ],
+      "radial_error_px": 7.086113180016221,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857875000000,
+      "overhead_frame_sequence": 164,
+      "current_px": [
+        1098.93,
+        569.52
+      ],
+      "goal_error_px": [
+        -7.379999999999882,
+        -0.4800000000000182
+      ],
+      "radial_error_px": 7.395593282489125,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175857984000000,
+      "overhead_frame_sequence": 165,
+      "current_px": [
+        1099.16,
+        569.09
+      ],
+      "goal_error_px": [
+        -7.149999999999864,
+        -0.9099999999999682
+      ],
+      "radial_error_px": 7.207676463326998,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858093000000,
+      "overhead_frame_sequence": 167,
+      "current_px": [
+        1099.46,
+        569.18
+      ],
+      "goal_error_px": [
+        -6.849999999999909,
+        -0.82000000000005
+      ],
+      "radial_error_px": 6.898905710328185,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858203000000,
+      "overhead_frame_sequence": 168,
+      "current_px": [
+        1099.34,
+        569.55
+      ],
+      "goal_error_px": [
+        -6.970000000000027,
+        -0.4500000000000455
+      ],
+      "radial_error_px": 6.984511436027607,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858312000000,
+      "overhead_frame_sequence": 169,
+      "current_px": [
+        1098.93,
+        569.41
+      ],
+      "goal_error_px": [
+        -7.379999999999882,
+        -0.5900000000000318
+      ],
+      "radial_error_px": 7.403546447480308,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858421000000,
+      "overhead_frame_sequence": 170,
+      "current_px": [
+        1099.0,
+        568.91
+      ],
+      "goal_error_px": [
+        -7.309999999999945,
+        -1.0900000000000318
+      ],
+      "radial_error_px": 7.390818628541718,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858531000000,
+      "overhead_frame_sequence": 171,
+      "current_px": [
+        1099.1,
+        569.04
+      ],
+      "goal_error_px": [
+        -7.210000000000036,
+        -0.9600000000000364
+      ],
+      "radial_error_px": 7.27363045528164,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858640000000,
+      "overhead_frame_sequence": 173,
+      "current_px": [
+        1098.79,
+        569.33
+      ],
+      "goal_error_px": [
+        -7.519999999999982,
+        -0.6699999999999591
+      ],
+      "radial_error_px": 7.549788076495901,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858750000000,
+      "overhead_frame_sequence": 174,
+      "current_px": [
+        1098.81,
+        569.0
+      ],
+      "goal_error_px": [
+        -7.5,
+        -1.0
+      ],
+      "radial_error_px": 7.566372975210778,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858859000000,
+      "overhead_frame_sequence": 175,
+      "current_px": [
+        1098.99,
+        569.39
+      ],
+      "goal_error_px": [
+        -7.319999999999936,
+        -0.6100000000000136
+      ],
+      "radial_error_px": 7.345372693063238,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175858984000000,
+      "overhead_frame_sequence": 176,
+      "current_px": [
+        1098.7,
+        569.24
+      ],
+      "goal_error_px": [
+        -7.6099999999999,
+        -0.7599999999999909
+      ],
+      "radial_error_px": 7.647855908684372,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859078000000,
+      "overhead_frame_sequence": 177,
+      "current_px": [
+        1099.1,
+        569.15
+      ],
+      "goal_error_px": [
+        -7.210000000000036,
+        -0.8500000000000227
+      ],
+      "radial_error_px": 7.259931129149956,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859187000000,
+      "overhead_frame_sequence": 178,
+      "current_px": [
+        1098.92,
+        569.4
+      ],
+      "goal_error_px": [
+        -7.389999999999873,
+        -0.6000000000000227
+      ],
+      "radial_error_px": 7.414317230871508,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859312000000,
+      "overhead_frame_sequence": 179,
+      "current_px": [
+        1099.23,
+        569.33
+      ],
+      "goal_error_px": [
+        -7.079999999999927,
+        -0.6699999999999591
+      ],
+      "radial_error_px": 7.111631317777864,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859421000000,
+      "overhead_frame_sequence": 181,
+      "current_px": [
+        1099.37,
+        569.27
+      ],
+      "goal_error_px": [
+        -6.940000000000055,
+        -0.7300000000000182
+      ],
+      "radial_error_px": 6.978287755603145,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859531000000,
+      "overhead_frame_sequence": 182,
+      "current_px": [
+        1099.36,
+        569.65
+      ],
+      "goal_error_px": [
+        -6.9500000000000455,
+        -0.35000000000002274
+      ],
+      "radial_error_px": 6.958807369082769,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859625000000,
+      "overhead_frame_sequence": 183,
+      "current_px": [
+        1098.89,
+        569.49
+      ],
+      "goal_error_px": [
+        -7.419999999999845,
+        -0.5099999999999909
+      ],
+      "radial_error_px": 7.437506302518184,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859734000000,
+      "overhead_frame_sequence": 184,
+      "current_px": [
+        1098.98,
+        569.2
+      ],
+      "goal_error_px": [
+        -7.329999999999927,
+        -0.7999999999999545
+      ],
+      "radial_error_px": 7.373526971538035,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859843000000,
+      "overhead_frame_sequence": 185,
+      "current_px": [
+        1099.37,
+        569.05
+      ],
+      "goal_error_px": [
+        -6.940000000000055,
+        -0.9500000000000455
+      ],
+      "radial_error_px": 7.004719837366863,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175859953000000,
+      "overhead_frame_sequence": 187,
+      "current_px": [
+        1098.94,
+        569.38
+      ],
+      "goal_error_px": [
+        -7.369999999999891,
+        -0.6200000000000045
+      ],
+      "radial_error_px": 7.396032720316913,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860062000000,
+      "overhead_frame_sequence": 188,
+      "current_px": [
+        1099.39,
+        569.2
+      ],
+      "goal_error_px": [
+        -6.919999999999845,
+        -0.7999999999999545
+      ],
+      "radial_error_px": 6.966089290268808,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860171000000,
+      "overhead_frame_sequence": 189,
+      "current_px": [
+        1099.07,
+        569.3
+      ],
+      "goal_error_px": [
+        -7.240000000000009,
+        -0.7000000000000455
+      ],
+      "radial_error_px": 7.2737610628890055,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860281000000,
+      "overhead_frame_sequence": 190,
+      "current_px": [
+        1099.48,
+        569.13
+      ],
+      "goal_error_px": [
+        -6.829999999999927,
+        -0.8700000000000045
+      ],
+      "radial_error_px": 6.885186998186688,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860390000000,
+      "overhead_frame_sequence": 191,
+      "current_px": [
+        1100.9,
+        570.03
+      ],
+      "goal_error_px": [
+        -5.4099999999998545,
+        0.029999999999972715
+      ],
+      "radial_error_px": 5.410083178658017,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860500000000,
+      "overhead_frame_sequence": 192,
+      "current_px": [
+        1100.76,
+        569.45
+      ],
+      "goal_error_px": [
+        -5.5499999999999545,
+        -0.5499999999999545
+      ],
+      "radial_error_px": 5.57718567021033,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860625000000,
+      "overhead_frame_sequence": 193,
+      "current_px": [
+        1100.36,
+        569.17
+      ],
+      "goal_error_px": [
+        -5.9500000000000455,
+        -0.8300000000000409
+      ],
+      "radial_error_px": 6.007611838326492,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860734000000,
+      "overhead_frame_sequence": 195,
+      "current_px": [
+        1101.45,
+        569.37
+      ],
+      "goal_error_px": [
+        -4.8599999999999,
+        -0.6299999999999955
+      ],
+      "radial_error_px": 4.900663220422214,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 1,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860843000000,
+      "overhead_frame_sequence": 196,
+      "current_px": [
+        1101.01,
+        569.34
+      ],
+      "goal_error_px": [
+        -5.2999999999999545,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 5.340936247513115,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175860953000000,
+      "overhead_frame_sequence": 197,
+      "current_px": [
+        1101.25,
+        569.3
+      ],
+      "goal_error_px": [
+        -5.059999999999945,
+        -0.7000000000000455
+      ],
+      "radial_error_px": 5.108189503140962,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175861062000000,
+      "overhead_frame_sequence": 198,
+      "current_px": [
+        1101.24,
+        568.9
+      ],
+      "goal_error_px": [
+        -5.069999999999936,
+        -1.1000000000000227
+      ],
+      "radial_error_px": 5.187957208767186,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": false,
+      "consecutive_pass_frames": 0,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175861171000000,
+      "overhead_frame_sequence": 199,
+      "current_px": [
+        1101.55,
+        569.12
+      ],
+      "goal_error_px": [
+        -4.759999999999991,
+        -0.8799999999999955
+      ],
+      "radial_error_px": 4.840661111873037,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 1,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175861281000000,
+      "overhead_frame_sequence": 201,
+      "current_px": [
+        1102.66,
+        569.34
+      ],
+      "goal_error_px": [
+        -3.6499999999998636,
+        -0.6599999999999682
+      ],
+      "radial_error_px": 3.7091912865204137,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 2,
+      "stable_gate_pass": false
+    },
+    {
+      "monotonic_ns": 175861390000000,
+      "overhead_frame_sequence": 202,
+      "current_px": [
+        1102.59,
+        568.63
+      ],
+      "goal_error_px": [
+        -3.7200000000000273,
+        -1.3700000000000045
+      ],
+      "radial_error_px": 3.9642527669158807,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 3,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175861500000000,
+      "overhead_frame_sequence": 203,
+      "current_px": [
+        1102.67,
+        568.91
+      ],
+      "goal_error_px": [
+        -3.6399999999998727,
+        -1.0900000000000318
+      ],
+      "radial_error_px": 3.7996973563692076,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 4,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175861609000000,
+      "overhead_frame_sequence": 204,
+      "current_px": [
+        1102.3,
+        569.44
+      ],
+      "goal_error_px": [
+        -4.009999999999991,
+        -0.5599999999999454
+      ],
+      "radial_error_px": 4.048913434490773,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 5,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175861718000000,
+      "overhead_frame_sequence": 205,
+      "current_px": [
+        1102.58,
+        568.49
+      ],
+      "goal_error_px": [
+        -3.730000000000018,
+        -1.509999999999991
+      ],
+      "radial_error_px": 4.0240526835517585,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 6,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175861828000000,
+      "overhead_frame_sequence": 206,
+      "current_px": [
+        1102.6,
+        568.84
+      ],
+      "goal_error_px": [
+        -3.7100000000000364,
+        -1.1599999999999682
+      ],
+      "radial_error_px": 3.8871197563234654,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 7,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175861937000000,
+      "overhead_frame_sequence": 208,
+      "current_px": [
+        1102.38,
+        569.19
+      ],
+      "goal_error_px": [
+        -3.9299999999998363,
+        -0.8099999999999454
+      ],
+      "radial_error_px": 4.012605138809278,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 8,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862046000000,
+      "overhead_frame_sequence": 209,
+      "current_px": [
+        1102.65,
+        568.72
+      ],
+      "goal_error_px": [
+        -3.6599999999998545,
+        -1.2799999999999727
+      ],
+      "radial_error_px": 3.877370242831972,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 9,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862156000000,
+      "overhead_frame_sequence": 210,
+      "current_px": [
+        1103.05,
+        568.89
+      ],
+      "goal_error_px": [
+        -3.259999999999991,
+        -1.1100000000000136
+      ],
+      "radial_error_px": 3.443791515176256,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 10,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862265000000,
+      "overhead_frame_sequence": 211,
+      "current_px": [
+        1102.74,
+        568.58
+      ],
+      "goal_error_px": [
+        -3.5699999999999363,
+        -1.419999999999959
+      ],
+      "radial_error_px": 3.842043726976494,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 11,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862375000000,
+      "overhead_frame_sequence": 212,
+      "current_px": [
+        1103.05,
+        569.1
+      ],
+      "goal_error_px": [
+        -3.259999999999991,
+        -0.8999999999999773
+      ],
+      "radial_error_px": 3.3819520990102596,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 12,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862484000000,
+      "overhead_frame_sequence": 213,
+      "current_px": [
+        1102.78,
+        569.0
+      ],
+      "goal_error_px": [
+        -3.5299999999999727,
+        -1.0
+      ],
+      "radial_error_px": 3.668909919853553,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 13,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862593000000,
+      "overhead_frame_sequence": 215,
+      "current_px": [
+        1102.79,
+        568.59
+      ],
+      "goal_error_px": [
+        -3.519999999999982,
+        -1.4099999999999682
+      ],
+      "radial_error_px": 3.7918992602652013,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 14,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862703000000,
+      "overhead_frame_sequence": 216,
+      "current_px": [
+        1102.76,
+        568.7
+      ],
+      "goal_error_px": [
+        -3.5499999999999545,
+        -1.2999999999999545
+      ],
+      "radial_error_px": 3.7805422891431277,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 15,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862812000000,
+      "overhead_frame_sequence": 217,
+      "current_px": [
+        1102.61,
+        568.9
+      ],
+      "goal_error_px": [
+        -3.7000000000000455,
+        -1.1000000000000227
+      ],
+      "radial_error_px": 3.860051813123807,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 16,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175862921000000,
+      "overhead_frame_sequence": 218,
+      "current_px": [
+        1102.54,
+        568.91
+      ],
+      "goal_error_px": [
+        -3.769999999999982,
+        -1.0900000000000318
+      ],
+      "radial_error_px": 3.9244107837992614,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 17,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863031000000,
+      "overhead_frame_sequence": 219,
+      "current_px": [
+        1102.7,
+        568.7
+      ],
+      "goal_error_px": [
+        -3.6099999999999,
+        -1.2999999999999545
+      ],
+      "radial_error_px": 3.836938884058379,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 18,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863140000000,
+      "overhead_frame_sequence": 220,
+      "current_px": [
+        1102.53,
+        569.07
+      ],
+      "goal_error_px": [
+        -3.7799999999999727,
+        -0.92999999999995
+      ],
+      "radial_error_px": 3.8927239819950885,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 19,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863250000000,
+      "overhead_frame_sequence": 222,
+      "current_px": [
+        1102.98,
+        568.99
+      ],
+      "goal_error_px": [
+        -3.3299999999999272,
+        -1.009999999999991
+      ],
+      "radial_error_px": 3.4797988447609294,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 20,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863359000000,
+      "overhead_frame_sequence": 223,
+      "current_px": [
+        1102.39,
+        568.94
+      ],
+      "goal_error_px": [
+        -3.9199999999998454,
+        -1.0599999999999454
+      ],
+      "radial_error_px": 4.060788100849227,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 21,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863468000000,
+      "overhead_frame_sequence": 224,
+      "current_px": [
+        1102.87,
+        568.73
+      ],
+      "goal_error_px": [
+        -3.4400000000000546,
+        -1.2699999999999818
+      ],
+      "radial_error_px": 3.6669469589837713,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 22,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863578000000,
+      "overhead_frame_sequence": 225,
+      "current_px": [
+        1102.46,
+        568.78
+      ],
+      "goal_error_px": [
+        -3.849999999999909,
+        -1.2200000000000273
+      ],
+      "radial_error_px": 4.038675525466161,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 23,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863687000000,
+      "overhead_frame_sequence": 226,
+      "current_px": [
+        1102.78,
+        568.98
+      ],
+      "goal_error_px": [
+        -3.5299999999999727,
+        -1.0199999999999818
+      ],
+      "radial_error_px": 3.6744115175085885,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 24,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863796000000,
+      "overhead_frame_sequence": 227,
+      "current_px": [
+        1102.51,
+        568.69
+      ],
+      "goal_error_px": [
+        -3.7999999999999545,
+        -1.3099999999999454
+      ],
+      "radial_error_px": 4.019465138547604,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 25,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175863906000000,
+      "overhead_frame_sequence": 229,
+      "current_px": [
+        1103.08,
+        568.74
+      ],
+      "goal_error_px": [
+        -3.230000000000018,
+        -1.259999999999991
+      ],
+      "radial_error_px": 3.467059272640157,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 26,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864015000000,
+      "overhead_frame_sequence": 230,
+      "current_px": [
+        1102.85,
+        569.6
+      ],
+      "goal_error_px": [
+        -3.4600000000000364,
+        -0.39999999999997726
+      ],
+      "radial_error_px": 3.483044645134517,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 27,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864125000000,
+      "overhead_frame_sequence": 231,
+      "current_px": [
+        1102.31,
+        568.84
+      ],
+      "goal_error_px": [
+        -4.0,
+        -1.1599999999999682
+      ],
+      "radial_error_px": 4.164804917400085,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 28,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864234000000,
+      "overhead_frame_sequence": 232,
+      "current_px": [
+        1103.03,
+        568.92
+      ],
+      "goal_error_px": [
+        -3.2799999999999727,
+        -1.080000000000041
+      ],
+      "radial_error_px": 3.4532303716954518,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 29,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864359000000,
+      "overhead_frame_sequence": 233,
+      "current_px": [
+        1102.5,
+        568.79
+      ],
+      "goal_error_px": [
+        -3.8099999999999454,
+        -1.2100000000000364
+      ],
+      "radial_error_px": 3.9975242338226886,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 30,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864468000000,
+      "overhead_frame_sequence": 234,
+      "current_px": [
+        1102.97,
+        569.36
+      ],
+      "goal_error_px": [
+        -3.339999999999918,
+        -0.6399999999999864
+      ],
+      "radial_error_px": 3.40076461990527,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 31,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864578000000,
+      "overhead_frame_sequence": 236,
+      "current_px": [
+        1102.93,
+        569.02
+      ],
+      "goal_error_px": [
+        -3.3799999999998818,
+        -0.9800000000000182
+      ],
+      "radial_error_px": 3.5192044555551525,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 32,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864687000000,
+      "overhead_frame_sequence": 237,
+      "current_px": [
+        1102.43,
+        568.75
+      ],
+      "goal_error_px": [
+        -3.8799999999998818,
+        -1.25
+      ],
+      "radial_error_px": 4.076383200828779,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 33,
+      "stable_gate_pass": true
+    },
+    {
+      "monotonic_ns": 175864796000000,
+      "overhead_frame_sequence": 238,
+      "current_px": [
+        1102.51,
+        569.19
+      ],
+      "goal_error_px": [
+        -3.7999999999999545,
+        -0.8099999999999454
+      ],
+      "radial_error_px": 3.8853699952513616,
+      "gate_mode": "axiswise",
+      "detected": true,
+      "inside_gate": true,
+      "consecutive_pass_frames": 34,
+      "stable_gate_pass": true
+    }
+  ]
+}

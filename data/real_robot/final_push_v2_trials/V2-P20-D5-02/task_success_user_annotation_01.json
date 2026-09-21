@@ -1,0 +1,15 @@
+{
+  "created_utc": "2026-09-05T07:12:58.922999+00:00",
+  "user_instruction": "D5\u8bb0\u4f5c\u6210\u529f",
+  "scope": "V2-P20-D5-02 only",
+  "task_gate_outcome": "GO",
+  "maximum_consecutive_goal_frames": 3,
+  "closed_loop_evidence_validity": "INVALID",
+  "original_audit_unchanged": true,
+  "publication_label": "Task-gate success; closed-loop evidence INVALID (final-plan cancellation timing incomplete)",
+  "include_as_valid_closed_loop_success": false,
+  "source_sha256": {
+    "live_task_gate.json": "b610669841b3b6e976f75bcd94c4cf098676e79ad868e151a068b08d778fc9d6",
+    "ipwm_closed_loop_evidence.json": "8ba4a9fe74de836a5afbc6c745bd16695ec23566b2d5b6985ba0f22409f5cadc"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "status": "PASS",
+  "is_genuine_physical_ipwm_closed_loop_evidence": true,
+  "task_outcome": "GO",
+  "success": true,
+  "criterion": "at least 3 consecutive distinct reliable frames with each-axis error <= 5px",
+  "adjudication_version": "three_distinct_frames_v2",
+  "endpoint_error_role": "last-ten-frame median diagnostic only; not an additional success gate",
+  "endpoint_error_xy_px": [
+    -5.089999999999918,
+    2.1900000000000546
+  ],
+  "observed_displacement_px": 11.732356966952613,
+  "recomputed_maximum_consecutive_goal_frames": 5,
+  "replan_cycles": 31,
+  "candidate_count_each_cycle": [
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000
+  ],
+  "locked_joint_drift": {
+    "j3_maximum_feedback_to_target_ticks": 3,
+    "j4_maximum_feedback_to_target_ticks": 5
+  },
+  "files": {
+    "run_manifest.json": {
+      "bytes": 862654,
+      "sha256": "698108c707ec6c11fee9ec8fc177b92f822f25e4ac5bcdee264f8ed7166c161c"
+    },
+    "live_task_gate.json": {
+      "bytes": 785167,
+      "sha256": "eb7d48388adc0e0377763a86f562d7e4b3aaae7238c4c48a888a013bcdcd7b6e"
+    },
+    "servo_telemetry.csv": {
+      "bytes": 1143775,
+      "sha256": "7e9b2b686b819c7058eb0c40cbf67389a7cc2f4ef5631104091fcab57596b8e9"
+    },
+    "commands.csv": {
+      "bytes": 108002,
+      "sha256": "df10dd97382ee94b8d69b160329cf22b236460ba8a9b62845d68daa6e55cf5b9"
+    },
+    "daheng_FDE23080341_raw.avi": {
+      "bytes": 303204262,
+      "sha256": "b084836ffee0cae956f7e9e09a27cc24b866bfb4b07b0b8902a5fbfa8a72729a"
+    },
+    "directshow_index1_raw.avi": {
+      "bytes": 53477532,
+      "sha256": "fba72c82158715bc87bdc59e59d666168c16c5405a5e39b5246a8ae546fa040d"
+    }
+  },
+  "errors": [],
+  "trial": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-05"
+}

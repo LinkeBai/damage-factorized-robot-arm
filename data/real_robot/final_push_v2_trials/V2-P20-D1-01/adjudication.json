@@ -1,0 +1,11 @@
+{
+  "status": "INVALID",
+  "reason": "Aborted during online inference when the then-applicable 10 second lock-hold deadline expired; only one archived completed plan cycle. This attempt is retained, not a completed multi-cycle trial.",
+  "evidence": [
+    {
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P20-D1-01\\run_manifest.json",
+      "sha256": "e9f4ed760c5d2e109c77636f2345517327ce60d81519436505ca67803ca63101"
+    }
+  ],
+  "subsequent_user_amendment": "20 second limit applies prospectively; original attempt unchanged"
+}

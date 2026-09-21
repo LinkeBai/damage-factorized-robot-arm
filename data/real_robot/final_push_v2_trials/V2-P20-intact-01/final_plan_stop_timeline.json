@@ -1,0 +1,26 @@
+{
+  "status": "TIMELINE_CONFIRMED_FINAL_PLAN_NOT_EXECUTED",
+  "formal_adjudication": "REVIEW_REQUIRED_EXISTING_AUDIT_REJECTS_UNEXECUTED_FINAL_PLAN",
+  "executed_segments": [
+    0,
+    1,
+    2
+  ],
+  "last_command_monotonic_ns": 171378515000000,
+  "final_plan_observation_monotonic_ns": 171378796000000,
+  "first_three_frame_success_monotonic_ns": 171379015000000,
+  "success_during_final_inference": true,
+  "no_commands_after_final_observation": true,
+  "stop_record": {
+    "enabled": true,
+    "triggered": true,
+    "reason": "online_receding_horizon_goal_guard",
+    "criterion": "3 consecutive reliable frames within 5 px, or goal-plane crossing as a stop-only overshoot guard"
+  },
+  "raw_sha256": {
+    "run_manifest.json": "eda72b3bc7d97c5b844b250bb762a163bc4c095dcf83f9cb47c943cb23358b26",
+    "commands.csv": "9d1104eb47f0d2930aaee5f3366d7167439cf7f1c588a0edb6b1046ddcf395ad",
+    "live_task_gate.json": "22237cc22493cb8ec59c21a81ac122b59a460092aa19b671ee15b9b20a39b75f"
+  },
+  "raw_unchanged": true
+}

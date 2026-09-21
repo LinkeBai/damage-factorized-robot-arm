@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "is_genuine_physical_ipwm_closed_loop_evidence": true,
+  "task_outcome": "GO",
+  "success": true,
+  "criterion": "at least 3 consecutive distinct reliable frames with each-axis error <= 5px",
+  "adjudication_version": "three_distinct_frames_v2",
+  "endpoint_error_role": "last-ten-frame median diagnostic only; not an additional success gate",
+  "endpoint_error_xy_px": [
+    -4.614999999999782,
+    -2.169999999999959
+  ],
+  "observed_displacement_px": 16.439486762061822,
+  "recomputed_maximum_consecutive_goal_frames": 12,
+  "replan_cycles": 17,
+  "candidate_count_each_cycle": [
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000,
+    10000
+  ],
+  "locked_joint_drift": {
+    "j2_maximum_feedback_to_target_ticks": 9
+  },
+  "files": {
+    "run_manifest.json": {
+      "bytes": 453976,
+      "sha256": "8fdeac58809224b9ad3cd9c628c8d469751d4ddd7759b93ea91773456ebcc231"
+    },
+    "live_task_gate.json": {
+      "bytes": 368188,
+      "sha256": "68fe6e2196233532b04da5a30a5a59e07109515facf185fb1af436cd696c2ea8"
+    },
+    "servo_telemetry.csv": {
+      "bytes": 534128,
+      "sha256": "6cbbde41749efbd073dfc6343caf7d601ab6f8752a23c2dbdce02077f040b67a"
+    },
+    "commands.csv": {
+      "bytes": 31432,
+      "sha256": "b13c262c16f4c279ae20c270748762b797df2d734cdbc98dce6208bf84ce990c"
+    },
+    "daheng_FDE23080341_raw.avi": {
+      "bytes": 144730382,
+      "sha256": "c37f89a152321f3d5996d456930e8e5d7082994dd02daf3479d2fd195d2d6ca9"
+    },
+    "directshow_index1_raw.avi": {
+      "bytes": 25350992,
+      "sha256": "79e2888906782f7af630dc9fec6579693d2cd204e6e15533fcd9b42e28d4752c"
+    }
+  },
+  "errors": [],
+  "trial": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P20-D2-02"
+}

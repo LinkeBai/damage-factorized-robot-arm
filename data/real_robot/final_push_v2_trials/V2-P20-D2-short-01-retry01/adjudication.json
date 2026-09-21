@@ -1,0 +1,15 @@
+{
+  "status": "INVALID",
+  "reason": "Controller interrupted after repeated identical targets and unchanged joint feedback. Acquisition manifest did not finalize; external torque-off subsequently verified. Do not infer successful completion.",
+  "evidence": [
+    {
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P20-D2-short-01-retry01\\run_manifest.json",
+      "sha256": "a7662ac38d9f0ee6a762070e260a7a1b1838eb7288f31a51d47d4c5d9fba88a5"
+    },
+    {
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\results\\real_robot\\d2_retry01_external_stop.json",
+      "sha256": "2a6b32ddf793bdd5ddfe62527afdd0b4e6d663a4afab643838447e1cafe9baab"
+    }
+  ],
+  "raw_unchanged": true
+}

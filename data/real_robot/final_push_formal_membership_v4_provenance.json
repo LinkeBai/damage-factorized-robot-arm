@@ -1,0 +1,12 @@
+{
+  "schema_version": "ipwm_formal_membership_v4",
+  "created_utc": "2026-09-05T09:14:09.281915+00:00",
+  "schedule": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_formal_membership_v4.csv",
+  "core_rule": "all and exactly three currently audit-valid 20 px closed-loop attempts per condition; no valid attempt omitted",
+  "double_fault_rule": "all currently audit-valid 15 px closed-loop attempts included; protocol permits up to three per condition",
+  "core_count": 18,
+  "double_fault_count": 5,
+  "pending_count": 0,
+  "invalid_and_aborted_attempts": "retained outside formal membership and included by the non-selective all-attempt inventory",
+  "start_variant_amendment": "latest on-site instruction uses standard-start repeats; no unproven +/-3 px labels are assigned"
+}

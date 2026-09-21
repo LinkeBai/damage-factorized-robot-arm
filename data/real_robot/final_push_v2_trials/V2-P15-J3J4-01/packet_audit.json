@@ -1,0 +1,63 @@
+{
+  "status": "RETAINED_ABORT",
+  "packet_integrity_status": "PASS",
+  "trial_validity_status": "INVALID_ABORTED",
+  "valid_trial": false,
+  "trial_directory": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01",
+  "manifest_status": "ABORTED_TORQUE_OFF_REQUESTED",
+  "identity": {
+    "trial_id": "V2-P15-J3J4-01",
+    "trajectory_id": "V2-P15-J3J4-micro-prep-01_ipwm_selected",
+    "condition": "J3+J4",
+    "locked_joint": null,
+    "locked_target_raw": null,
+    "status": "ABORTED_TORQUE_OFF_REQUESTED"
+  },
+  "artifact_count": 6,
+  "artifacts": [
+    {
+      "role": "run_manifest",
+      "name": "run_manifest.json",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01\\run_manifest.json",
+      "bytes": 1411762,
+      "sha256": "d92778308304691f1a88d94ddde22f2c62e8f6154b6af88290fcee01f6bf15bd"
+    },
+    {
+      "role": "daheng_video",
+      "name": "daheng_FDE23080341_raw.avi",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01\\daheng_FDE23080341_raw.avi",
+      "bytes": 568590708,
+      "sha256": "51467dd855c82a2a372d3109184711d363564984147f708ceadd0777f09f47b5"
+    },
+    {
+      "role": "directshow_video",
+      "name": "directshow_index1_raw.avi",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01\\directshow_index1_raw.avi",
+      "bytes": 102760768,
+      "sha256": "0e0833118c64c61a038a80886b9000dcf4284a8058ca3ee0936432dde2b79f61"
+    },
+    {
+      "role": "commands",
+      "name": "commands.csv",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01\\commands.csv",
+      "bytes": 129720,
+      "sha256": "30965c1039de469b77de234390148d72ed80c5ab284f7eae6c872c0458de440d"
+    },
+    {
+      "role": "servo_telemetry",
+      "name": "servo_telemetry.csv",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01\\servo_telemetry.csv",
+      "bytes": 1774395,
+      "sha256": "855dc23e380c41edbae8ae0c975d91cc413bdf32bb4fe2bd81f5430ad0157cd8"
+    },
+    {
+      "role": "frame_timestamps",
+      "name": "frame_timestamps.csv",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P15-J3J4-01\\frame_timestamps.csv",
+      "bytes": 1029377,
+      "sha256": "18a772256828ccd681623a61ccc9fb41890505710b5d00c1469fee98bd039937"
+    }
+  ],
+  "errors": [],
+  "claim_boundary": "PASS establishes only raw packet identity, readability, hashes, five-joint log presence, and frame-count consistency. It does not establish reach, contact, task success, or a learned-method result. RETAINED_ABORT is preserved evidence and is never a valid trial."
+}

@@ -1,0 +1,26 @@
+{
+  "trial_id": "V2-P20-D3-medium-01",
+  "acquisition_elapsed_s": 110.206222,
+  "inference_each_cycle_s": [
+    3.604368300002534,
+    3.2104145000048447,
+    4.940053800004534,
+    5.851023299997905,
+    6.113677099987399,
+    5.575147600000491,
+    5.437223699991591,
+    4.8888341000129,
+    4.301601099985419,
+    3.739888099982636,
+    4.571515500021633,
+    6.283629799989285,
+    5.655905300023733,
+    6.175762200000463,
+    6.36332579998998,
+    5.342973999999231
+  ],
+  "return_elapsed_s": 17.023942,
+  "loop_audit_outcome": "GO",
+  "assistant_processing_s": null,
+  "assistant_processing_note": "not separately measurable from host timestamps"
+}

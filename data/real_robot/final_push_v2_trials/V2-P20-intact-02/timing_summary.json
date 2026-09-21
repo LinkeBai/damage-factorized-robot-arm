@@ -1,0 +1,14 @@
+{
+  "trial_id": "V2-P20-intact-02",
+  "acquisition_elapsed_s": 26.889389,
+  "inference_each_cycle_s": [
+    3.124831900000572,
+    2.476849700004095,
+    2.738904099998763,
+    2.470118800003547
+  ],
+  "return_elapsed_s": 23.909185,
+  "loop_audit_outcome": "GO",
+  "assistant_processing_s": null,
+  "assistant_processing_note": "not separately measurable from host timestamps"
+}

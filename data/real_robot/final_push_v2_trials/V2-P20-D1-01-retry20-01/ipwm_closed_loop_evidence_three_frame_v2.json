@@ -1,0 +1,7 @@
+{
+  "status": "FAIL_CLOSED",
+  "errors": [
+    "missing_or_empty:live_task_gate.json"
+  ],
+  "trial": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_v2_trials\\V2-P20-D1-01-retry20-01"
+}

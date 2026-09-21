@@ -1,0 +1,36 @@
+{
+  "created_utc": "2026-09-05T07:36:23.346391+00:00",
+  "task_gate_outcome": "GO",
+  "maximum_consecutive_goal_frames": 16,
+  "original_closed_loop_outcome": "INVALID",
+  "finding": "Final cycle issued partial motion and stopped on live goal before exact selected endpoint; existing auditor only exempts entirely cancelled final plans. Requires consistent partial-block chronology audit across all trials.",
+  "last_command": {
+    "command_index": "227",
+    "host_utc": "2026-09-05T07:35:01.956259+00:00",
+    "dispatch_monotonic_ns": "182463234000000",
+    "elapsed_s": "43.031000000",
+    "phase": "fixed_trajectory",
+    "planned_phase_time_s": "0.492187500",
+    "segment_index": "6",
+    "changed_servo_ids": "3",
+    "j1_target_raw": "2088",
+    "j2_target_raw": "2781",
+    "j3_target_raw": "2383",
+    "j4_target_raw": "2723",
+    "j5_target_raw": "2068"
+  },
+  "selected_endpoint": [
+    2088,
+    2782,
+    2382,
+    2723,
+    2068
+  ],
+  "original_audit_unchanged": true,
+  "source_sha256": {
+    "run_manifest.json": "451577b38e845c4ed6276bd04ef185f5e9fe8d1a65164427b6082710791d24b4",
+    "commands.csv": "e63a10ad831e90054850d583734974021f099a9f4848f65926140c3d5e451266",
+    "live_task_gate.json": "b4ea3eb3712f495b36abc686afd3b1608ae37c091b648810395d92916837e486",
+    "ipwm_closed_loop_evidence.json": "25184d1248b5b195bc14b5252a2cb7f4d32d775da908b0b8818b5c149126be95"
+  }
+}
