@@ -1,0 +1,13 @@
+{
+  "effective_utc": "2026-09-05T04:46:04.753717+00:00",
+  "requested_by": "user",
+  "maximum_lock_hold_s": 20,
+  "previous_maximum_lock_hold_s": 10,
+  "scope": "future_trials_only",
+  "safety_file": "hardware\\safety_limits.yaml",
+  "prior_safety_backup": "hardware\\safety_limits_before_user_lock20_20260905.yaml",
+  "prior_sha256": "14f541406390ca19a70bf688fc4fa585f9814349136a841fbb92dd2b5a7f3d04",
+  "new_sha256": "9ec9905d7b5f38408b743276a4ca978a1dd4ec661827cd7f4194505627d894b6",
+  "other_safety_limits_unchanged": true,
+  "physical_20_second_validation": "not_yet_performed"
+}

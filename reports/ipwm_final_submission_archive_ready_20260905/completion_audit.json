@@ -1,0 +1,140 @@
+{
+  "status": "PASS",
+  "formal_schedule": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\final_push_formal_membership_v4.csv",
+  "formal_schedule_sha256": "b356219b5593c4075bdd9571b8eddbda5bd7868550fa2a1a0f7e23f0a8c98061",
+  "formal_rows": 23,
+  "core_rows": 18,
+  "core_go": 18,
+  "core_by_condition": {
+    "intact": 3,
+    "D1": 3,
+    "D2": 3,
+    "D3": 3,
+    "D4": 3,
+    "D5": 3
+  },
+  "double_fault_counts": {
+    "J1+J2": {
+      "GO": 1
+    },
+    "J2+J3": {
+      "GO": 1
+    },
+    "J3+J4": {
+      "NO_GO": 2,
+      "GO": 1
+    }
+  },
+  "pending_count": 0,
+  "retained_trial_directory_count": 29,
+  "all_attempt_inventory_count": 29,
+  "representative_frames": [
+    {
+      "condition": "intact",
+      "trial_id": "V2-P20-intact-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\intact_V2-P20-intact-01_final.jpg",
+      "sha256": "dba758e01b1698c747032f78de24ccbdb21c93e0180c8c66cca502b7ac42f412"
+    },
+    {
+      "condition": "D1",
+      "trial_id": "V2-P20-D1-01-unlimited-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\D1_V2-P20-D1-01-unlimited-01_final.jpg",
+      "sha256": "c6440983969b0fdaa14ae99e371e9d28fe9777180be6e83f7386d7f19965ee9d"
+    },
+    {
+      "condition": "D2",
+      "trial_id": "V2-P20-D2-floor05-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\D2_V2-P20-D2-floor05-01_final.jpg",
+      "sha256": "84d765c8ac236f22107c5d789de648c2c7ee60a87f6dfcf282412cd3c5cdd394"
+    },
+    {
+      "condition": "D3",
+      "trial_id": "V2-P20-D3-medium-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\D3_V2-P20-D3-medium-01_final.jpg",
+      "sha256": "3520954cf264bf93785dbbd680a405a8abd5180aebcd6956e6de09d8f24b59f8"
+    },
+    {
+      "condition": "D4",
+      "trial_id": "V2-P20-D4-medium-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\D4_V2-P20-D4-medium-01_final.jpg",
+      "sha256": "e71859d33b4492b9b3e9ff84201397a5f2d8d3a48baa8c373e6c10deb6a64233"
+    },
+    {
+      "condition": "D5",
+      "trial_id": "V2-P20-D5-medium-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\D5_V2-P20-D5-medium-01_final.jpg",
+      "sha256": "48bd82def8f4dcec7a62980edbefb74b3070d859920fa3959f7bb83b574760c1"
+    },
+    {
+      "condition": "J1+J2",
+      "trial_id": "V2-P15-J1J2-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\J1_J2_V2-P15-J1J2-01_final.jpg",
+      "sha256": "fb21e1e91befb452a27111adb68871ca55d413f0327d590c98584d6cb2974c24"
+    },
+    {
+      "condition": "J2+J3",
+      "trial_id": "V2-P15-J2J3-01",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\J2_J3_V2-P15-J2J3-01_final.jpg",
+      "sha256": "9798e552f6e5979c4b272ab25952084958b31478a9e7768f6934f3b52d0854ce"
+    },
+    {
+      "condition": "J3+J4",
+      "trial_id": "V2-P15-J3J4-03",
+      "selection": "last_decoded_overhead_frame",
+      "path": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\reports\\ipwm_final_submission_archive_ready_20260905\\representative_frames\\J3_J4_V2-P15-J3J4-03_final.jpg",
+      "sha256": "93ccaa3295c276cbfc9b0d9970b0f77be1297fddfe6a819f7d6f3441a7190993"
+    }
+  ],
+  "shutdown": {
+    "status": "PASS",
+    "started_utc": "2026-09-05T09:21:52.958084+00:00",
+    "completed_utc": "2026-09-05T09:21:54.055131+00:00",
+    "target_raw": [
+      2088,
+      2639,
+      2607,
+      2724,
+      2076
+    ],
+    "failure": "",
+    "maximum_final_error_deg": 0.25,
+    "final_position_raw": [
+      2086,
+      2639,
+      2608,
+      2723,
+      2075
+    ],
+    "final_error_deg": [
+      0.17578125,
+      0.0,
+      0.087890625,
+      0.087890625,
+      0.087890625
+    ],
+    "telemetry_rows": 4,
+    "formal_trial": false,
+    "purpose": "setup recovery to frozen intact start",
+    "powered_hold_active": false,
+    "load_compensation_max_ticks": 40,
+    "final_compensated_goal_raw": [
+      2088,
+      2639,
+      2607,
+      2724,
+      2076
+    ],
+    "torque_enable_readback_ids_1_5": null,
+    "torque_off_verified": true,
+    "torque_off_unconfirmed_ids": []
+  },
+  "errors": []
+}

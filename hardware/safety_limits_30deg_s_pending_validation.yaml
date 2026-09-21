@@ -1,0 +1,89 @@
+status: operator_requested_pending_physical_speed_validation
+estop:
+  method: sequential_torque_disable_ids_1_to_6
+  tested: true
+  test_date: 2026-08-10
+  measured_command_ms: 102.7
+  post_stop_drift_ticks_500ms: 0
+communications:
+  command_timeout_ms: 250
+  feedback_timeout_ms: 250
+  stop_on_feedback_loss: true
+joints:
+- name: j1
+  servo_id: 1
+  zero_raw: 2023
+  direction: 1
+  min_deg: -85
+  max_deg: 85
+  max_speed_deg_s: 30
+  max_current_ma: null
+  max_temp_c: null
+- name: j2
+  servo_id: 2
+  zero_raw: 2066
+  direction: 1
+  min_deg: -85
+  max_deg: 85
+  max_speed_deg_s: 30
+  max_current_ma: null
+  max_temp_c: null
+- name: j3
+  servo_id: 3
+  zero_raw: 2058
+  direction: 1
+  min_deg: -92
+  max_deg: 92
+  max_speed_deg_s: 30
+  max_current_ma: null
+  max_temp_c: null
+- name: j4
+  servo_id: 4
+  zero_raw: 2076
+  direction: 1
+  min_deg: -94
+  max_deg: 92
+  max_speed_deg_s: 30
+  max_current_ma: null
+  max_temp_c: null
+- name: j5
+  servo_id: 5
+  zero_raw: 2066
+  direction: 1
+  min_deg: -90
+  max_deg: 90
+  max_speed_deg_s: 30
+  max_current_ma: null
+  max_temp_c: null
+gripper_open:
+  servo_id: 6
+  zero_raw: 1646
+  direction: 1
+  min_raw: 1050
+  max_raw: 2185
+  max_speed_raw: null
+damage_test:
+  lockable_joints:
+  - j1
+  - j2
+  - j3
+  - j4
+  - j5
+  single_lock_probe_authorization:
+    j1:
+      status: pass
+      manifest: results/real_robot/j1-lock-safety-live-20260903-211306/manifest.json
+      manifest_sha256: 7870c2e3f63ed7553724b094c3200cf577264b0931902f88a49371e05690e434
+    j5:
+      status: pass
+      manifest: results/real_robot/j5-lock-safety-live-20260903-211318/manifest.json
+      manifest_sha256: f34becb4c6c6cc7f85f03904b8d3b63653d71e46cd62f03d47c892db0bd24e9c
+  max_lock_hold_s: 10
+  min_bus_voltage_v: 6.0
+  max_bus_voltage_v: 8.4
+  abort_current_ma: null
+  abort_current_raw: 400
+  abort_temp_c: 50
+  max_lock_drift_deg: 3.5
+source_safety_sha256: 14f541406390ca19a70bf688fc4fa585f9814349136a841fbb92dd2b5a7f3d04
+execution_scope: intact_pilot_speed_validation_only_not_formal

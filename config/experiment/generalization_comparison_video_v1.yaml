@@ -1,0 +1,109 @@
+version: generalization_comparison_video_v1
+frozen_on: 2026-09-03
+purpose: per_condition_clips_plus_composite_old_vs_new_model_qualitative_video
+
+methods:
+  old: nominal_world_model
+  new: projection_global_residual_matched
+  note: >-
+    The frozen confirmation evidence does not support claiming that selective
+    SI-IPWM dominates the same-capacity global residual.  The video therefore
+    compares the nominal model against the supported control-related adapted
+    model and names both methods exactly.
+
+shared_protocol:
+  embodiment: original_5dof
+  xml: sim/assets/arm_push.xml
+  candidates_per_group: 128
+  horizon_steps: 50
+  action_segments: 5
+  candidate_archive: data/primary_candidates/confirmation_d3_query_seed91031.npz
+  candidate_archive_sha256: 43a00365caf59e504ef7b730fc9d91bc7bfd0d9efce79899a7b9d725072e2702
+  privileged_future_state_at_selection: false
+  paired_initial_state_goal_and_candidates: true
+
+push_panels:
+  - id: seen_joint_D2
+    fault: D2
+    role: seen_fault_control
+  - id: heldout_joint_D3
+    fault: D3
+    role: preregistered_heldout_joint_primary
+  - id: seen_joint_D4
+    fault: D4
+    role: seen_fault_control
+  - id: exploratory_joint_D1
+    fault: D1
+    role: posthoc_exploratory_stress_test
+  - id: exploratory_joint_D5
+    fault: D5
+    role: posthoc_exploratory_stress_test
+  - id: heldout_lock_angle
+    fault: D3
+    role: preregistered_heldout_angle
+  - id: heldout_physics
+    fault: D3
+    role: heldout_friction_payload_stress_test
+
+grasp_panels:
+  - id: grasp_intact
+    fault: intact
+    role: task_transfer_control
+  - id: grasp_seen_joint_D2
+    fault: D2
+    role: seen_fault_task_transfer
+  - id: grasp_heldout_joint_D3
+    fault: D3
+    role: heldout_fault_task_transfer
+  - id: grasp_seen_joint_D4
+    fault: D4
+    role: seen_fault_task_transfer
+  - id: grasp_exploratory_D1_D5
+    faults: [D1, D5]
+    role: posthoc_exploratory_task_transfer
+  - id: grasp_heldout_pose
+    fault: D3
+    role: unseen_cube_pose_task_transfer
+
+grasp_success_definition:
+  approach_contact: true
+  gripper_closed_on_object: true
+  minimum_lift_height_m: 0.03
+  minimum_retention_s: 3.0
+  scripted_oracle_is_not_a_learned_method: true
+
+example_selection:
+  rule: >-
+    For each supported panel, use the first archive-ordered paired group where
+    nominal fails and the new model succeeds.  If no such group exists, show
+    the first archive-ordered group and retain the failure.  Do not rank or
+    select examples by visual appearance or effect magnitude.
+  disclose_selection_rule_in_video: true
+  retain_all_panel_outcomes: true
+
+render:
+  layout: side_by_side
+  outputs:
+    - one_short_clip_per_supported_push_panel
+    - one_short_clip_per_supported_grasp_panel
+    - push_generalization_montage
+    - grasp_generalization_montage
+    - combined_supplementary_video
+  left_label: Old nominal world model
+  right_label: New projected decision-focused model
+  overlays:
+    - fault_condition_and_evidence_role
+    - identical_initial_state_and_goal
+    - selected_candidate_id
+    - cube_trajectory
+    - terminal_error
+    - success_or_failure
+  final_card:
+    - full_three_seed_aggregate_not_single_example
+    - candidate_archive_hash
+    - simulation_or_real_hardware_label
+
+hardware_boundary: >-
+  Real-camera footage may be added only for conditions with a genuine paired
+  model-selected candidate record after the Level-B action bridge passes.  A
+  fixed hardware trajectory must never be relabeled as a model rollout.

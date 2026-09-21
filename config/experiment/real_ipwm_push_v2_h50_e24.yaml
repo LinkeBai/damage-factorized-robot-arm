@@ -1,0 +1,128 @@
+protocol_id: real_ipwm_push_v2_h50_e24
+status: prospective_parameters_frozen_hardware_gates_required
+frozen_date: 2026-09-05
+claim_boundary:
+  quantitative: image-space receding-horizon IPWM control under diagnosed joint locks
+  qualitative: cross-condition and fixed-pregrasp grasp feasibility
+  excluded:
+  - universal damage recovery
+  - unobserved-fault diagnosis
+  - grasp-policy learning
+  - pooling historical open-loop runs into closed-loop statistics
+hardware:
+  robot: original_5dof_genkiarm_sts3215
+  serial_port: COM3
+  overhead_camera: daheng_FDE23080341
+  wrist_camera: directshow_index1
+  checkpoint: runs/icra_confirmation_d3_query_selective_w10/seed27/model.pt
+  model_config: config/experiment/icra_primary_d2d4_eval_strict_3seed_v1.yaml
+  axis_calibration: results/real_robot/push_axis_current_epoch_20260903.json
+  safety: hardware/safety_limits.yaml
+  user_speed_ceiling_deg_s: 30
+  execution_speed_deg_s: 5
+  maximum_lock_hold_s: 10
+  fault_timing_gate: demonstrate feasible observation/scoring/action cycle timing
+    within existing lock hold before fault acquisition
+push:
+  goal_gate:
+    mode: axiswise
+    tolerance_px: 5
+    consecutive_frames: 3
+  online_control:
+    planner: IPWM_receding_horizon
+    candidate_count_minimum: 10000
+    horizon: 50
+    execution_reference_index: 24
+    semantics: score_all_50_reference_steps_execute_only_rate_limited_move_to_index_24_then_reobserve
+    replans_maximum: 8
+    observation_wait_s: 0.35
+    shared_robot_fast_path: true
+  matrices:
+    core_quantitative:
+      distance_px: 20
+      approximate_distance_mm: 35.1
+      conditions:
+      - intact
+      - D1
+      - D2
+      - D3
+      - D4
+      - D5
+      requested_valid_trials_each: 3
+    multi_lock_coverage:
+      distance_px: 15
+      approximate_distance_mm: 26.3
+      conditions:
+      - J1+J2
+      - J2+J3
+      - J3+J4
+      requested_valid_trials_each: 3
+      inclusion_rule: execute_only_if_preflight_and_reachability_gate_pass
+  historical_runs:
+    distances_px:
+    - 30
+    - 45
+    use: difficulty-extension and model-guided open-loop feasibility only
+    pooled_with_closed_loop: false
+  start_variants:
+    standard:
+    - 0
+    - 0
+    axis_minus_3_px:
+    - -3
+    - 0
+    lateral_plus_3_px:
+    - 0
+    - 3
+  nominal_start_px:
+  - 1086.31
+  - 570
+  fixed_goal_20_px:
+  - 1106.31
+  - 570
+  fixed_goal_15_px:
+  - 1101.31
+  - 570
+  start_gate:
+    tolerance_each_axis_px: 1
+    required_consecutive_frames: 3
+    reason: avoid overlap of start variants separated by 3 px
+grasp:
+  status: removed_by_user_on_2026-09-05
+  reason: final_real_robot_day_reallocated_to_push_only
+trial_accounting:
+  retain_success: true
+  retain_failure: true
+  retain_invalid: true
+  invalid_reasons:
+  - camera_or_detector_loss
+  - serial_or_feedback_timeout
+  - human_intervention_after_start
+  - start_gate_not_satisfied
+  - safety_abort
+  prohibit_overwrite: true
+  prohibit_synthetic_replication: true
+  cohort: prospective_v2_only; all historical attempts retained separately
+required_artifacts:
+- run_manifest.json
+- daheng_FDE23080341_raw.avi
+- directshow_index1_raw.avi
+- frame_timestamps.csv
+- commands.csv
+- servo_telemetry.csv
+- live_task_gate.json
+- ipwm_replan_cycles
+- packet_audit.json
+execution_order:
+- powered_hardware_and_dual_camera_preflight
+- one_intact_20px_closed_loop_smoke
+- core_quantitative_round_robin
+- reachable_multi_lock_15px_round_robin
+- audit_summary_and_two_copy_backup
+frozen_utc: '2026-09-05T04:26:39.395932+00:00'
+deadline: null
+supersedes:
+  path: config\experiment\real_ipwm_final_day_20260906.yaml
+  sha256: d4532dd25d2288a80eb1b34a08369f7b21d539ad9453434b3d63df72e640408c
+  reason: v1 numerical horizon 5 contradicted its 50 step description; no retrospective
+    reassignment

@@ -1,0 +1,239 @@
+{
+  "version": "supported-core-v2",
+  "frozen": true,
+  "created_utc": "2026-09-13T13:44:16.044532+00:00",
+  "purpose": "One corrected-initialization/support matched comparison, all methods/seeds/results retained.",
+  "display_names": {
+    "ipwm": "LockPusher",
+    "carrier": "Carrier",
+    "global": "Global"
+  },
+  "model_revision": "supported-resolved-contact-v2",
+  "engine": "MuJoCo CPU",
+  "data_seed": 91362026,
+  "reset_seed": 9132026,
+  "steps": 50,
+  "segments": 5,
+  "segment_steps": 10,
+  "action_limit": 0.8,
+  "workers": 4,
+  "shard_size": 250,
+  "locks": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "profiles": [
+    "nominal",
+    "high_damping",
+    "weak_motor",
+    "mixed"
+  ],
+  "counts": {
+    "pool": 50000,
+    "validation": 2000,
+    "test": 6000
+  },
+  "data_scope": "Balanced within-condition independent resets; test split is not unseen-physics generalization.",
+  "initial_state": "Geometry-checked zero-velocity reset with gravity-loaded block_z support and actual lock angle.",
+  "control": "Original raw motor inputs, gravity, damping, friction; no PD/gravity compensation change.",
+  "training": {
+    "seeds": [
+      7,
+      17,
+      27
+    ],
+    "methods": [
+      "ipwm",
+      "carrier",
+      "global"
+    ],
+    "epochs": 10,
+    "batch_size": 512,
+    "learning_rate": 0.0003,
+    "gradient_clip": 5.0,
+    "horizon_schedule": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      25,
+      25,
+      25,
+      25,
+      25
+    ],
+    "common_pretraining_seed": 27,
+    "selection": "Minimum validation H25 object XY MSE including initialization; no test selection.",
+    "windows": "Every pool trajectory once per epoch; independent seeded contiguous window, no replacement.",
+    "loss_scales": [
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.03,
+      0.03,
+      0.1,
+      0.1
+    ],
+    "identity": "Three adaptation repetitions from one fixed pretrained source; not independent pretraining."
+  },
+  "seeds": [
+    7,
+    17,
+    27
+  ],
+  "methods": [
+    "ipwm",
+    "carrier",
+    "global"
+  ],
+  "evaluation": {
+    "horizons": [
+      10,
+      25,
+      50
+    ],
+    "start_step": 0,
+    "metrics": [
+      "object_xy_rmse_mm",
+      "object_velocity_rmse_m_s",
+      "free_q_rmse_rad",
+      "free_v_rmse_rad_s",
+      "pusher_xy_rmse_mm",
+      "reference_deviation",
+      "lock_deviation"
+    ]
+  },
+  "planning": {
+    "problems_per_cell": 120,
+    "locks": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "distance_bands_m": [
+      [
+        0.04,
+        0.065
+      ],
+      [
+        0.065,
+        0.09
+      ]
+    ],
+    "candidate_budget": 128,
+    "horizon_steps": 50,
+    "segments": 5,
+    "replans": 5,
+    "executed_steps_per_replan": 10,
+    "success_radius_m": 0.03,
+    "seed_repeat": {
+      "7": 0,
+      "17": 1,
+      "27": 2
+    },
+    "goal_direction": "Initial pusher-to-object planar direction plus uniform [-pi/4,pi/4].",
+    "goal_rng_seed": 91362026,
+    "reset_index": "band*120+problem_index; profile=problem_index%4.",
+    "independent_problems": 1200,
+    "metrics": [
+      "initial_distance_m",
+      "terminal_distance_m",
+      "progress_m",
+      "relative_terminal_error",
+      "success_at_30mm"
+    ],
+    "termination": "Execute all five replans, score final state; no favorable early stopping."
+  },
+  "hard_gates": [
+    "all initial geometric/support/limit audits pass",
+    "all recorded states finite",
+    "exact count/identity/hash integrity and split separation",
+    "all nine model choices frozen before any model test evaluation"
+  ],
+  "dynamic_audit": "Record every trajectory, contact/force chronology, support, z/vz and dynamic gaps; no outcome filtering.",
+  "limitations": [
+    "14-D model input omits block_z/vz, full simulated state is archived.",
+    "Fixed object orientation excludes rotational pushing.",
+    "Legacy pretrained source retained identically; this is transfer adaptation, not retraining the full chain.",
+    "The three fitted variants do not alone isolate selective recurrence.",
+    "Corrected simulation is not a real-hardware matched baseline.",
+    "Soft contacts and soft joint limits are finite-compliance approximations; all internal-step violations are retained.",
+    "Step-halving development sensitivity is reported; this does not establish uniform submillimeter convergence."
+  ],
+  "source_sha256": {
+    "sim/assets/arm_push.xml": "952e7bdb5b94e5680a35e6a2180a00234fe1f6a75f1b357f684d98c004f44906",
+    "src/robotarm/envs/checked_push_reset.py": "d88d56b514b698906f6f1c09cbc54b64af33832b77ac6d76a17c3e463627cac3",
+    "src/robotarm/envs/supported_push_reset.py": "d0f72de7e60cfb7a3b3d27d11078869e0013f6ba71c4795d1351e34547bec95f",
+    "src/robotarm/envs/constraint_lock.py": "741d57f0cc373b1b8893074c5ea2ecc6629bcd28d9adb40319aabd82365ce02e",
+    "scripts/ipwm_scale_train.py": "fbad9691b3355dd2cfae1715ac9936a904a7c5933a6b96d82977bc0851b8d685",
+    "scripts/audit_ipwm_targeted_advantage.py": "6ab0de24d6cd911169b138c1b2fae54e7d65ab8dd0ff18986508752a47e8cb98",
+    "config/experiment/icra_primary_d2d4_decision_development_3seed_v1.yaml": "1d965dc45a1820904556dc727fa04c1cca71bbbdc94191d924db54e3f5c1c57f",
+    "runs/icra_primary_decision_full_w10_128eval_strict_v2/seed27/model.pt": "7bf6888fb07bd3c52d42bb4816c0e27a5ce1aaba2ded20b5b09b1f8f8b71896e",
+    "runs/icra_primary_global_matched_w10_128eval_strict_v2/seed27/model.pt": "6b87e3bfd6383b943f5536e1e6f77450f00af2dd765250dd16b2a0aac0e2e76d",
+    "runs/g2_bt_dpwm_meta_train_z32/seed27_v1/baseline_model.pt": "028ecef67d76c56946b7853f64b7139e1f2d4f511e60c4bf47413a9716b727e8",
+    "src/robotarm/models/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/robotarm/models/amortized_encoder.py": "5745dd76560d97a8d9299e1b62a5e1c20409a56881559346b29c1f916a157c46",
+    "src/robotarm/models/block_triangular_dpwm.py": "77d4974e14a605d0d09360964f7572015d0e6b215c92cc4194cd5765fffec527",
+    "src/robotarm/models/constraint_reaction_world_model.py": "1348514b69b86446a46438ad3e16f850f1537c42b7f989bd9c2bb573de9d79d6",
+    "src/robotarm/models/contact_action_ranker.py": "6e5db24969718aa85fcb61ebc9b9d9e5bc64f15a55b8ad88948cfa0c5540a940",
+    "src/robotarm/models/contact_geometry.py": "1da5d46db936b0d0f9ae44da1a9446c833c341aa65757552a0022b79fafe0a2f",
+    "src/robotarm/models/dual_expert_world_model.py": "2d77a364f0598a34116b6fcf05908141ab392237945ca520d47dd2bbfbd96b07",
+    "src/robotarm/models/fixed_transform_graph.py": "3993ce00feebcdf0f9c62400b549ad2969c773960600006c803af56447f110ac",
+    "src/robotarm/models/fixed_transform_kinematics.py": "77421b010506a95168ce9fd1f2a3092b055121566d60856e7dac5d1cf4871d1a",
+    "src/robotarm/models/gated_reaction_graph.py": "8f47ade6e1d56b4fdc8dae7057116b5d433425808fc2fe40987bc72c6980a746",
+    "src/robotarm/models/guarded_policy.py": "4b557342cbef0260abb6f54bf9c000307f96b9e0ba0d6f921be9ac6e04ff6633",
+    "src/robotarm/models/history_encoder.py": "d12deb0c213ffb92fa32fa1a5fc1127abe21874708c8a894f6bfeaf1475e31ed",
+    "src/robotarm/models/hybrid_contact_impulse.py": "c1c6daab1ea6a4ef0d3f7f97db414586e060ae399f8efbdbdb5e9ef843220647",
+    "src/robotarm/models/physical_context_encoder.py": "0d6075a771577baa8b9ef761005029065daef1706327abff5c467f4e1f2827fc",
+    "src/robotarm/models/planner.py": "7b033e9fe505db29fdc630763dd1bf03a6cb2606af1418f4d55c89f09e668180",
+    "src/robotarm/models/projected_residual_innovation.py": "262349962d9662557d85806e2b13f86272e52fc1c56a33b7aef903c56682b840",
+    "src/robotarm/models/reduced_coordinate_graph.py": "a52466ccf987adfe394bd3c01894587f6e7575a68cf280dca3f2d9d2abac5f8b",
+    "src/robotarm/models/residual_context.py": "4b342d130edb2f161d11388d6afe84d366a7ded152101b9e16c2846365c4ecdf",
+    "src/robotarm/models/residual_correction.py": "f95562c3fa3ca73998e3efe795880d89905f6bacfce082c058d78b51fcbc9c67",
+    "src/robotarm/models/residual_film.py": "e7330e9b96289a9caeeb47ec548b878653f53c15a50ca828e4f18d5bb8d3509b",
+    "src/robotarm/models/selective_intervention_rollout.py": "a653bd0dfd46358b21a0a3d97805246030c8421f6741930e2d14c4a7085dcf40",
+    "src/robotarm/models/structured_fault_effect_transport.py": "d45695944e571781c9b1c6b45f2501967a50cff4c616ef52755f90b4b80bdac3",
+    "src/robotarm/models/tangent_manifold_graph.py": "0c1d35b22d01940648e511a8a483a212fd0ac4df1ca518cf713aefde52923f33",
+    "src/robotarm/models/topology_encoder.py": "9aa0074345cd95f6c217948eb05c432bb6fe5cfda61b693fd030bc416c0cd857",
+    "src/robotarm/models/topology_graph_world_model.py": "845e837daff1d66517247870c0612e7011310f19ba933bcbb60f776bc3c1a722",
+    "src/robotarm/models/topology_surgery.py": "80a67f270d446fb988fe3ad12af298289c30dc654e3b00910523b49990baca44",
+    "src/robotarm/models/unconstrained_residual_graph.py": "0a44b0b58cb1f509c6dd879f0f5849ea68870ccfda34e1612e3702d45f74eac5",
+    "src/robotarm/models/variable_dof_ipwm.py": "0be5ab5be424d052027d2400599c045e4feaa5998bc00b4e6b6b6319ccaae9f6",
+    "src/robotarm/models/world_model.py": "f3424dfb8282e9dde18001a1ed1cd258a55459c22b3e0656c319ab388e77fe38",
+    "src/robotarm/envs/resolved_push_reset.py": "34c12bb5f5f301629ab2fa8fa3ba2fd4ddb7e49276140508bc94504416271e57"
+  },
+  "test_access": "Physics-only dataset audits allowed; model test evaluation only after all nine selections are sealed.",
+  "stopping": "One fixed comparison; no seed replacement, budget extension, or outcome-based rerun.",
+  "previous_protocol_sha256": "80c5527ed7f3dfc9b9d2352d876a6f038fe3bea5facd4e25cda4aa352224fbb9",
+  "physics_amended_utc": "2026-09-13T15:10:48.973613+00:00",
+  "development_directory": "data-development-v2",
+  "development_report": "development-v2-report.json",
+  "numerics": {
+    "internal_timestep_s": 0.00025,
+    "observation_timestep_s": 0.005,
+    "internal_steps_per_observation": 20,
+    "geom_and_limit_solref": [
+      0.004,
+      1.0
+    ],
+    "geom_and_limit_solimp_first_three": [
+      0.99,
+      0.9999,
+      0.001
+    ],
+    "scope": "Explicit soft-contact/limit model revision plus numerical substepping; not measured hardware stiffness."
+  }
+}

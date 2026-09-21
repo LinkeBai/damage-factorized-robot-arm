@@ -1,0 +1,22 @@
+{
+  "created_utc": "2026-09-05T07:47:38.973932+00:00",
+  "user_instruction": "Skip separate preflight and proceed with experiments",
+  "change": "Omit standalone non-contact lock probe; retain integrated runner startup checks and online hardware monitoring. No claim of completed standalone physical preflight.",
+  "first_trial": "V2-P15-J1J2-01",
+  "start_px": [
+    1086.31,
+    570
+  ],
+  "goal_px": [
+    1101.31,
+    570
+  ],
+  "maximum_speed_deg_s": 5,
+  "candidate_count": 10000,
+  "minimum_remaining_fraction": 0.5,
+  "maximum_replans": null,
+  "maximum_lock_hold_s": null,
+  "bank": "data/real_robot/session_20260901/ipwm_preparations/V2-P15-J1J2-prep-01/ipwm_candidates.npz",
+  "limitation": "Offline short-step feasibility does not establish full 15px reachability; retain all outcomes.",
+  "bank_sha256": "328228292c93a060a0bc596fb3218aef37bf922bae80b36eee5da64e1baf8c6e"
+}

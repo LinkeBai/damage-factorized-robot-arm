@@ -1,0 +1,22 @@
+{
+  "created_utc": "2026-09-05T08:03:08.501553+00:00",
+  "condition": "J3+J4",
+  "trial": "V2-P15-J3J4-01",
+  "bank": "data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P15-J3J4-micro-prep-01\\ipwm_candidates.npz",
+  "bank_sha256": "41533adbca4ecc6edf89d9978fd0c481ec7eae39c9cc40b8c38d24f060ec4950",
+  "start_px": [
+    1086.31,
+    570
+  ],
+  "goal_px": [
+    1101.31,
+    570
+  ],
+  "maximum_speed_deg_s": 5,
+  "minimum_remaining_fraction": 0.5,
+  "horizon": 50,
+  "execution_reference_index": 24,
+  "maximum_replans": null,
+  "maximum_lock_hold_s": null,
+  "note": "Prospective smaller candidate family; prior rejected families retained; short-step eligibility does not prove full reachability."
+}

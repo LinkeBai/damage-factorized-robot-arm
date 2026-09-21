@@ -1,0 +1,16 @@
+{
+  "effective_utc": "2026-09-05T05:10:50.632827+00:00",
+  "condition": "D2",
+  "candidate_archive": "data/real_robot/session_20260901/ipwm_preparations/V2-P20-D2-short-01/ipwm_candidates.npz",
+  "minimum_remaining_fraction": 0.5,
+  "prior_default": 0.05,
+  "reason": "Repeated identical near-goal targets with unchanged feedback in retained D2 retry",
+  "candidate_count": 10000,
+  "task_goal_px": [
+    1106.31,
+    570
+  ],
+  "claim": "prospective control revision; hardware effectiveness unproven",
+  "time_cap": null,
+  "cycle_cap": null
+}

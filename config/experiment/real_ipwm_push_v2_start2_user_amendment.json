@@ -1,0 +1,13 @@
+{
+  "effective_utc": "2026-09-05T04:35:40.922642+00:00",
+  "requested_by": "user",
+  "scope": "future_start_gates",
+  "tolerance_each_axis_px": 2,
+  "success_gate": {
+    "tolerance_each_axis_px": 5,
+    "consecutive_frames": 3
+  },
+  "record_actual_start_offsets": true,
+  "prior_data_unchanged": true,
+  "supersedes": "real_ipwm_push_v2_standard_start_amendment.json"
+}

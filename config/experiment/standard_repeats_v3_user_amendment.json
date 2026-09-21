@@ -1,0 +1,24 @@
+{
+  "created_utc": "2026-09-05T05:40:58.628909+00:00",
+  "reason": "User questioned necessity of +/-3px experiments; proceed with standard-start repetitions per latest discussion",
+  "core_trials": 18,
+  "repeats_per_condition": 3,
+  "start_px": [
+    1086.31,
+    570
+  ],
+  "goal20_px": [
+    1106.31,
+    570
+  ],
+  "start_tolerance_each_axis_px": 2,
+  "success_gate": "5px each axis for 3 distinct consecutive reliable frames",
+  "maximum_lock_hold_s": null,
+  "maximum_replans": null,
+  "dropped_claim": "initial-position perturbation robustness",
+  "raw_history_unchanged": true,
+  "previous_schedule_sha256": "1e5dbf129f1279a6d846708e8124393702a5cd0c1876ecf30c0ac05a3055641d",
+  "schedule": "data\\real_robot\\final_push_schedule_standard_repeats_v3.csv",
+  "schedule_sha256": "29a82b31f8c8f631e7569a32280f6fb7dc17bcff1748ce838968049cca1d78fc",
+  "historical_attempt_assignment": "Retain all retries and protocol changes; no automatic replacement or pooling of successful retries."
+}

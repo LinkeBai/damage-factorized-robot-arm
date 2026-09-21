@@ -1,0 +1,12 @@
+{
+  "scope": "Saved evaluation records and adapted checkpoints extracted into isolated directory; no simulation or training rerun",
+  "checked_cells": 240,
+  "checks": [
+    "frozen script and selection hashes",
+    "cell metadata matches actual model checkpoint hash",
+    "finite arrays and expected shapes",
+    "candidate indices and locked commands",
+    "endpoint/success recomputation",
+    "identical initial states and goals across methods and fits for each condition"
+  ]
+}

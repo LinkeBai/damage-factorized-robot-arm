@@ -43,8 +43,10 @@
 
 ## 4. 今天真正需要得到什么
 
-正式 Level-A 包含 30 次 Push：intact、D2、D3 各 10 次。每次都执行对应条件下
-同一条已经验证的固定低速位置轨迹。方块每次回到同一物理标记，目标点固定。
+正式 Level-A 包含 30 个 primary Push：intact、D2、D3 各 10 个；冻结表另含每条件
+10 个预注册 reserve。每次都执行对应条件下同一条已经验证的固定低速位置轨迹，
+方块统一回到冻结的物理起点 A，目标点固定。reserve 只在 abort 后按冻结 rank 顺序
+补到该条件 10 个有效试验，未触发的 reserve 不执行。
 
 每次必须保存：
 
@@ -135,8 +137,9 @@ eye-in-hand。
   --output results\real_robot\trajectory-library-audit.json
 ```
 
-只有输出 `TRAJECTORY_LIBRARY_SAFE_TO_FREEZE` 且退出码为0才可继续。复制冻结表为
-`level_a_trials_completed.csv`，之后只填写测量/文件/失败字段；冻结表本身永远不改。
+只有输出 `TRAJECTORY_LIBRARY_SAFE_TO_FREEZE` 且退出码为0才可继续。建立
+`level_a_trials_completed.csv` 时先复制全部 primary 行；若有 abort，再依次加入该条件
+最小未使用 `reserve_rank` 行，达到10个有效后立即停止补跑。冻结表本身永远不改。
 
 使用真实资产、相机、标定和目录生成会话清单。先运行
 `scripts/prepare_real_robot_level_a_session.py --help`，按现场真实值填写所有必填项。
@@ -160,10 +163,10 @@ eye-in-hand。
 11. 在 completed CSV 的对应行填写结果和三个相对/绝对文件路径。
 12. 方块复位，进入下一行。不得跳到自己喜欢的条件，也不得重排。
 
-若试验异常：立刻停止，`aborted=1`，保留视频和日志并填写 failure_code，例如
+若试验异常：立刻停止，`aborted=1`，保留该行、视频和日志并填写 failure_code，例如
 `camera_loss`、`workspace_exit`、`cable_risk`、`unexpected_contact`、
-`joint_limit`、`emergency_stop`、`controller_error`。不要删除这一行，也不要用补跑
-覆盖；若确需额外重跑，作为带说明的额外行保存，正式冻结30行仍原样保留。
+`joint_limit`、`emergency_stop`、`controller_error`。不要删除或覆盖；只能使用冻结表中
+该条件的下一个 reserve。禁止跳过 reserve、达到10个有效后继续补跑或事后挑选结果。
 
 ## 10. 每5次和每10次检查
 

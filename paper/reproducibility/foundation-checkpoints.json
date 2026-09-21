@@ -1,0 +1,21 @@
+{
+  "training_source_hash_matches_protocol": true,
+  "construction": "Carrier is copied from the full seed-27 model with geometric_object_head zeroed. The helper also loads global and nominal weights; these are dependencies, not independent pretraining repetitions.",
+  "files": [
+    {
+      "path": "runs/icra_primary_decision_full_w10_128eval_strict_v2/seed27/model.pt",
+      "bytes": 1360139,
+      "sha256": "7bf6888fb07bd3c52d42bb4816c0e27a5ce1aaba2ded20b5b09b1f8f8b71896e"
+    },
+    {
+      "path": "runs/icra_primary_global_matched_w10_128eval_strict_v2/seed27/model.pt",
+      "bytes": 1360203,
+      "sha256": "6b87e3bfd6383b943f5536e1e6f77450f00af2dd765250dd16b2a0aac0e2e76d"
+    },
+    {
+      "path": "runs/g2_bt_dpwm_meta_train_z32/seed27_v1/baseline_model.pt",
+      "bytes": 1360813,
+      "sha256": "028ecef67d76c56946b7853f64b7139e1f2d4f511e60c4bf47413a9716b727e8"
+    }
+  ]
+}

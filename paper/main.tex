@@ -1,735 +1,231 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{amsmath,amssymb,booktabs,graphicx,multirow,tikz,balance}
 \usetikzlibrary{arrows.meta,positioning,fit}
-\newcommand{\method}{SI-IPWM}
-\title{When Fault-Aware World-Model Prediction Helps Control:\\A Six-Stage Diagnosis under Joint Locking}
+\newcommand{\method}{LockPusher}
+\title{LockPusher: Object Adaptation with State-Isolated World Models for Pushing under Joint Locks}
 \author{Anonymous Authors}
 \begin{document}\maketitle
 \begin{abstract}
-A diagnosed joint lock changes a robot's feasible state manifold, but a lower
-world-model prediction error need not identify better contact actions. We study
-few-shot fault adaptation through a six-stage protocol: constraint satisfaction,
-reachability, contact establishment, contact-response prediction, action ranking,
-and realized candidate outcome. The frozen model family combines analytic lock
-projection, a learned fault residual, and paired counterfactual decision training.
-Under one common five-DoF pushing protocol, three seeds, 400 action groups per
-seed, 128 candidates per group, and 50-step rollouts, a same-capacity global
-fault residual reduces top-1 action regret by 19.76\% over the nominal world
-model (10.66--27.86\%; 3/3 seeds) and terminal candidate error by 4.04\%
-(3/3), although contact-response RMSE worsens by 270.04\%. Removing analytic
-projection produces 0.077--0.153 rad lock-position drift and
-0.384--0.660 rad/s velocity violation; projection makes both exactly zero in
-3/3 seeds. A selective intervention model does not improve aggregate regret,
-terminal error, or success over the same-capacity global residual, so we reject
-selective-structure attribution. The result is a reproducible diagnosis rather
-than a universal recovery claim: hard physical correctness and useful action
-ranking are distinct from average predictive accuracy.
+Object adaptation can alter later robot forecasts through feedback in recurrent pushing models. LockPusher addresses this interaction under diagnosed joint locks by retaining a specified robot predictor while adapting object response. Analytic lock projection and separate reference and intervention rollouts preserve each branch's state and memory. The output combines reference robot forecasts with adapted object forecasts. For deterministic branches with matched initial conditions and actions, robot and pusher forecasts equal the projected reference at every step. Across 27 paired comparisons covering three historical checkpoints, three conditions, and three horizons, selective publication retains the intervention's 16.74\% mean reduction in composite object-state RMSE while preserving reference robot forecasts. Visual replanning completes all 18 core short-distance hardware trials across intact and single-joint-lock conditions.
 \end{abstract}
 
 \section{Introduction}
-A robot that loses one joint does not merely acquire a new continuous dynamics
-parameter. Its feasible state manifold changes discretely. Diagnosis may
-provide the locked joint and angle, yet contact outcomes remain uncertain
-because damping, actuation delay, deadband, friction, and payload are only
-partially observed. Re-fitting a complete dynamics model after failure is
-data-intensive, while unconstrained adaptation can violate the diagnosed lock
-or degrade unaffected coordinates.
+Model-based manipulation uses predicted object motion to select actions before execution. In contact-rich tasks such as pushing, prediction errors can change which action appears most promising \cite{finn2017visual,bauza2018data}. A joint lock further restricts the available motions. Even when the locked joint and its angle are known, the resulting object response remains uncertain. Continuing the task requires a model that incorporates the diagnosed constraint and predicts the interaction outcomes needed to choose a push.
 
-Prior damage-recovery methods adapt policies or behavior repertoires
-\cite{cully2015robots,yang2021fault}; rapid adaptation infers latent physical
-properties from recent transitions \cite{kumar2021rma,allevato2020tunenet}; and
-learned pushing models capture uncertain contact dynamics
-\cite{finn2017visual,bauza2018data,kim2023se2}. Their combination leaves two
-questions that are often conflated: does a fault-aware predictor obey the
-diagnosed feasible manifold, and does its numerical prediction improvement
-preserve the ordering of actions needed by a planner?
+Damage adaptation changes policies or behavior repertoires to recover task performance \cite{cully2015robots,yang2021fault}, while learned pushing models estimate contact outcomes from interaction data \cite{bauza2018data,kim2023se2}. ActivePusher connects residual physics with uncertainty-guided data acquisition and planning \cite{zhong2026activepusher}. We focus on the scope of an object update. Robot forecasts determine predicted pusher motion and can also enter action generation within candidate rollouts. In our historical coupled models, object-state error can decrease while free-state and pusher errors increase, even with zero diagnosed-lock violation (Table~\ref{tab:historical-publication}).
 
-Our starting point is a disclosed sequence of failures. Hard masking produced
-feasible-looking rollouts without establishing contact; lower object RMSE did
-not consistently reduce task error; and a selective intervention branch did not
-outperform a same-capacity global residual. These failures motivate evaluation
-at each causal gate rather than another aggregate state-error table.
+Enforcing a known lock and preserving the remaining robot forecast are distinct requirements. We retain a specified robot predictor while adapting the object response. In coupled recurrent models, object corrections can feed back into later robot predictions despite restricting residual outputs to object coordinates. Separate rollout states retain the object update without allowing this feedback to alter the reference prediction.
 
-The contributions are:
+\begin{figure}[t]\centering
+\includegraphics[width=\columnwidth]{figures/lockpusher_revision/task_overview.pdf}
+\caption{LockPusher adapts object response under a diagnosed joint lock. The photograph shows an archived j3-lock trial. For the same candidate action, the schematic illustrates preserved robot forecasts and adapted object forecasts; it does not depict measured motion.}\label{fig:overview}
+\end{figure}
+LockPusher combines analytic lock projection with a state-isolated object correction. A reference predictor, called the carrier, and an intervention branch maintain separate rollout states. LockPusher returns robot coordinates from the carrier and object coordinates from the intervention branch, without feeding this combined output back into either branch. For identical initial observations and action sequences, the construction preserves the projected carrier robot trajectory at every prediction step while allowing the object forecast to change. The intervention branch retains its own robot--object dynamics, so this separation concerns the returned prediction rather than physical independence of the contact dynamics.
+
+The adapted object forecasts rank candidate pushes by predicted terminal distance to the goal. After a portion of the selected action is executed, a fresh observation initializes the next planning cycle.
+
+Historical paired predictions test object gains and robot preservation; a recurrence ablation tests the role of separate physical states. Hardware trials evaluate visual replanning with a robot block that satisfies preservation structurally. Initialization defects leave physical control benefits from the separate large-scale simulations unverified.
+
+Our contributions are:
 \begin{itemize}
-\item a six-stage evaluation that prevents lock feasibility, contact, response
-prediction, action ranking, and task outcome from being collapsed into one RMSE;
-\item an analytic diagnosis-conditioned projection whose exact constraint
-benefit is measured by a three-seed removal ablation;
-\item a controlled comparison of nominal, projected carrier, same-capacity
-global residual, full-state and selective residual, and decision-loss variants
-under identical candidate data and planning budget; and
-\item an auditable positive/negative result: fault adaptation consistently
-reduces action regret while response RMSE degrades, whereas selective
-publication fails its same-capacity attribution test.
+\item A projected, state-isolated world model that permits object adaptation while preserving a specified robot forecast for matched inputs and action sequences.
+\item Paired historical comparisons that separate object-prediction gains from collateral robot-prediction changes, together with a recurrence ablation of reference preservation.
+\item A visual replanning implementation evaluated in intact and joint-lock hardware trials, with deployment results distinguished from the historical prediction comparisons.
 \end{itemize}
 
 \section{Related Work}
-\textbf{Damage adaptation.} Repertoire search \cite{cully2015robots},
-fault-aware reinforcement learning \cite{yang2021fault}, latent extrinsics
-\cite{kumar2021rma}, simulator tuning \cite{allevato2020tunenet}, and
-meta-learned adaptive control \cite{richards2021adaptive} address recovery
-under changed dynamics. We instead assume a diagnosed discrete lock and adapt
-a predictive interaction model while enforcing the resulting constraint.
+\textbf{Adaptation under changed dynamics.} Damage recovery can adapt a behavior repertoire \cite{cully2015robots}, condition a policy on inferred extrinsics \cite{kumar2021rma}, or tune simulator parameters from observations \cite{allevato2020tunenet}. These approaches change how a robot acts or how its dynamics are represented. LockPusher studies a different adaptation contract: a diagnosed joint lock is supplied, and a chosen robot predictor is retained while the object response is adapted.
 
-\textbf{Contact dynamics.} Learned forward models support visual and
-model-based planning \cite{finn2017visual,nagabandi2018neural}; few-sample GP
-models \cite{bauza2018data}, online identification \cite{gao2019online}, and
-equivariant pushing models \cite{kim2023se2} improve data efficiency. Recent
-systems infer physical properties in graph or physics-informed world models
-\cite{zhang2024adaptigraph,li2025pinwm} or combine residual physics with active
-planning \cite{zhong2026activepusher}. Interaction networks encode relational
-structure \cite{battaglia2016interaction,sanchezgonzalez2020learning}. Our
-focus is complementary: isolating an object-specific learned correction from
-robot coordinates whose feasible manifold is known after diagnosis.
+\textbf{Learning pushing dynamics.} Data-efficient pushing models \cite{bauza2018data} and equivariant architectures \cite{kim2023se2} use interaction structure to improve motion prediction. Material-adaptive graph models \cite{zhang2024adaptigraph} condition dynamics on inferred physical properties. ActivePusher combines residual physics with uncertainty-guided data acquisition and kinodynamic planning \cite{zhong2026activepusher}. Our method addresses the scope of a learned correction across rollout steps. We study whether object-prediction gains can be retained while preserving a specified robot forecast. LockPusher specifies which state components may change during an adapted rollout.
 
-\begin{table}[t]\centering
-\caption{Mechanism-level scope relative to representative adaptation work.
-``Exact'' denotes construction rather than a learned penalty.}
-\resizebox{\columnwidth}{!}{\begin{tabular}{lccc}\toprule
-Method&Robot topology&Object physics&Exact state isolation\\\midrule
-RMA \cite{kumar2021rma}&continuous latent&limited&no\\
-TuneNet \cite{allevato2020tunenet}&no&identified&no\\
-AdaptiGraph \cite{zhang2024adaptigraph}&no&few-shot&no\\
-PIN-WM \cite{li2025pinwm}&no&few-shot&no\\
-\method{}&held-out lock&few-shot&yes\\\bottomrule
-\end{tabular}}\label{tab:related}
-\end{table}
-
-Table~\ref{tab:related} is a scope comparison, not a global-superiority claim.
-The closest methods model richer object families or active data acquisition;
-our narrower novelty is the interface between diagnosed robot topology and an
-object correction that cannot rewrite published robot state.
+\textbf{Structural priors and control.} GP pushing models support constrained MPC\cite{bauza2018data}; SE(2)-equivariant models enforce consistency under planar rigid transformations\cite{kim2023se2}; PIN-WM identifies 3D rigid-body dynamics from vision for policy transfer\cite{li2025pinwm}. These address control, geometric symmetry, and physical identification; our constraint instead concerns which predicted components may change during adaptation under a known lock.
 
 \section{Problem Formulation}
-The state is $s_t=[r_t,o_t]$, where
-$r_t=[q_t,\dot q_t]\in\mathbb R^{10}$ and planar object position/velocity
-$o_t\in\mathbb R^4$; action $a_t\in\mathbb R^5$. Diagnosis
-$d=(m,\bar q)$ supplies a binary lock mask and lock angle. Unknown physical
-context $z\in\mathbb R^8$ is inferred from $K=25$ safe transitions. Joint D3
-is absent from training and validation and is combined at test time with seven
-continuous-physics conditions.
+We study planar pushing with a five-joint arm after a joint lock has been diagnosed. The observed state is $s_t=[r_t,o_t]$, with $r_t=[q_t,\dot q_t]\in\mathbb R^{10}$ and $o_t=[p_t,v_t]\in\mathbb R^4$. Here $p_t$ and $v_t$ denote planar object position and velocity. The simulation object translates with fixed orientation. An action $a_t\in\mathbb R^5$ specifies the joint command, and diagnosis $d=(m,\bar q)$ supplies a binary lock mask and the corresponding angles.
 
-We evaluate autonomous rollouts at $H\in\{10,25,50\}$. Object RMSE is the
-primary metric. Free-joint RMSE excludes locked coordinates; pusher-position
-RMSE evaluates forward-kinematic propagation; and lock violation measures
-deviation from $q^j=\bar q^j,\dot q^j=0$. Calibration and evaluation
-trajectories are disjoint.
+Given an observation, diagnosis, planar goal $g$, and candidate sequences $a^{(k)}_{0:H-1}$, a world model predicts terminal object positions and selects the candidate with minimum predicted distance to $g$. We require its returned robot trajectory to equal that of a specified reference predictor for the same observation and candidate. This equality defines the scope of adaptation. The reference is a design input; its preservation and accuracy are evaluated separately. Task performance is measured from executed motion.
 
 \section{Method}
-\subsection{Projection and base dynamics}
-For each joint,
+\subsection{Incorporating the diagnosed lock}
+LockPusher first incorporates the known constraint into prediction. For each joint $j$, define
 \begin{align}
 \Pi_d(q)_j&=(1-m_j)q_j+m_j\bar q_j,\\
-\Pi_d(\dot q)_j&=(1-m_j)\dot q_j,\qquad
+\Pi_d(\dot q)_j&=(1-m_j)\dot q_j,\quad
 \Pi_d(a)_j=(1-m_j)a_j.
 \end{align}
-Projection is applied before and after prediction. A contact-aware recurrent
-base predicts robot and object state; forward kinematics supplies pusher
-geometry. The intervention branch adds geometry and low-rank latent object
-residuals modulated by observable context. Base checkpoints and the robot
-block are frozen before intervention training.
+Object coordinates are unchanged. Applying this projection to model inputs and predicted transitions keeps locked positions fixed and locked velocities zero throughout the rollout. Because $m_j$ is binary, applying the projection twice has the same effect as applying it once. Learned object adaptation therefore operates within an explicitly constrained robot prediction.
 
-\textbf{Proposition 1 (analytic feasibility).}
-$\Pi_d$ is idempotent. After every projected transition, each locked joint
-satisfies $q^j=\bar q^j$, $\dot q^j=0$, and $a^j=0$, independently of learned
-parameters and rollout depth.
-
-\emph{Proof.} Substituting the binary mask twice leaves locked entries at
-$(\bar q^j,0,0)$ and leaves free entries unchanged, hence
-$\Pi_d\circ\Pi_d=\Pi_d$. Applying this identity after each transition gives
-the finite-depth statement by induction. \hfill$\square$
-
-\subsection{Physical-support routing}
-An amortized encoder estimates context from the K25 transition sequence. A
-centered modulation $g(z)=h(z)-h(0)$ gives exact recovery at zero context. A
-development audit showed that topology membership alone activates harmful
-corrections in nominal-like physics. We therefore route intervention only if
-$\|z\|_2\ge1.2$, a threshold frozen after seed 27; otherwise the method is the
-carrier exactly. This rule activates on high damping, mixed composition, and
-mixed unseen physics in the reported audit and falls back on nominal, weak
-motor, delay, and noisy-deadband conditions.
-
-\begin{figure}[t]\centering
-\resizebox{\columnwidth}{!}{\begin{tikzpicture}[font=\scriptsize,>=Latex,node distance=5mm,
- box/.style={draw,rounded corners,align=center,minimum height=8mm,
- minimum width=29mm,fill=blue!6},learned/.style={box,fill=orange!13},
- fixed/.style={box,fill=gray!13},arr/.style={->,thick}]
-\node[fixed] (state) {projected state $s_t$};
-\node[learned,below left=8mm and 2mm of state] (carrier) {carrier rollout\\$\tilde s^c_{t+1}$};
-\node[learned,below right=8mm and 2mm of state] (inter) {intervention rollout\\$\tilde s^i_{t+1}$};
-\node[fixed,below=13mm of state] (merge) {publish $[\tilde r^c_{t+1},\tilde o^i_{t+1}]$\\then project $\Pi_d$};
-\draw[arr] (state)--(carrier); \draw[arr] (state)--(inter);
-\draw[arr] (carrier)--node[left]{robot}(merge);
-\draw[arr] (inter)--node[right]{object}(merge);
-\end{tikzpicture}}
-\caption{State isolation. Both models retain private recurrent and predicted
-physical states. Only the published state mixes carrier robot coordinates with
-intervention object coordinates.}\label{fig:isolation}
-\end{figure}
-
-\subsection{State-isolated rollout}
-Let $F_c$ be the no-intervention carrier and $F_i$ the full intervention model.
-Each maintains private hidden and physical states:
+\subsection{Object adaptation with separate rollout states}
+The carrier $F_c$ supplies the reference prediction. An intervention model $F_i$ supplies the adapted object response. Each branch maintains its own physical state $s^b_t$ and recurrent state $h^b_t$, where $b\in\{c,i\}$. Starting from the same projected observation, both branches receive the same projected candidate action:
 \begin{align}
-(\tilde s^c_{t+1},h^c_{t+1}) &= F_c(\tilde s^c_t,a_t,d,h^c_t),\\
-(\tilde s^i_{t+1},h^i_{t+1}) &= F_i(\tilde s^i_t,a_t,d,z,h^i_t).
+(s^b_{t+1},h^b_{t+1})&=F_b(s^b_t,\Pi_d(a_t),d,h^b_t),\\
+s^b_{t+1}&\leftarrow\Pi_d(s^b_{t+1}),\\
+\hat s_{t+1}&=[r^c_{t+1},o^i_{t+1}].\label{eq:publish}
 \end{align}
-The externally visible prediction is
+Only the returned state combines the branches. Each branch recurs on its own state, so the intervention retains its learned dynamics without changing the reference recurrence. This distinction matters when corrected object states influence later robot predictions: masking an immediate residual does not remove that later feedback path.
+
+\textbf{Reference-trajectory preservation.} For deterministic branches with matched initial states, carrier parameters, diagnoses, and candidate actions, the returned robot trajectory equals the standalone projected carrier trajectory at every step. The initial carrier states agree. If they agree at step $t$, the same transition, hidden state, action, and projection produce the same next state. Equation~\eqref{eq:publish} returns that carrier state, establishing the result by induction. The pusher trajectory is also preserved because it is computed from joint positions by the same forward kinematics. For fixed candidates, deterministic evaluation terms computed solely from robot coordinates are also preserved. This property is relative to the chosen carrier; it establishes neither prediction accuracy nor joint dynamical consistency of the returned components.
+
+The robot predictor is a five-node chain graph of width 136. A shared $6\!\to\!136\!\to\!136$ SiLU encoder embeds joint position, velocity, command, lock mask, lock angle, and chain depth. Two message rounds use a $272\!\to\!136\!\to\!136$ network and a 136-unit GRU; a second GRU updates temporal memory. A $136\!\to\!136\!\to\!2$ SiLU head predicts joint increments. The $140\!\to\!136\!\to\!4$ SiLU object head receives the detached mean robot code and current object state, and predicts object increments. A geometric object residual maps a 12-dimensional contact descriptor through a 16-unit Tanh hidden layer to four object corrections. The descriptor includes previous and predicted pusher positions, their displacement, pusher-to-object displacement, object velocity, and two contact gates. Each gate is $\sigma((-0.005-d)/0.002)$, where $d$ is the minimum sampled clearance in meters between two pusher capsules (radii 12 and 8 mm) and a 40-mm axis-aligned box. In this configuration, gates enter the descriptor without additionally multiplying the residual output. In the deployed configuration, the robot block does not consume object state. Separate rollout states also support the historical coupled configuration, in which publication alone must not alter either branch's recurrence.
+
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/lockpusher_revision/state_isolation.pdf}
+\caption{State-isolated prediction. Both branches retain private rollout states under the same observation, actions, and diagnosed lock. Returned robot coordinates come from the reference; object coordinates come from the intervention. The deployed robot block does not receive object-state input.}\label{fig:isolation}
+\end{figure*}
+\subsection{Matched adaptation}
+For the large-scale adaptation study, all variants start from the same pretrained carrier. We freeze its robot parameters and update the object head. LockPusher additionally updates its geometric object residual. The no-residual variant excludes this correction, while the global variant learns corrections to all state coordinates. All variants use the same data and optimization budget.
+
+The underlying adaptation model is trained directly. Its predictions $\tilde s_t$ minimize normalized squared state errors over an autonomous prediction window; state isolation is applied when returning candidate predictions:
 \begin{equation}
-\hat s_{t+1}=\Pi_d([\tilde r^c_{t+1},\tilde o^i_{t+1}]).
-\label{eq:publish}
+\mathcal L=\frac{1}{14H}\sum_{t=1}^{H}\|D^{-1}(\tilde s_t-s_t)\|_2^2.
 \end{equation}
-Crucially, $\hat s_{t+1}$ is not fed back into either private dynamics path.
-Thus the intervention preserves the robot--object feedback it learned, while
-Eq.~\eqref{eq:publish} makes published robot coordinates identical to the
-carrier for any action sequence. Pusher position, being a deterministic
-function of $q$, is also identical. Projection gives zero lock violation.
+The diagonal scale matrix $D$ assigns 0.1 rad to joint positions, 1 rad/s to joint velocities, 0.03 m to object positions, and 0.1 m/s to object velocities. Frozen robot errors contribute no robot-parameter update in the object-only variants. The global residual receives supervision on robot coordinates as well. Training uses ten epochs, with five epochs at horizon 10 followed by five at horizon 25. Each trajectory supplies one randomly positioned contiguous window per epoch. Validation selects the checkpoint with minimum horizon-25 object-position MSE, including the initial checkpoint. These newly adapted weights are evaluated separately from the archived deployment weights.
 
-This guarantee is relative to the chosen carrier, not ground truth: state
-isolation prevents collateral prediction change but cannot correct a bad
-carrier. It also does not guarantee that planning with the improved object
-prediction produces better actions.
+\subsection{Candidate selection and execution}
+For each candidate, LockPusher rolls forward and computes $\hat c_k=\|\hat p_H^{(k)}-g\|_2$. It selects $k^*=\arg\min_k\hat c_k$. A new observation reinitializes both branches after execution. Simulation executes action commands; hardware moves toward selected joint references. Their candidate construction and execution intervals are specified below.
 
-\textbf{Proposition 2 (published-state isolation).}
-For identical initial state, actions, diagnosis, and carrier parameters, the
-published robot trajectory of \method{} equals the standalone carrier
-trajectory at every depth. Its pusher trajectory is therefore identical, and
-locked-coordinate violation is zero.
 
-\emph{Proof.} At depth zero both carrier states are identical. Assuming
-equality at depth $t$, both standalone and internal carriers apply the same
-deterministic $F_c$, action, diagnosis, hidden state, and projection, so their
-robot states and next hidden states agree. Equation~\eqref{eq:publish} copies
-that robot state without modification except the same $\Pi_d$. Induction gives
-equality for all depths. Pusher pose is deterministic forward kinematics of
-$q$, and $\Pi_d$ fixes locked position and velocity. \hfill$\square$
+\section{Experiments}
+\label{sec:experiments}
+\textbf{Simulation validity.} Initial-state audits found tool--object and tool--table penetration and joint-limit violations. Main, calibration, data-budget, and same-weight candidate comparisons therefore lack physical validation. Historical prediction uses a different, physically unchecked reset. Hardware execution is evaluated separately.
 
-\textbf{Proposition 3 (conditional guarded fallback).}
-Let $A$ be proposal acceptance, $S$ certificate validity, and $J$ finite-horizon
-cost. If valid accepted proposals satisfy
-$J(\pi_i)-J(\pi_c)\le L\epsilon_H$ and every false acceptance has excess cost
-at most $C$, exact carrier fallback gives
-\begin{equation}
-\mathbb E[J(\pi_g)-J(\pi_c)]\le
-L\mathbb E[\epsilon_H\mathbf 1_{A\cap S}]+C\Pr(A\cap S^c).
-\end{equation}
-Rejection contributes zero because the published action is exactly $\pi_c$.
-This is a conditional decomposition, not a numerical safety claim: the present
-experiments do not yet establish a sufficiently small false-accept term.
+\textbf{Evaluation quantities.} Simulation endpoint error is $e_{\mathrm{goal}}=\|p_T-g\|_2$, where $p_T$ is the executed object position and $g$ the assigned goal; it is not prediction error. Goals lie 40--65 or 65--90 mm from the initial object position. All episodes, including failures, enter the mean; success is $e_{\mathrm{goal}}<30$ mm. Prediction RMSE instead compares predicted and measured coordinates. Hardware uses a separate image-space criterion: five pixels per axis for three consecutive distinct observations, with a 20-pixel core target displacement (approximately 35.1 mm). Its success rate is therefore not directly comparable to the simulation rate.
 
-\subsection{Training objective and deployment}
-The fault residual is trained after freezing the shared base and robot block.
-For rollout depths $\mathcal H$, its prediction loss is
-\begin{equation}
-\mathcal L_{\rm pred}=\sum_{H\in\mathcal H}w_H
-(\lambda_r\mathcal L_r^H+\lambda_o\mathcal L_o^H+
-\lambda_p\mathcal L_p^H)+\lambda_T\mathcal L_o^{50}.
-\end{equation}
-For candidates $k=1,\ldots,K$ sharing an initial state, diagnosis, and goal,
-let $\hat c_k$ be predicted terminal object-to-goal cost, $c_k$ its realized
-counterpart, and $c^*=\min_k c_k$. We additionally optimize
-\begin{equation}
-\mathcal L_{\rm dec}=\sum_k
-\frac{\exp(-\hat c_k/\tau)}{\sum_j\exp(-\hat c_j/\tau)}(c_k-c^*),\quad
-\mathcal L=\mathcal L_{\rm pred}+\lambda_d\mathcal L_{\rm dec}.
-\end{equation}
-This changes no deployed module: at test time the world model rolls every
-candidate forward and selects minimum predicted terminal cost. The paired
-objective is evaluated separately from weight zero because it may trade average
-prediction error for ranking quality. Feasibility is absent from the loss because
-projection enforces the diagnosed lock by construction.
+Matched contrasts with projected nominal dynamics, removal of the object residual, and global adaptation assess archived endpoint differences associated with adaptation, object correction, and correction scope. Historical publication and recurrence comparisons instead fix weights and inputs to test reference preservation.
 
-We compare two equal-budget residual supports. The global residual may correct
-all predicted state coordinates. The selective model keeps a private coupled
-trajectory but publishes robot coordinates from the carrier and object
-coordinates from the intervention branch. Both share projection, initialization,
-candidate data, epochs, and selection rule; this comparison is the attribution
-test rather than a claim based on parameter count alone.
+\subsection{Simulation protocol}
+The simulated arm pushes a fixed-orientation box with two translational degrees of freedom. We use five single-joint locks and four physical settings: nominal, high damping, weak motor, and mixed perturbations. High damping doubles joint damping; weak motors scale actuator gains to 70\% of nominal; the mixed setting applies both. Adaptation, validation, and testing contain 50,000, 2,000, and 6,000 independently reset trajectories, respectively, with disjoint reset seeds. Each trajectory spans 50 steps at 5 ms per step. Each variant uses six fits from the shared pretrained foundation, following the matched adaptation procedure above.
 
-The strict checkpoints contain 337,834 parameters for selective IPWM and
-337,842 for the same-capacity global control. Both train for 40 epochs; epoch
-selection uses only the frozen D2/D4 development split. Full checkpoint loading
-requires exact key and shape equality, preventing untrained object or
-intervention heads from entering formal evaluation.
+We compare LockPusher with its no-object-residual ablation, global residual adaptation, and projected nominal dynamics. Closed-loop evaluation uses 1,200 shared start--goal problems, comprising 120 problems for each lock and distance band. Each cell contains 30 problems per physical setting, with goal directions sampled uniformly within $\pm45^\circ$ of the forward axis. At each replan the controller scores 128 candidate commands over a 50-step horizon, executes ten steps, and observes the resulting state. Each episode executes five replans (0.25 s total): each predicts 0.25 s and executes 0.05 s, without stopping on goal entry. Each candidate has five ten-step constant-command segments, sampled independently from $[-0.8,0.8]$ on free joints and set to zero on the locked joint. Methods use matched problem and candidate-sampling settings, while each controller replans from its own realized state. Endpoint error is Euclidean object-to-goal distance, and success requires error below 30 mm. Position RMSE and velocity RMSE are reported separately in mm and m/s.
 
-Formal 400-by-128-by-50 evaluation takes 114--333 s for selective IPWM and
-133--150 s for the global residual across recorded runs. These timings mix CPU
-and GPU runs and therefore document resource cost rather than speed superiority.
-The GPU environment is an RTX 4060 Laptop GPU with PyTorch 2.11/CUDA 12.8.
-Historical training logs did not persist reliable end-to-end wall time, so no
-training-time estimate is reported.
+\subsection{Archived closed-loop comparison}
+Table~\ref{tab:scale-plan} summarizes the six adaptation fits. LockPusher reduces mean endpoint error from 49.95 to 47.02 mm relative to removing the object residual. The paired improvements range from 1.79 to 5.25 mm across fits, with positive problem-bootstrap intervals in every fit (Fig.~\ref{fig:paired-plan}). Mean success rises from 24.88\% to 27.64\%. These differences hold in the archived simulator outputs; they do not establish improved physical task progress.
 
-\section{Experimental Protocol}
-Experiments use MuJoCo planar pushing with the original five-joint serial-arm
-geometry and a four-dimensional planar object state. D2 and D4 locks form the
-frozen development distribution. Seeds 7/17/27 use separate model
-initializations and candidate archives. Formal evaluation contains 400 matched
-groups per seed, 128 action sequences per group, and 50 simulator steps per
-sequence. Within a group, every method receives exactly the same current state,
-goal, diagnosis, action candidates, physical contact labels, continuous minimum
-geometry distance, and realized terminal object state.
+The mean initial goal distance is 65.07 mm; LockPusher leaves 47.02 mm, a reduction of 18.05 mm. Success requires ending within a 30 mm goal region; it does not establish precision placement. Mean net object displacement is 60.96 mm, so short execution alone cannot explain the remaining distance. ActivePusher reports mean path-wise SE(2) tracking error in Fig. 7 and uses a 100$\times$100 mm region goal\cite{zhong2026activepusher}; our terminal goal distance is not directly comparable to that mixed-pose metric.
 
-The formal rows are nominal WM, analytic projection/carrier, same-capacity
-global residual, full-state residual, selective publication, decision weight
-zero, decision weight 10, and an oracle that selects by realized terminal cost.
-The oracle measures headroom and is never presented as a deployable baseline.
-Metrics follow the causal order of use: maximum diagnosed-lock violation;
-predicted contact-manifold proxy and realized minimum distance; physical contact;
-contact-candidate response RMSE; Spearman/Kendall and top-1 regret; and realized
-selected-candidate terminal error/success. The last stage is open-loop candidate
-selection, not closed-loop MPC.
+Relative to projected nominal dynamics, LockPusher reduces mean endpoint error by 7.93 mm and increases mean success by 8.00 percentage points; paired endpoint intervals are positive in all six fits. 
 
-D3 was excluded from gradient fitting and epoch selection, but earlier versions
-of the project inspected D3 diagnostics. We therefore call it held out from
-fitting, not untouched confirmation. Historical simplified-arm and calibrated
-GenkiArm spectra are retained below as disclosed development/failure evidence;
-they are not pooled with the strict primary table.
+Global residual adaptation achieves 45.58 mm mean endpoint error and 30.71\% success. Its endpoint error is lower than LockPusher in five of six fits; the paired intervals exclude zero in four. Thus restricting the adapted state retains the prescribed robot prediction but does not minimize endpoint error across all model classes. Open-loop position RMSE likewise does not uniformly improve after object adaptation. 
 
-\section{Results}
-\subsection{Strict six-stage fault-adaptation result}
-The primary comparison uses development domains D2/D4, seeds 7/17/27, 400
-independent action groups per seed, 128 candidates per group, and a fixed
-50-step horizon. Every method sees the same initial states, actions, realized
-candidate outcomes, and compute budget. D3 is excluded from this table because
-it was held out from gradient fitting but had been inspected during earlier
-development; it is therefore not represented as pristine confirmation data.
-The ``outcome'' below is the realized result of the selected open-loop candidate,
-not receding-horizon MPC.
+\input{sections/planning-table-en.tex}
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/meeting_revision/planning_three_comparisons.pdf}
+\caption{Paired endpoint comparisons of LockPusher: (a) adaptation relative to projected nominal dynamics; (b) object-residual comparison relative to removing that residual; and (c) comparison with global adaptation. Positive values favor LockPusher. Each point averages 1,200 shared problems for one fit; bars are 95\% paired-problem bootstrap intervals (2,000 resamples). All panels share the same scales.}\label{fig:paired-plan}
+\end{figure*}
 
-\begin{table}[t]\centering
-\caption{Strict three-seed results versus the nominal world model. Positive
-regret/error entries denote reductions; success is percentage points.}
-\resizebox{\columnwidth}{!}{\begin{tabular}{lrrrrr}\toprule
-Method&Response RMSE&Spearman&Top-1 regret&Terminal error&Success\\\midrule
-Global matched&$-270.04\%$&$+0.0375$&$+19.76\%$&$+4.04\%$&$+1.58$\\
-Selective IPWM&$-247.90\%$&$+0.0378$&$+18.28\%$&$+3.73\%$&$+1.17$\\\bottomrule
-\end{tabular}}\label{tab:strict-control}
-\end{table}
+The fixed-checkpoint prediction study is reported in the supplementary analysis, with position and velocity evaluated separately across all physical conditions. Hardware experiments use the archived deployment weights and are presented in the physical-evaluation section.
 
-The global residual reduces top-1 regret and terminal candidate error in 3/3
-seeds. This is the strongest stable performance result, but it is deliberately
-not attributed to selective publication. Relative to the same-capacity global
-residual, selective IPWM changes mean regret by $-2.07\%$, terminal error by
-$-0.32\%$, success by $-0.42$ points, and Spearman by only $+0.00037$; moreover,
-full-state and selective publication give identical outputs in all three seeds.
-The selective-structure attribution gate is therefore No-Go.
+\subsection{Validation-selected residual scaling}
+Candidate random draws vary with the fit seed and are shared across methods within each fit. The stratified bootstrap resamples problems within the ten lock--distance cells, carrying all methods and fits together at each sampled problem index. Intervals are conditional on these fits and their candidate draws.
 
-The realized-cost oracle has mean terminal error $0.03758$ m versus $0.04675$ m
-for nominal selection, leaving $9.17$ mm or $19.63\%$ mean endpoint headroom
-(positive in 3/3 seeds). The oracle is privileged and non-deployable; it shows
-that candidate quality is not exhausted, while the global residual closes only
-a fraction of the available outcome gap.
+A separate post-training study selects each fit's object-residual scale from $\{0,0.5,1,1.5\}$ by H50 position MSE on the existing validation set. On 2,000 fresh shared trajectories, mean per-coordinate position RMSE decreases from 21.845 to 20.750 mm. On 1,200 additional shared closed-loop problems, mean endpoint error decreases from 46.75 to 46.22 mm and success rises from 28.21\% to 28.97\%. The paired endpoint reduction is 0.532 mm, with a 95\% problem-bootstrap interval of [0.357, 0.712] mm conditional on the six fits. Three changed fits have positive intervals, one spans zero, and two retain the original scale. Relative to the no-object-residual model on these fresh problems, calibrated LockPusher reduces endpoint error by 3.398 mm (conditional 95\% interval [3.085, 3.710] mm), with positive intervals in all six fits, and raises mean success by 3.90 percentage points. This second problem set shares the initialization defect and cannot independently validate physical benefit. Global adaptation achieves 45.34 mm and 30.60\% success on these same problems. Calibration slightly reduces endpoint error, while global adaptation retains a lower mean endpoint error. The calibrated weights were not deployed on hardware.
 
-We additionally registered a post-freeze D3 candidate-query test before
-generating its seed-91031 archive (200 groups, 128 candidates, 50 steps). D3 had
-been inspected in historical exploration, so this is not presented as pristine
-domain confirmation. Global residual versus nominal reduces regret by only
-$9.77\%$ (2/3 seeds) and terminal error by $2.00\%$ (2/3), while success rises
-$2.17$ points (3/3); response RMSE worsens $263.63\%$ and Spearman changes by
-$-0.0148$. Selective IPWM again fails matched attribution: relative to global,
-regret changes by $-3.82\%$, terminal error by $-0.50\%$, and success by
-$-0.83$ points. Thus the fresh-query result confirms no large transferable
-task-performance advantage and bounds the D2/D4 development claim.
+\begin{table}[t]\centering\small
+\caption{Per-fit closed-loop changes from calibration. Positive values favor calibration; intervals are conditional 95\% paired-problem bootstrap intervals.}\label{tab:calibration-fits}
+\begin{tabular}{rrcr}\toprule
+Fit & Scale & Error reduction (mm) & Success gain (pp)\\\midrule
+7 & 1 & 0.00 [0.00, 0.00] & 0.00\\
+17 & 1.5 & 1.40 [0.91, 1.91] & 1.50\\
+27 & 1.5 & 0.69 [0.23, 1.16] & 1.50\\
+37 & 1.5 & 0.98 [0.44, 1.56] & 2.50\\
+47 & 1 & 0.00 [0.00, 0.00] & 0.00\\
+57 & 1.5 & 0.11 [-0.42, 0.64] & -0.92\\
+\bottomrule\end{tabular}\end{table}
 
-The response column exposes the central diagnostic result. Both decision-trained
-models choose better actions while their contact-candidate response RMSE becomes
-substantially worse. Consequently, neither one-step nor rollout RMSE can stand in
-for action-ranking evidence in fault-aware contact planning.
+\textbf{Full-state versus selective publication.} Table~\ref{tab:historical-publication} summarizes a separate historical query: checkpoints 27, 37, and 47; high damping, composition, and unseen composition; ten trajectories per condition; and horizons 10, 25, and 50. Full-state publication returns intervention robot and object coordinates; selective publication substitutes carrier robot coordinates. Both retain private branch states. Object-state errors are identical, with 16.74\% mean reduction. Full-state increases free-state RMSE in three combinations and pusher RMSE in two; selective preserves both carrier errors. Full-state improves free-state RMSE in the other 24 combinations, so preservation does not establish accuracy dominance. Object and free-state aggregates mix position with velocity. The 27 combinations reuse three checkpoints. This publication test differs from the next-state recurrence ablation below and does not establish physical control benefit.
 
-\begin{figure}[t]
-\centering
-\begin{tikzpicture}[
-  stage/.style={draw, rounded corners=1pt, align=center, inner sep=2.5pt,
-    text width=0.27\columnwidth, minimum height=0.62in, font=\scriptsize},
-  pass/.style={stage, very thick},
-  nogo/.style={stage, dashed},
-  neutral/.style={stage},
-  flow/.style={-{Stealth[length=1.5mm]}, line width=0.5pt}
-]
-\node[pass] (s1) {\textbf{1 Constraint}\\6.63$^\circ\!\rightarrow0$\\\emph{Pass, 3/3}};
-\node[neutral, right=2.5pt of s1] (s2) {\textbf{2 Reachability}\\near-contact\\58.1$\rightarrow$58.9\%};
-\node[nogo, right=2.5pt of s2] (s3) {\textbf{3 Contact}\\40.7$\rightarrow$40.2\%\\\emph{No gain}};
-\node[nogo, below=4pt of s3] (s4) {\textbf{4 Response}\\RMSE $+270.04\%$\\\emph{No-Go, 0/3}};
-\node[pass, left=2.5pt of s4] (s5) {\textbf{5 Ranking}\\regret $-19.76\%$\\\emph{Pass, 3/3}};
-\node[pass, left=2.5pt of s5] (s6) {\textbf{6 Outcome}\\error $-4.04\%$\\\emph{Pass, 3/3}};
-\draw[flow] (s1) -- (s2);
-\draw[flow] (s2) -- (s3);
-\draw[flow] (s3) -- (s4);
-\draw[flow] (s4) -- (s5);
-\draw[flow] (s5) -- (s6);
-\end{tikzpicture}
-\caption{Six-stage evidence chain for the same-capacity global residual versus
-the nominal world model. Solid boxes pass a frozen direction/constraint gate;
-dashed boxes expose a failed transfer. ``Outcome'' is the realized selected
-open-loop candidate, not receding-horizon MPC.}
-\label{fig:six-stage}
-\end{figure}
-
-\begin{table}[t]\centering
-\caption{Analytic-projection removal ablation over three seeds.}
-\begin{tabular}{lrrr}\toprule
-Constraint metric&No projection&Projection&Seeds\\\midrule
-Max position drift (rad)&0.077--0.153&0&3/3\\
-Mean position drift (deg)&6.63&0&3/3\\
-Max velocity violation (rad/s)&0.384--0.660&0&3/3\\\bottomrule
-\end{tabular}\label{tab:projection-ablation}
-\end{table}
-
-Table~\ref{tab:projection-ablation} isolates a different contribution. Removing
-projection permits large diagnosed-joint drift, whereas analytic projection
-sets both violations to exactly zero. Candidate regret and terminal outcome
-change little, so projection is claimed as a structural correctness guarantee,
-not as a success-rate improvement.
-
-\subsection{Decision-loss and publication ablations}
-With the same architecture and 40-epoch protocol, weight-10 counterfactual
-decision training versus weight zero improves top-1 regret by 5.98\% and terminal
-error by 1.40\% on average, but only in 2/3 seeds; it decreases success by
-0.50 points and worsens response RMSE by 356.44\%. Conversely, weight zero
-improves response RMSE by 24.84\% and success by 1.67 points over nominal in
-3/3 seeds. The paired objective therefore shifts the model along a
-prediction--decision tradeoff; it is not a uniformly improving component.
-
-\subsection{Retrospective calibrated-GenkiArm boundary}
-The earlier 27/37/47 checkpoint matrix below was generated on the simplified
-\texttt{arm\_push.xml} development model. It is retained to explain the origin
-of state isolation, but it is not the paper's calibrated-model performance
-evidence. The retrospective audit used \texttt{genkiarm\_push.xml}, disjoint
-query seeds, and fresh training seeds 107/117/127.
-
-\begin{table}[t]\centering
-\caption{Historical calibrated-GenkiArm object-RMSE improvement (\%) over the
-mechanism-matched carrier; retained as a negative transfer boundary.}
+\begin{table}[t]\centering\small
+\caption{All 27 historical combinations, relative to the carrier. Object reduction averages checkpoint means. Match requires identical carrier free-state and FK-pusher squared errors in every stored window.}
+\label{tab:historical-publication}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrrr}\toprule
-Method&107&117&127&Mean\\\midrule
-Routed selective&0.604&-0.784&0.718&0.179\\
-Raw selective&1.420&-1.913&2.546&0.684\\\bottomrule
-\end{tabular}\label{tab:genki-interim}
-\end{table}
+& \shortstack{Object RMSE\\reduction (\%)} & \shortstack{Free\\worse} & \shortstack{Max. free\\increase (\%)} & \shortstack{Free/FK\\match}\\\midrule
+Carrier & 0.00 & 0/27 & 0.00 & 27/27\\
+Full-state & 16.74 & 3/27 & 6.20 & 0/27\\
+Selective & 16.74 & 0/27 & 0.00 & 27/27\\
+\bottomrule\end{tabular}\end{table}
 
-For routed selective \method{}, only 2/3 seeds are positive and the
-hierarchical paired-bootstrap 95\% interval is [-0.745\%, 0.797\%]. The raw
-selective interval is [-1.870\%, 2.502\%]. Both fail the preregistered +5\%
-mean, 4/5 positive-seed, and positive-lower-bound gates. Free-state regression
-and locked-coordinate violation are exactly zero in all three seeds. The
-retrospective decision is therefore performance No-Go and mechanism-only
-support. These rows are not pooled with the strict primary result.
+\textbf{Shared-state versus isolated rollouts.} A retrospective test uses 84 previously evaluated trajectories, with 12 per physical condition. Historical weights, context, observations, and actions are fixed across the rollout alternatives. The shared-state alternative retains separate recurrent memories but feeds the combined robot--object output into both next-step transitions. The three fits and three horizons reuse these trajectories. All 63 fit--condition--horizon comparisons give identical object-position and velocity RMSE for shared-state and isolated rollouts. The isolated rollout exactly retains the standalone carrier robot prediction in every comparison; the shared-state alternative changes it in all 63. Robot diagnostic RMSE improves in 30 comparisons and worsens in 33 relative to shared-state recurrence. Isolation therefore controls reference preservation; it does not imply that the reference is more accurate. The archived closed-loop residual comparison separately reports endpoint differences after object adaptation.
 
-\subsection{Historical simplified-model diagnosis}
-\subsection{The full-state intervention has a systematic failure}
-On seed 7, D3 mixed-unseen, H50, the original intervention has free-joint RMSE
-0.808 versus 0.762 for the shared projected baseline, a 6.01\% regression.
-The paired MSE-difference interval is [0.06885, 0.07538], and 93.3\% of terminal
-windows regress. Object RMSE improves 36.49\% and lock violation remains zero.
-The failure therefore exposes a real tradeoff: object correction feeds back
-into unaffected robot prediction even though feasibility is projected.
+\section{Real-Robot Closed-Loop Pushing}
+We evaluate short-distance pushing with the five-DoF arm under intact and single-joint-lock conditions. The task requests a 20-pixel displacement along the task axis, approximately 35.1 mm under the recorded calibration. Each of the six conditions contributes three valid trials. All 18 core trials meet the criterion defined below; Table~\ref{tab:real-push} reports outcomes.
 
-The post-design query set makes the repair comparison direct
-(Table~\ref{tab:isolation}). Full-state and isolated methods have exactly the
-same object RMSE in every cell because the intervention keeps its private
-physical trajectory. Full-state rollout nevertheless regresses free-joint
-RMSE in 3/27 cells, with a 6.20\% worst case. Isolation removes those changes
-without changing object prediction.
+The controller uses visual object observations and joint feedback. It scores at least 10,000 candidate joint-reference sequences over a 50-step horizon, moves toward the selected reference at a 5-degree/s limit, and observes again before replanning. Figure~\ref{fig:hardware-sequence} illustrates recorded execution, while Fig.~\ref{fig:real-scene} shows the platforms.
+
+The start gate allows two pixels per image axis. Success requires an object-to-goal error within five pixels on each axis for three distinct consecutive observed frames. The archived endpoint statistic instead uses the coordinate-wise median of the last ten detected observations. Success is determined from the consecutive frames, not this median. Within each core condition, three repetitions reuse one preparation candidate archive, transformed online using the current joint state and remaining error. Archives differ across conditions.
 
 \begin{table}[t]\centering
-\caption{Isolation ablation on the post-design query set. Object gain is the
-mean over checkpoint-seed means; free regression is the worst cell.}
-\begin{tabular}{lrrr}\toprule
-Method&Object gain&Free regress.&Positive free regress.\\\midrule
-Carrier&0&0&0/27\\
-Full-state IPWM&16.74\%&6.20\%&3/27\\
-\method{}&16.74\%&0&0/27\\\bottomrule
-\end{tabular}\label{tab:isolation}
+\caption{Recorded closed-loop pushing outcomes. Double-lock runs use a
+shorter displacement and include configuration changes; they are diagnostic
+cases rather than repetitions of one fixed controller.}
+\label{tab:real-push}
+\begin{tabular}{lrrrr}\toprule
+Condition & Goal (px) & Successes & Valid trials & Cycles\\\midrule
+Intact &20&3&3&4\\
+J1 lock &20&3&3&4--5\\
+J2 lock &20&3&3&17\\
+J3 lock &20&3&3&16--18\\
+J4 lock &20&3&3&7\\
+J5 lock &20&3&3&6--7\\\midrule
+J1+J2 &15&1&1&14\\
+J2+J3 &15&1&1&34\\
+J3+J4 &15&1&3&5--31\\\bottomrule
+\end{tabular}
 \end{table}
 
-\subsection{State isolation removes collateral regression}
-Table~\ref{tab:main} reports the post-design query-set cells. Object RMSE
-improves in 27/27 cells. The smallest gain is 1.58\% (checkpoint seed 37,
-mixed unseen, H50), and the largest is 38.86\%. Mean improvement over the three
-checkpoint-seed means is 16.74\%, with descriptive bootstrap interval
-[6.97\%, 25.59\%]. The original seed-specific query sets independently retain
-27/27 positive cells, 1.34--39.97\% range, and 17.04\% mean. Across all cells,
-free-joint and pusher changes relative to the carrier are numerically exactly
-zero, as predicted by Eq.~\eqref{eq:publish}; lock violation RMSE is zero.
+Hardware candidates specify joint references $q^{\mathrm{ref}}_t$. During prediction, a PD rule generates model actions as $a_t=\Pi_d(\operatorname{clip}(5(q^{\mathrm{ref}}_t-\hat q_t)-0.5\hat{\dot q}_t,-1,1))$, using the returned robot state. Thus hardware candidate scoring includes state feedback within the rollout. With matched initial states and recurrent memories and deterministic branches, reference preservation also holds for matched reference sequences under this robot-state feedback rule: equal reference robot states produce equal actions at each step. The deployed robot block is independent of object state, so the same references yield identical robot predictions under shared-state and isolated recurrence.
 
-\begin{table}[t]\centering
-\caption{Object RMSE improvement (\%) over the mechanism-matched carrier in
-active physical-OOD routes.}
-\begin{tabular}{clrrr}\toprule
-Seed&Condition&H10&H25&H50\\\midrule
-27&high damping&7.05&3.06&7.58\\
-27&composition&7.70&2.03&19.54\\
-27&mixed unseen&9.08&3.26&3.43\\
-37&high damping&7.31&21.64&37.41\\
-37&composition&8.52&20.93&30.23\\
-37&mixed unseen&10.39&21.00&1.58\\
-47&high damping&8.57&34.68&33.00\\
-47&composition&10.63&35.53&30.52\\
-47&mixed unseen&12.53&38.86&25.95\\\bottomrule
-\end{tabular}\label{tab:main}
-\end{table}
+Candidate references are joint offsets scaled by the remaining task-axis error, with locked references fixed at the diagnosed angles. Each observation initializes object position from the calibrated image measurement and object velocity to zero. The controller moves toward reference index 24, then observes again; it does not execute the preceding reference points. The archived strict simulation uses open-loop candidate execution, whereas the current large-scale comparison executes ten steps before replanning. Both differ from this hardware command.
 
-\begin{table}[t]\centering
-\caption{Aggregate prediction audit. ``Change'' is relative to carrier.}
-\begin{tabular}{lr}\toprule
-Statistic&Result\\\midrule
-Positive object cells&27/27\\
-Object improvement range&1.58--38.86\%\\
-Mean over checkpoint-seed means&16.74\%\\
-Seed-bootstrap 95\% interval&[6.97, 25.59]\%\\
-Maximum $|$free-joint change$|$&0\\
-Maximum $|$pusher change$|$&0\\
-Maximum lock violation RMSE&0\\\bottomrule
-\end{tabular}\label{tab:aggregate}
-\end{table}
+All 23 formal hardware manifests record the same model configuration and the seed-27 selective checkpoint from \texttt{icra\_confirmation\_d3\_query\_selective\_w10}. Its tensors match the seed-27 residual-training checkpoint used in the archived strict simulation. These are the archived deployment weights, distinct from the newly adapted fits.
 
-The four low-context conditions route to the carrier and therefore tie it
-exactly. This is intentionally conservative: an earlier topology-only router
-improved severe physical shifts but degraded nominal-like H25/H50 cells by as
-much as 32.73\%. A K25 support-validation selector was also rejected because
-the short active probe contained insufficient object contact and would reject
-every useful intervention. These negative controls motivate physical-context
-routing but do not establish that norm thresholding is optimal.
+Five valid double-lock trials request a shorter 15-pixel displacement, approximately 26.3 mm. J1+J2 and J2+J3 each succeed once; J3+J4 has two failures and one success. Candidate and controller settings changed across these diagnostic cases, so they are reported individually rather than pooled as fixed-controller repetitions. Failed, invalid, and aborted attempts remain in the inventory. No matched hardware baseline was collected. The physical trials demonstrate execution, without establishing the physical validity of the archived simulation comparisons.
 
-\subsection{Routing margins and query replication}
-Table~\ref{tab:norms} reports context-norm ranges across the three checkpoints
-on the original physics spectrum. Nominal, noisy-deadband, and weak-motor
-conditions have wide margins below 1.2. Delay is closer (maximum 1.12), and
-mixed unseen is the closest active condition (minimum 1.26). Thus the observed
-decisions are stable on these checkpoints, although the 0.06 mixed-unseen
-margin is too small to call the router calibrated under arbitrary shift.
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/lockpusher_revision/hardware_sequence.pdf}
+\caption{J3-lock hardware execution. Overhead frames correspond to the initial observation, half the requested task-axis displacement, and the first three-frame goal streak. Each uses the latest camera capture preceding the monitor event. Insets show the recorded start coordinate (blue) and goal tolerance (orange). The wrist view shows the initial configuration.}\label{fig:hardware-sequence}
+\end{figure*}
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/lockpusher_revision/environment_plate.pdf}
+\caption{Physical platform and CAD illustration. (a) Full-arm CAD rendering at an archived preparation configuration. (b,c) Wrist and overhead views from an archived J3 trial at different times. Quantitative simulations use a separate mechanism model with different geometry; the CAD panel illustrates the hardware configuration.}\label{fig:real-scene}
+\end{figure*}
 
-\begin{table}[t]\centering
-\caption{Context norm range and frozen route across checkpoint seeds.}
-\begin{tabular}{lrrl}\toprule
-Condition&Minimum&Maximum&Route\\\midrule
-Nominal&0.49&0.52&carrier\\
-Noisy deadband&0.48&0.52&carrier\\
-Weak motor&0.77&0.83&carrier\\
-Delay 1&1.07&1.12&carrier\\
-High damping&1.33&1.54&intervention\\
-Composition&1.45&1.50&intervention\\
-Mixed unseen&1.26&1.45&intervention\\\bottomrule
-\end{tabular}\label{tab:norms}
-\end{table}
-
-The post-design query set changes both calibration and evaluation trajectories
-while leaving weights, K, scale, threshold, and domains frozen. Its 16.74\%
-mean is close to the original 17.04\%; both have 27/27 positive active cells.
-This replication argues against memorization of one action/initialization set.
-It does not test a new object geometry, simulator, or training seed, and is
-labelled accordingly throughout.
-
-\subsection{Prediction gain does not imply control gain}
-We evaluated a frozen guarded CEM planner using 60 approach and 90 push steps,
-horizon 3, eight candidates, one CEM update, and a fixed 0.85 action-deviation
-guard. The prior 50 mm success tolerance is invalid for this target split:
-targets start only 30--40 mm from the object, so zero-contact episodes count as
-success. We instead report terminal distance, contact, and displacement.
-
-\begin{table}[t]\centering
-\caption{D3 high-damping mean terminal distance (mm) over three held-out
-targets. Lower is better.}
-\begin{tabular}{crrr}\toprule
-Seed&Nominal IK&Carrier MPC&\method{} MPC\\\midrule
-27&16.99&13.75&19.45\\
-37&16.99&18.77&15.67\\
-47&16.99&34.25&39.11\\\bottomrule
-\end{tabular}\label{tab:control}
-\end{table}
-
-All audited episodes make contact, but \method{} improves on carrier MPC for
-only one of three seeds. The closed-loop improvement claim is therefore
-No-Go. This result is consistent with the method's guarantee: isolation
-controls which state is published, not how a finite-sample optimizer converts
-prediction differences into actions.
-
-\subsection{Reproducibility}
-Frozen YAML files define domain splits, context scaling, adapters, and routing.
-Evaluation artifacts include aggregate and per-window squared errors. The
-original selective audit contains 5,040 raw rows per seed, and the post-design
-query audit contains 2,160 per seed; a separate script regenerates
-Table~\ref{tab:aggregate} and its bootstrap interval. Unit tests verify exact
-projection, carrier publication, and preservation of private intervention
-feedback with a robot-coupled toy model. Failed gates and protocol corrections
-are retained in the repository rather than overwritten.
-
-\subsection{Threats to validity}
-\emph{Post-hoc structure.} State isolation was invented after the original
-free-state failure; only query seed 57 is post-design. \emph{Dependence.} The
-27 cells share three checkpoints and three domains, so they are not treated as
-27 independent replicates. \emph{Baseline scope.} Carrier matching isolates
-the intervention effect, but comparisons to AdaptiGraph or PIN-WM are
-conceptual rather than reproduced. \emph{Metric scope.} RMSE weights all object
-coordinates uniformly and does not imply useful action ranking. The No-Go MPC
-result makes this boundary visible. \emph{Router scope.} Context norm is an
-engineering support heuristic, not a calibrated probability of harm.
-\emph{Simulation scope.} The shared variable-node transition Gate improves
-both GenkiArm and Panda in 2/3 seeds, but the downstream object/contact Gate is
-No-Go in 0/3 seeds. A no-weld scripted Panda grasp succeeds in 5/5 small pose
-perturbations, and both fixed eye-to-hand views retain object visibility under
-the frozen extrinsic perturbations; these are task/observability feasibility,
-not learned Grasp, RGB prediction, or contact-transfer evidence.
-
-\section{Failure Ledger and Decision Rules}
-The development history is part of the evidence because each accepted
-component corresponds to a measured failure (Table~\ref{tab:ledger}). We use
-``Pass'' only for a claim whose frozen metric succeeds; a method can pass
-prediction while remaining No-Go for control. This prevents the exact lock
-constraint, which is easy to satisfy by projection, from masking degradation
-of free coordinates or task outcomes.
-
-\begin{table}[t]\centering
-\caption{Retained failures and their consequence.}
-\resizebox{\columnwidth}{!}{\begin{tabular}{lll}\toprule
-Attempt&Observed failure&Decision\\\midrule
-Hard mask only&contact not established&separate feasibility/contact\\
-No analytic projection&mean lock drift 6.63 deg&retain hard projection\\
-Decision weight 10&response RMSE $-356.44\%$ vs. weight 0&report tradeoff\\
-Global residual&regret $-19.76\%$, 3/3&control-signal Pass\\
-Selective vs. global&aggregate regret $-2.07\%$&attribution No-Go\\
-Direct guarded MPC&improves 1/3 historical seeds&MPC No-Go\\\bottomrule
-\end{tabular}}\label{tab:ledger}
-\end{table}
-
-The claim acceptance rule is consequently stage-specific. Locked coordinates
-must have zero violation; reachability and physical contact are reported before
-response error; ranking requires paired candidates; and task benefit requires
-realized outcomes under the same selection budget. The current artifact passes
-the hard-constraint and nominal-to-adapted regret gates. It fails selective
-structure attribution, response-RMSE improvement, and receding-horizon MPC.
-
-\subsection{Artifact-to-claim mapping}
-Three independently checkable artifacts underlie the paper: raw trajectory
-windows support object statistics, model outputs support isolation equality,
-and environment logs support contact and terminal-distance checks. Aggregate
-tables are regenerated rather than hand selected. The code path accepts an
-explicit query seed so that checkpoint initialization and evaluation queries
-can be varied separately. Hardware logs, photographs, and measurements are not
-inputs to any table in this submission.
-
-\section{Evaluation and Audit Details}
-\subsection{Primary candidate groups and aggregation}
-Each seed contributes 400 groups and each group contains 128 candidates sharing
-one initial state, goal, and diagnosis. Spearman and Kendall correlations are
-computed within groups and averaged over groups. Top-1 regret is the realized
-cost of the model-selected candidate minus the minimum realized cost in that
-same group. Terminal error and success are evaluated on the selected physical
-candidate, never on its prediction. Seed-level relative changes are computed
-first and then averaged; the three seeds, rather than 153,600 candidates, are
-the independent units used for direction counts. Continuous minimum geometry
-distance and simulator contact are stored separately so that near-contact is
-not relabeled as contact.
-
-\subsection{Window construction and aggregation}
-Each test trajectory contains 150 actions and 151 states. For horizon $H$,
-autonomous prediction starts at indices separated by $H$ and rolls for exactly
-$H$ actions; only the terminal prediction enters that window's statistic.
-Squared error is computed per trajectory/window, averaged, and square-rooted
-to obtain RMSE. Free-joint error masks position and velocity of the diagnosed
-coordinate. Object error averages four planar coordinates. Pusher error applies
-the same forward kinematics to predicted and true joint positions.
-
-The original spectrum audit stores 5,040 per-window/method rows per checkpoint.
-The post-design audit restricts generation to three active regimes and, after
-adding the full-state ablation, stores 2,880 rows per checkpoint. Carrier,
-full-state, isolated, and routed predictions use identical initial states and
-actions. Exact object equality between full-state and isolated rollouts is
-checked cell by cell rather than inferred from their aggregate.
-
-\subsection{Uncertainty and multiplicity}
-The bootstrap treats the mean across nine active cells within a checkpoint as
-one observation and resamples three checkpoint means. Correlated horizons and
-domains are therefore not presented as 27 independent seeds. With only three
-observations, the interval is a stability summary, not precise population
-inference. We consequently report every cell and the positive-cell count; no
-null-hypothesis threshold accepts the main claim.
-
-The seed-7 diagnostic interval has a different purpose: it bootstraps paired
-terminal-window MSE differences on one prespecified failure cell. It shows the
-free-state regression is systematic within that query set, not that it
-generalizes to a population of training seeds. Keeping the two analyses
-separate prevents trajectory count from inflating the effective number of
-model initializations.
-
-\begin{table}[t]\centering
-\caption{Frozen claim gates and current outcome.}
-\resizebox{\columnwidth}{!}{\begin{tabular}{lll}\toprule
-Claim&Gate&Outcome\\\midrule
-Lock feasibility&position/velocity violation $=0$&Pass (3/3)\\
-Action ranking&regret reduction, consistent direction&Pass (3/3)\\
-Selected outcome&terminal-error reduction, consistent&Pass (3/3)\\
-Response prediction&RMSE improvement&No-Go (0/3)\\
-Selective attribution&beat global control consistently&No-Go\\
-Receding-horizon MPC&consistent seed direction&No-Go (1/3)\\\bottomrule
-\end{tabular}}\label{tab:gates}
-\end{table}
-
-\subsection{Controller audit protocol}
-All controller methods share analytic approach/push references, damage mask,
-action limits, initial block position, and held-out targets. Guarded CEM uses
-horizon 3, eight candidates, one update, and falls back to nominal IK when the
-proposal differs by more than 0.85 in Euclidean norm. Sixty approach steps
-precede 90 push steps; the earlier 30+40 protocol produced zero-contact
-episodes and remains only as a failed smoke test. Contact count and block
-displacement are required sanity metrics.
-
-We do not report the old 50 mm success indicator because initial target
-distance is at most 40 mm. A valid future success metric must be stricter than
-every initial distance and require contact and minimum displacement. The paper
-uses terminal distance for the completed controller matrix and refuses a
-binary success claim. This correction applies to all methods simultaneously.
-
-\subsection{Reproduction boundary}
-The evaluator records checkpoint and query seeds separately. Reproducing the
-main table requires the three strict checkpoints, V2 candidate archives for
-seeds 7/17/27, and the fixed 400-by-128-by-50 evaluator. The formal checkpoint
-loader rejects missing, unexpected, or shape-mismatched tensors. Separate
-summarizers regenerate the strict primary result, decision-loss comparison,
-same-capacity global control, and projection-removal ablation from JSON without
-loading weights. Tests cover pairing, held-out-lock exclusion, the soft-regret
-objective, exact projection, and private/published state recurrence.
-
-Training is not yet packaged as a single archival container, and checkpoints
-depend on staged predecessor runs. This limits reproduction convenience even
-though evaluation is scripted. A camera-ready artifact should add immutable
-hashes and one top-level command; we do not claim that packaging is complete.
+The archive also contains a same-weight candidate comparison: on 120 fresh D3 problems with 128 candidates and a 50-step open-loop execution, the deployed seed-27 checkpoint reduces terminal error by 8.72 mm relative to projected nominal dynamics (paired-problem 95\% interval [6.48, 11.04] mm). Across seeds 7, 17, and 27, reductions relative to matched carriers are 2.42, 1.65, and 0.27 mm; only seed 7 has a positive interval. This comparison shares the suspect initialization and cannot establish physical benefit for the deployed weights.
 
 \section{Limitations and Conclusion}
-This study is simulation-only and contains no real-robot evidence. The planned
-hardware protocol uses two fixed eye-to-hand cameras, one overhead and one
-horizontal; neither source is eye-in-hand. The present results must not be
-interpreted as sim-to-real validation.
+LockPusher limits the scope of object adaptation under diagnosed joint locks. Separate rollout states retain the intervention's object prediction while preserving the specified robot forecast. Historical paired tests retain object-state error reductions without the observed collateral increases in carrier-relative robot error. Hardware trials demonstrate visual replanning with a configuration that satisfies preservation structurally; they do not isolate the benefit of separate rollouts. Simulation initialization defects leave physical control gains unverified.
 
-The hardware protocol is split before collection. Level A executes one frozen,
-manually validated position trajectory per intact/D2/D3 condition (at least 10
-valid trials each) and can support only lock, reach, contact, and Push
-feasibility. Level B would compare learned selectors, but is unauthorized until
-a measured bridge maps MuJoCo generalized-force actions to the arm's servo
-goal-position interface and freezes a common candidate library. Schedule and
-library hashes, all aborts, two videos, and joint logs are retained. Thus a
-fixed-trajectory result cannot be relabeled as learned recovery.
+The current evidence covers a fixed-orientation simulated box and short-distance physical pushing on one arm. Correct diagnosis is an input assumption, and preserving the carrier does not establish its accuracy. Extending this formulation to rotating objects and tasks that require adapting robot contact dynamics is a direction for further study.
 
-Only single locks and planar pushing are evaluated. Diagnosis must supply the
-correct lock identity and angle. The primary performance table uses D2/D4
-development evidence rather than a pristine confirmation domain, and realized
-open-loop candidate outcomes are not receding-horizon MPC. Panda object/contact
-transfer is No-Go in 0/3 seeds; its scripted 5/5 grasp result and dual fixed
-eye-to-hand visibility audit establish feasibility only. No real-robot data are
-reported in the current manuscript version.
+\section*{Acknowledgments}
+OpenAI Codex assisted with drafting and revising the abstract, introduction, related work, method, experiments, conclusion, and appendices; Chinese translation; figure and table code; and organization of the supplied experimental records.
 
-The strongest supported conclusions are deliberately narrow. Analytic
-projection changes a learned roll-out's 4.42--8.75 degree maximum lock drift to
-exactly zero in 3/3 seeds. Fault adaptation reduces top-1 candidate regret by
-19.76\% against nominal in 3/3 seeds, but response RMSE degrades severely and a
-same-capacity global residual matches or exceeds selective IPWM on aggregate.
-Thus the evidence supports hard constraint satisfaction, prediction--decision
-decoupling, and a reusable six-stage diagnostic; it rejects the claim that
-selective publication causes the current control-related gain. Historical
-simplified-model tables remain disclosed development evidence, not confirmation.
 
-\balance
+
+\appendices
+\section{Fixed-Checkpoint Prediction Analysis}
+These historical checkpoints differ from the newly adapted closed-loop models. For seed 47 under weak motors at horizon 50, position RMSE rises from 8.63 to 28.20 mm while velocity RMSE falls from 0.152 to 0.073 m/s. A mixed-unit aggregate obscures this component tradeoff.
+
+The fixed-checkpoint study uses 8,400 independently reset trajectories under D3 locking, with 1,200 trajectories in each of seven physical conditions and a fixed-side contact-neighborhood policy. Three existing checkpoints are evaluated at horizons 10, 25, and 50. Across all 63 checkpoint--condition--horizon combinations, the selective wrapper changes no robot coordinates relative to its carrier, and maximum diagnosed-lock violation is zero. This tests the implementation of state isolation over extended rollouts.
+
+Figure~\ref{fig:prediction-conditions} separates object position and velocity. The historical composite metric decreases in all 27 prespecified combinations for high damping, composition, and unseen composition, averaging 16.27\%, but mixes position and velocity units. 
+
+\subsection{Adaptation data budget}
+\input{sections/data-budget-table-en.tex}
+We vary the number of adaptation training trajectories while holding the number of optimization updates fixed. Nested subsets balanced across locked joints and physical profiles contain 1,000, 5,000, or 50,000 training trajectories, plus 400 validation trajectories at each budget. Three fits per method reuse the seed-27 source model's trained robot and object dynamics; the added residual heads are initialized anew. Each receives 980 updates of batch size 512, using horizons 10 and 25 for 490 updates each. For each fit, we select the checkpoint with the lowest validation H25 object-position MSE, then evaluate it on 1,200 new shared problems under the same closed-loop protocol. These counts exclude all prior source-model training and development data.
+
+Table~\ref{tab:data-budget} reports all fits. Averaged equally over the two lower budgets, LockPusher reduces endpoint error by 3.23 mm relative to removing its object residual. All six fit--budget contrasts improve, with paired 95\% problem-bootstrap intervals excluding zero (2,000 resamples within the 40 lock--distance--profile strata, conditional on each fit). At 50,000 trajectories, two fits improve and one worsens. LockPusher's mean endpoint error does not decrease monotonically with the training budget, and global adaptation has lower mean endpoint error at each budget. These archived fits show lower endpoint error at the two lower budgets, without a monotonic scaling trend; physical benefit remains unverified.
+
+\begin{figure*}[t]\centering
+\includegraphics[width=.98\textwidth]{figures/meeting_revision/historical_absolute.pdf}
+\caption{All 63 historical-model comparisons. Values are carrier RMSE minus adapted RMSE: positive means improvement, negative means degradation. Position (mm) and velocity (mm/s) use separate color scales. Seeds 27, 37, and 47 identify historical fits, not training epochs. Stars mark the historical prespecified conditions.}\label{fig:prediction-conditions}
+\end{figure*}
+
+
+\input{sections/appendix-method-en.tex}
+\input{sections/historical-evidence-en.tex}
+
+
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 \end{document}

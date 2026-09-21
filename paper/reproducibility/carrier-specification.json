@@ -1,0 +1,179 @@
+{
+  "scope": "Stored-state compatibility, architecture and identities only; no model forward pass, training, or simulation.",
+  "source_model": "runs/icra_primary_decision_full_w10_128eval_strict_v2/seed27/model.pt",
+  "graph_config": {
+    "dof": 5,
+    "object_dim": 4,
+    "hidden_dim": 136,
+    "message_steps": 2,
+    "contact_gated_object_context": false,
+    "contact_gate_threshold": -0.005,
+    "contact_gate_temperature": 0.002,
+    "kinematic_integration_dt": null,
+    "kinematic_position_blend": 1.0
+  },
+  "effective_constructor": {
+    "contact_conditioned_robot": false,
+    "independent_object_encoder": false,
+    "object_hidden_dim": null,
+    "reaction_rank": 0,
+    "reaction_geometry_gate": false,
+    "reaction_gate_threshold": -0.005,
+    "reaction_gate_temperature": 0.002,
+    "reaction_scale": 1.0,
+    "reaction_physical_features": false,
+    "reaction_event_decay": null,
+    "reaction_fixed_initialization": false,
+    "kinematic_integration_dt": null,
+    "kinematic_position_blend": 1.0,
+    "shadow_object_rank": 0,
+    "robot_expert_count": 1,
+    "contact_gated_object_context": false,
+    "linear_physical_reaction": false,
+    "robot_position_delta_scale": 1.0,
+    "robot_velocity_delta_scale": 1.0,
+    "reaction_relative_clip": null,
+    "compact_bridge_object_head": true,
+    "geometric_object_rank": 16,
+    "global_residual_rank": 0,
+    "object_integration_dt": null,
+    "object_position_blend": 0.0,
+    "geometric_object_contact_gate": false,
+    "intervention_residual_support_joints": [],
+    "intervention_residual_meta_train": false,
+    "intervention_object_rank": 0,
+    "object_bridge_alignment_rank": 0,
+    "intervention_residual_scale": 1.0,
+    "intervention_residual_relative_clip": null,
+    "intervention_residual_decay": null,
+    "intervention_context_dim": 0,
+    "intervention_context_rank": 0,
+    "intervention_context_strength": 1.0,
+    "intervention_context_ramp": 0.0,
+    "intervention_context_ramp_start": 0,
+    "intervention_context_delayed": false,
+    "analytic_projection": true
+  },
+  "parameter_count": 337834,
+  "state_tensor_count": 28,
+  "state_groups": {
+    "robot_encoder": 19584,
+    "robot_message": 55760,
+    "robot_update": 111792,
+    "robot_temporal": 111792,
+    "robot_head": 18906,
+    "object_head": 19724,
+    "geometric_object_head": 276
+  },
+  "tensor_shapes": {
+    "robot_encoder.0.weight": [
+      136,
+      6
+    ],
+    "robot_encoder.0.bias": [
+      136
+    ],
+    "robot_encoder.2.weight": [
+      136,
+      136
+    ],
+    "robot_encoder.2.bias": [
+      136
+    ],
+    "robot_message.0.weight": [
+      136,
+      272
+    ],
+    "robot_message.0.bias": [
+      136
+    ],
+    "robot_message.2.weight": [
+      136,
+      136
+    ],
+    "robot_message.2.bias": [
+      136
+    ],
+    "robot_update.weight_ih": [
+      408,
+      136
+    ],
+    "robot_update.weight_hh": [
+      408,
+      136
+    ],
+    "robot_update.bias_ih": [
+      408
+    ],
+    "robot_update.bias_hh": [
+      408
+    ],
+    "robot_temporal.weight_ih": [
+      408,
+      136
+    ],
+    "robot_temporal.weight_hh": [
+      408,
+      136
+    ],
+    "robot_temporal.bias_ih": [
+      408
+    ],
+    "robot_temporal.bias_hh": [
+      408
+    ],
+    "robot_head.0.weight": [
+      136,
+      136
+    ],
+    "robot_head.0.bias": [
+      136
+    ],
+    "robot_head.2.weight": [
+      2,
+      136
+    ],
+    "robot_head.2.bias": [
+      2
+    ],
+    "object_head.0.weight": [
+      136,
+      140
+    ],
+    "object_head.0.bias": [
+      136
+    ],
+    "object_head.2.weight": [
+      4,
+      136
+    ],
+    "object_head.2.bias": [
+      4
+    ],
+    "geometric_object_head.0.weight": [
+      16,
+      12
+    ],
+    "geometric_object_head.0.bias": [
+      16
+    ],
+    "geometric_object_head.2.weight": [
+      4,
+      16
+    ],
+    "geometric_object_head.2.bias": [
+      4
+    ]
+  },
+  "sources": {
+    "config/experiment/icra_primary_d2d4_decision_development_3seed_v1.yaml": "1d965dc45a1820904556dc727fa04c1cca71bbbdc94191d924db54e3f5c1c57f",
+    "runs/icra_primary_decision_full_w10_128eval_strict_v2/seed27/model.pt": "7bf6888fb07bd3c52d42bb4816c0e27a5ce1aaba2ded20b5b09b1f8f8b71896e",
+    "scripts/ipwm_scale_train.py": "fbad9691b3355dd2cfae1715ac9936a904a7c5933a6b96d82977bc0851b8d685",
+    "scripts/audit_ipwm_targeted_advantage.py": "6ab0de24d6cd911169b138c1b2fae54e7d65ab8dd0ff18986508752a47e8cb98",
+    "src/robotarm/models/block_triangular_dpwm.py": "77d4974e14a605d0d09360964f7572015d0e6b215c92cc4194cd5765fffec527",
+    "src/robotarm/models/topology_graph_world_model.py": "845e837daff1d66517247870c0612e7011310f19ba933bcbb60f776bc3c1a722",
+    "src/robotarm/models/topology_surgery.py": "80a67f270d446fb988fe3ad12af298289c30dc654e3b00910523b49990baca44",
+    "src/robotarm/models/contact_geometry.py": "1da5d46db936b0d0f9ae44da1a9446c833c341aa65757552a0022b79fafe0a2f",
+    "src/robotarm/models/selective_intervention_rollout.py": "a653bd0dfd46358b21a0a3d97805246030c8421f6741930e2d14c4a7085dcf40"
+  }
+}

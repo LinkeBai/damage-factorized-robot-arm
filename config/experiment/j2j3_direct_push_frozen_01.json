@@ -1,0 +1,25 @@
+{
+  "created_utc": "2026-09-05T07:51:21.088396+00:00",
+  "condition": "J2+J3",
+  "scope": "prospective first direct 15px closed-loop trial",
+  "start_px": [
+    1086.31,
+    570
+  ],
+  "goal_px": [
+    1101.31,
+    570
+  ],
+  "minimum_remaining_fraction": 0.5,
+  "maximum_speed_deg_s": 5,
+  "horizon": 50,
+  "execution_reference_index": 24,
+  "maximum_replans": null,
+  "maximum_lock_hold_s": null,
+  "eligible_candidate_count": 4216,
+  "candidate_count": 10000,
+  "bank_sha256": "ad4b50a317798e42e26a1cba8de1079a29f6ef878ce9934740f78d482bb5f3d4",
+  "bank": "data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P15-J2J3-short-prep-01\\ipwm_candidates.npz",
+  "standalone_noncontact_probe": "omitted per user instruction; integrated startup/online monitoring retained",
+  "limitation": "Short-step feasibility only; full task reachability remains experimentally unproven."
+}

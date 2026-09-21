@@ -19,12 +19,28 @@ def test_session_builder_freezes_known_safety_and_hashes(tmp_path: Path) -> None
     validation.write_text(json.dumps({"status": "PASS", "library_sha256": library_hash}), encoding="utf-8")
     files = [tmp_path / name for name in ("left.yaml", "horizontal.yaml", "sync.mp4")]
     for item in files: item.write_text("x", encoding="utf-8")
+    servo_readiness = tmp_path / "servo-readiness.json"
+    servo_readiness.write_text(json.dumps({
+        "status": "PASS", "read_only": True,
+        "timestamp_utc": "2026-09-01T00:00:00+00:00",
+        "servos": [
+            {"servo_id": servo_id, "responded": True}
+            for servo_id in range(1, 6)
+        ],
+    }), encoding="utf-8")
+    camera_sync = tmp_path / "camera-sync.json"
+    camera_sync.write_text(json.dumps({
+        "status": "PASS", "timestamp_utc": "2026-09-01T00:05:00+00:00",
+        "left_camera_serial": "L", "horizontal_camera_serial": "H",
+        "maximum_observed_sync_error_ms": 10,
+    }), encoding="utf-8")
     dirs = [tmp_path / name for name in ("left", "horizontal", "logs", "b1", "b2")]
     for item in dirs: item.mkdir()
     args = argparse.Namespace(
         schedule=schedule, trajectory_library=library, trajectory_validation=validation,
         left_calibration=files[0], horizontal_calibration=files[1],
         synchronization_video=files[2], left_video_directory=dirs[0],
+        servo_readiness_audit=servo_readiness, camera_sync_audit=camera_sync,
         horizontal_video_directory=dirs[1], control_log_directory=dirs[2],
         backup_copy_1=dirs[3], backup_copy_2=dirs[4], session_id="S1",
         date_local="2026-09-01", operator="Operator", operator_initials="OP",
@@ -39,3 +55,7 @@ def test_session_builder_freezes_known_safety_and_hashes(tmp_path: Path) -> None
     assert payload["safety"]["maximum_commanded_joint_speed_rad_s"] < 0.09
     assert payload["safety"]["maximum_allowed_lock_error_rad"] < 0.062
     assert payload["freeze_record"]["frozen_before_first_method_trial"] is True
+    assert payload["hardware"]["servo_readiness_audit_sha256"] == hashlib.sha256(
+        servo_readiness.read_bytes()).hexdigest()
+    assert payload["cameras"]["synchronization_audit_sha256"] == hashlib.sha256(
+        camera_sync.read_bytes()).hexdigest()

@@ -1,6 +1,7 @@
 from pathlib import Path
 import hashlib
 import json
+import math
 
 import yaml
 
@@ -20,11 +21,26 @@ def filled_manifest(tmp_path: Path) -> Path:
     bridge = tmp_path / "action_bridge.yaml"
     validation = tmp_path / "action_validation.json"
     library = tmp_path / "action_library.csv"
+    servo_readiness = tmp_path / "servo_readiness.json"
+    camera_sync = tmp_path / "camera_sync.json"
     for path in (calibration_left, calibration_horizontal, sync_video, bridge, library):
         path.write_text("x", encoding="utf-8")
     library_hash = hashlib.sha256(library.read_bytes()).hexdigest()
     validation.write_text(json.dumps({
         "status": "PASS", "library_sha256": library_hash}), encoding="utf-8")
+    servo_readiness.write_text(json.dumps({
+        "status": "PASS", "read_only": True,
+        "timestamp_utc": "2026-09-01T00:00:00+00:00",
+        "servos": [
+            {"servo_id": servo_id, "responded": True}
+            for servo_id in range(1, 6)
+        ],
+    }), encoding="utf-8")
+    camera_sync.write_text(json.dumps({
+        "status": "PASS", "timestamp_utc": "2026-09-01T00:05:00+00:00",
+        "left_camera_serial": "L", "horizontal_camera_serial": "H",
+        "maximum_observed_sync_error_ms": 12.5,
+    }), encoding="utf-8")
     directories = [tmp_path / name for name in ("left", "horizontal", "logs", "backup1", "backup2")]
     for path in directories:
         path.mkdir()
@@ -34,16 +50,22 @@ def filled_manifest(tmp_path: Path) -> Path:
         "robot_asset_id": "R1", "gripper_asset_id": "G1", "block_asset_id": "B1",
         "emergency_stop_checked": True, "joint_direction_check_complete": True,
         "low_speed_stop_check_complete": True,
+        "servo_readiness_audit_file": str(servo_readiness),
+        "servo_readiness_audit_sha256": hashlib.sha256(
+            servo_readiness.read_bytes()).hexdigest(),
     })
     payload["cameras"].update({
         "left_eye_to_hand_serial": "L", "horizontal_eye_to_hand_serial": "H",
         "left_calibration_file": str(calibration_left),
         "horizontal_calibration_file": str(calibration_horizontal),
         "synchronization_event_video": str(sync_video),
+        "synchronization_audit_file": str(camera_sync),
+        "synchronization_audit_sha256": hashlib.sha256(
+            camera_sync.read_bytes()).hexdigest(),
     })
     payload["safety"].update({
         "maximum_commanded_joint_speed_rad_s": 0.0873,
-        "maximum_allowed_lock_error_rad": 0.0611,
+        "maximum_allowed_lock_error_rad": math.radians(3.5),
         "workspace_boundary_description": "marked rectangle",
     })
     payload["randomization"].update({
@@ -107,3 +129,56 @@ def test_level_a_does_not_require_unvalidated_action_bridge(tmp_path: Path) -> N
     result = audit(manifest_path, schedule, mode="level_a")
     assert result["status"] == "PASS"
     assert result["authorization"] == "LEVEL_A_TRIALS_MAY_START"
+    assert result["schedule_trials"] == 60
+    assert result["level_a_schedule"]["frozen_position_id"] == "A"
+    assert result["readiness_checks"] == {
+        "servo_readiness": "PASS", "camera_synchronization": "PASS"}
+
+
+def test_level_a_preflight_rejects_non_a_reset_position(tmp_path: Path) -> None:
+    manifest_path = filled_manifest(tmp_path)
+    payload = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+    schedule = tmp_path / "level_a.csv"
+    rows = build(2, 10, {"intact": "i1", "D2": "d2", "D3": "d3"})
+    rows[0]["position_id"] = "B"
+    with schedule.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FIELDS)
+        writer.writeheader(); writer.writerows(rows)
+    from scripts.audit_real_robot_preflight import sha256
+    payload["randomization"].update({
+        "schedule_file": str(schedule),
+        "schedule_sha256_before_trials": sha256(schedule),
+    })
+    manifest_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+    result = audit(manifest_path, schedule, mode="level_a")
+
+    assert result["status"] == "FAIL"
+    assert any("frozen position A" in error for error in result["errors"])
+
+
+def test_level_a_preflight_requires_current_pass_readiness_artifacts(
+        tmp_path: Path) -> None:
+    manifest_path = filled_manifest(tmp_path)
+    payload = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
+    schedule = tmp_path / "level_a.csv"
+    rows = build(2, 10, {"intact": "i1", "D2": "d2", "D3": "d3"})
+    with schedule.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FIELDS)
+        writer.writeheader(); writer.writerows(rows)
+    from scripts.audit_real_robot_preflight import sha256
+    payload["randomization"].update({
+        "schedule_file": str(schedule),
+        "schedule_sha256_before_trials": sha256(schedule),
+    })
+    servo_path = Path(payload["hardware"]["servo_readiness_audit_file"])
+    servo_payload = json.loads(servo_path.read_text(encoding="utf-8"))
+    servo_payload["status"] = "FAIL"
+    servo_path.write_text(json.dumps(servo_payload), encoding="utf-8")
+    payload["hardware"]["servo_readiness_audit_sha256"] = sha256(servo_path)
+    manifest_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+    result = audit(manifest_path, schedule, mode="level_a")
+
+    assert result["status"] == "FAIL"
+    assert any("readiness audit status is not PASS" in error for error in result["errors"])

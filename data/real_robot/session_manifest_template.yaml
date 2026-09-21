@@ -11,6 +11,8 @@ hardware:
   emergency_stop_checked: false
   joint_direction_check_complete: false
   low_speed_stop_check_complete: false
+  servo_readiness_audit_file: ""
+  servo_readiness_audit_sha256: ""
 
 cameras:
   left_eye_to_hand_serial: ""
@@ -18,6 +20,8 @@ cameras:
   left_calibration_file: ""
   horizontal_calibration_file: ""
   synchronization_event_video: ""
+  synchronization_audit_file: ""
+  synchronization_audit_sha256: ""
   maximum_allowed_sync_error_ms: 50
 
 frozen_task_definition:
@@ -30,6 +34,10 @@ frozen_task_definition:
   attribution_method: si_ipwm
   minimum_complete_pairs_per_fault: 10
   preserve_aborts_and_failures: true
+  frozen_position_id: A
+  minimum_valid_trials_per_condition: 10
+  reserve_trials_per_condition: 10
+  reserve_execution_rule: frozen_prefix_until_10_valid
   secondary_grasp_scope: fixed_pregrasp_short_lift_feasibility_only
   secondary_grasp_hold_seconds: 3
   secondary_grasp_max_repetitions_per_condition: 5

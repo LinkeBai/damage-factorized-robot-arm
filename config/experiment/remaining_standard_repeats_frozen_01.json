@@ -1,0 +1,58 @@
+{
+  "created_utc": "2026-09-05T07:05:47.439308+00:00",
+  "scope": "remaining standard-start core repetitions; prospective only",
+  "start_px": [
+    1086.31,
+    570
+  ],
+  "goal_px": [
+    1106.31,
+    570
+  ],
+  "speed_ceiling_deg_s": 30,
+  "executor_speed_deg_s": 5,
+  "horizon": 50,
+  "execution_reference_index": 24,
+  "candidate_count": 10000,
+  "maximum_replans": null,
+  "maximum_lock_hold_s": null,
+  "conditions": [
+    {
+      "condition": "intact",
+      "candidate_archive": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P20-intact-01\\ipwm_candidates.npz",
+      "sha256": "e70fd9cad77052f881e8a924356ec67ec4cc1ce113cb08c0bb57950608b478b2",
+      "minimum_remaining_fraction": 0.05
+    },
+    {
+      "condition": "D1",
+      "candidate_archive": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P20-D1-01\\ipwm_candidates.npz",
+      "sha256": "60cd3c615184da2f8386887457cff8693411291da0ddeaa609c5a0dc99e23e2e",
+      "minimum_remaining_fraction": 0.05
+    },
+    {
+      "condition": "D2",
+      "candidate_archive": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P20-D2-short-01\\ipwm_candidates.npz",
+      "sha256": "62575d3b425b39a21b69f428ffef10b4bcde6ecba0bc3e2c6b878d7bfa1f07ae",
+      "minimum_remaining_fraction": 0.5
+    },
+    {
+      "condition": "D3",
+      "candidate_archive": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P20-D3-medium-prep-01\\ipwm_candidates.npz",
+      "sha256": "ea366704c96a31bc3edfef49a675aee9dbcb360e721b4d6a6b16677f6f9ae39f",
+      "minimum_remaining_fraction": 0.5
+    },
+    {
+      "condition": "D4",
+      "candidate_archive": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P20-D4-medium-prep-01\\ipwm_candidates.npz",
+      "sha256": "6d15e103c003e498940c3c949bf755568575298edcfa2b4b3fe6c9aae08f4c68",
+      "minimum_remaining_fraction": 0.5
+    },
+    {
+      "condition": "D5",
+      "candidate_archive": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\data\\real_robot\\session_20260901\\ipwm_preparations\\V2-P20-D5-medium-prep-01\\ipwm_candidates.npz",
+      "sha256": "9fd4f62c66c6eef5d1d5913620404b533909475e560e7ca5d2febaa7f74e111f",
+      "minimum_remaining_fraction": 0.5
+    }
+  ],
+  "protocol_changes_after_freeze": "Retain new revisions and all attempts; do not silently replace failed outcomes or pool different policies."
+}

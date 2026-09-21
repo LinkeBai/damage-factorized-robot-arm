@@ -1,0 +1,9 @@
+{
+  "effective_utc": "2026-09-05T04:51:39.617525+00:00",
+  "requested_by": "user",
+  "maximum_replans": null,
+  "maximum_lock_hold_s": null,
+  "termination": "goal gate, operator stop, goal-plane overshoot guard, or hardware/observation/planning fault",
+  "short_action_blocks_unchanged": true,
+  "scope": "future_runs_only"
+}

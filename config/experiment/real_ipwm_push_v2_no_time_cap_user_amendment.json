@@ -1,0 +1,9 @@
+{
+  "effective_utc": "2026-09-05T04:50:33.522242+00:00",
+  "requested_by": "user",
+  "maximum_lock_hold_s": null,
+  "maximum_replans": 8,
+  "other_stopping_conditions_unchanged": true,
+  "scope": "future_runs_only",
+  "prior_safety_sha256": "9ec9905d7b5f38408b743276a4ca978a1dd4ec661827cd7f4194505627d894b6"
+}

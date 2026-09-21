@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 from collections import Counter
 from pathlib import Path
 
@@ -15,6 +16,8 @@ REQUIRED = {
     "max_lock_error_rad", "reached", "contact", "endpoint_error_m", "success",
     "camera_left_video", "camera_horizontal_video", "control_log", "failure_code",
 }
+SUCCESS_THRESHOLD_M = 0.03
+MAXIMUM_LOCK_ERROR_RAD = math.radians(3.5)
 
 
 def flag(value: str) -> int:
@@ -56,12 +59,40 @@ def main() -> None:
         "camera_left_video", "camera_horizontal_video", "control_log",
     }
     validation_errors: list[str] = []
+    lock_error_violations: list[dict] = []
     for line_number, row in enumerate(rows, start=2):
         try:
             aborted = flag(row["aborted"])
         except ValueError as exc:
             validation_errors.append(f"line {line_number}: {exc}")
             continue
+        lock_error = None
+        if row["max_lock_error_rad"].strip():
+            try:
+                lock_error = float(row["max_lock_error_rad"])
+                if not np.isfinite(lock_error) or lock_error < 0:
+                    raise ValueError
+            except ValueError:
+                validation_errors.append(
+                    f"line {line_number}: max_lock_error_rad must be a finite "
+                    "non-negative number"
+                )
+                lock_error = None
+        if lock_error is not None and lock_error > MAXIMUM_LOCK_ERROR_RAD + 1e-12:
+            lock_error_violations.append({
+                "line": line_number,
+                "trial_order": row["trial_order"],
+                "condition": row["condition"],
+                "aborted": bool(aborted),
+                "max_lock_error_rad": lock_error,
+                "maximum_allowed_lock_error_rad": MAXIMUM_LOCK_ERROR_RAD,
+            })
+            if not aborted:
+                validation_errors.append(
+                    f"line {line_number}: non-aborted max_lock_error_rad "
+                    f"{lock_error:.9g} exceeds 3.5 deg "
+                    f"({MAXIMUM_LOCK_ERROR_RAD:.9g} rad)"
+                )
         if aborted:
             if not row["failure_code"].strip():
                 validation_errors.append(
@@ -74,19 +105,28 @@ def main() -> None:
                 f"line {line_number}: non-aborted trial missing {missing_values}"
             )
             continue
+        parsed_flags = {}
         for name in ("reached", "contact", "success"):
             try:
-                flag(row[name])
+                parsed_flags[name] = flag(row[name])
             except ValueError as exc:
                 validation_errors.append(f"line {line_number}: {exc}")
-        for name in ("max_lock_error_rad", "endpoint_error_m"):
-            try:
-                value = float(row[name])
-                if not np.isfinite(value) or value < 0:
-                    raise ValueError
-            except ValueError:
+        endpoint_error = None
+        try:
+            endpoint_error = float(row["endpoint_error_m"])
+            if not np.isfinite(endpoint_error) or endpoint_error < 0:
+                raise ValueError
+        except ValueError:
+            validation_errors.append(
+                f"line {line_number}: endpoint_error_m must be a finite non-negative number"
+            )
+        if endpoint_error is not None and "success" in parsed_flags:
+            expected_success = int(endpoint_error <= SUCCESS_THRESHOLD_M)
+            if parsed_flags["success"] != expected_success:
                 validation_errors.append(
-                    f"line {line_number}: {name} must be a finite non-negative number"
+                    f"line {line_number}: success={parsed_flags['success']} conflicts "
+                    f"with endpoint_error_m={endpoint_error:.9g} and the frozen "
+                    "<=0.03 m rule"
                 )
         if args.require_files:
             for name in ("camera_left_video", "camera_horizontal_video", "control_log"):
@@ -292,6 +332,16 @@ def main() -> None:
     payload = {
         "source": str(args.csv), "rows": len(rows), "valid_rows": len(valid),
         "aborted_rows": len(rows) - len(valid), "methods": methods, "paired_trials": len(pairs),
+        "outcome_definition": {
+            "success_iff_endpoint_error_m_lte": SUCCESS_THRESHOLD_M,
+            "consistency_enforced": True,
+        },
+        "lock_error_gate": {
+            "maximum_allowed_lock_error_deg": 3.5,
+            "maximum_allowed_lock_error_rad": MAXIMUM_LOCK_ERROR_RAD,
+            "non_aborted_violations_rejected": True,
+            "violations": lock_error_violations,
+        },
         "paired_comparison": {
             "reference_method": args.reference_method,
             "candidate_method": args.candidate_method,

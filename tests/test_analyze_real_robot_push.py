@@ -108,3 +108,70 @@ def test_analyzer_reports_aborted_method_as_incomplete_pair(tmp_path):
         "present_methods": ["global_matched", "nominal"],
         "aborted_methods": ["global_matched"],
     }]
+
+
+@pytest.mark.parametrize(
+    ("endpoint", "success"), [("0.031", "1"), ("0.03", "0")])
+def test_analyzer_rejects_success_inconsistent_with_frozen_30mm_rule(
+        tmp_path, endpoint, success):
+    source = tmp_path / "trials.csv"
+    write_rows(source, [row("fixed_safe_trajectory", "1", endpoint, success)])
+
+    completed = subprocess.run(
+        [sys.executable, "scripts/analyze_real_robot_push.py", str(source)],
+        cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True,
+    )
+
+    assert completed.returncode != 0
+    assert "frozen <=0.03 m rule" in (completed.stdout + completed.stderr)
+
+
+def test_analyzer_accepts_exact_30mm_as_success(tmp_path):
+    source, output = tmp_path / "trials.csv", tmp_path / "summary.json"
+    write_rows(source, [row("fixed_safe_trajectory", "1", "0.03", "1")])
+
+    completed = subprocess.run(
+        [sys.executable, "scripts/analyze_real_robot_push.py", str(source),
+         "--output", str(output)], cwd=Path(__file__).resolve().parents[1],
+        capture_output=True, text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["outcome_definition"]["consistency_enforced"] is True
+
+
+def test_analyzer_rejects_non_aborted_lock_error_over_3_5_deg(tmp_path):
+    source = tmp_path / "trials.csv"
+    unsafe = row("fixed_safe_trajectory", "1", "0.02", "1")
+    unsafe["max_lock_error_rad"] = "0.062"
+    write_rows(source, [unsafe])
+
+    completed = subprocess.run(
+        [sys.executable, "scripts/analyze_real_robot_push.py", str(source)],
+        cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True,
+    )
+
+    assert completed.returncode != 0
+    assert "exceeds 3.5 deg" in (completed.stdout + completed.stderr)
+
+
+def test_analyzer_marks_aborted_lock_violation_without_dropping_abort(tmp_path):
+    source, output = tmp_path / "trials.csv", tmp_path / "summary.json"
+    unsafe_abort = row("fixed_safe_trajectory", "1", "", "")
+    unsafe_abort.update({
+        "aborted": "1", "max_lock_error_rad": "0.062",
+        "failure_code": "lock_drift_stop",
+    })
+    write_rows(source, [unsafe_abort])
+
+    completed = subprocess.run(
+        [sys.executable, "scripts/analyze_real_robot_push.py", str(source),
+         "--output", str(output)], cwd=Path(__file__).resolve().parents[1],
+        capture_output=True, text=True,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["aborted_rows"] == 1
+    assert payload["lock_error_gate"]["violations"][0]["aborted"] is True

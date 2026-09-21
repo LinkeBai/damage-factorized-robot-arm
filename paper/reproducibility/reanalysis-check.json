@@ -1,0 +1,7 @@
+{
+  "scope": "Packaged calibration records reanalysis using existing Python/NumPy environment, not independent training or simulation reproduction",
+  "exit_code": 0,
+  "paired_report_sha256": "d83eaec29255cba259104d9a2d627658e47a5867d2bf424944d21fca57e5ca77",
+  "exact_report_reproduced": true,
+  "workspace": "C:\\Users\\asus\\Desktop\\damage-factorized-robot-arm\\work\\reproduction_check_calibration"
+}

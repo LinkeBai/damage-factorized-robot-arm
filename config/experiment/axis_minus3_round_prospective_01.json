@@ -1,0 +1,23 @@
+{
+  "created_utc": "2026-09-05T05:38:05.487017+00:00",
+  "start_variant": "axis_minus_3_px",
+  "repeat": 2,
+  "nominal_start_px": [
+    1086.31,
+    570
+  ],
+  "requested_start_px": [
+    1083.31,
+    570
+  ],
+  "fixed_goal_px": [
+    1106.31,
+    570
+  ],
+  "tolerance_each_axis_px": 2,
+  "actual_start_must_be_recorded": true,
+  "overlapping_gate_is_not_evidence_of_offset": true,
+  "next_trial_id": "V2-P20-intact-02",
+  "maximum_replans": null,
+  "maximum_lock_hold_s": null
+}

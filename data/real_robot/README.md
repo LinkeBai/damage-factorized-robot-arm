@@ -30,8 +30,12 @@ feasibility packet and do not attach learned-method labels to its motions.
 Run that stronger gate with `--mode level_b`; it outputs
 `LEVEL_B_METHOD_TRIALS_MAY_START` only when the action bridge is present.
 
-After manually validating one low-speed fixed trajectory for each condition,
-generate the Level-A randomized order with the three actual trajectory IDs:
+After manually validating one low-speed fixed trajectory per condition, freeze
+the common physical reset as position `A` and generate the Level-A order. The
+default table contains 30 mandatory primary rows plus 10 preregistered reserve
+rows per condition. Reserve rows are not optional cherry-picks: after all
+primary rows, consume only each condition's frozen `reserve_rank` prefix until
+that condition reaches ten valid, non-aborted trials.
 
 ```powershell
 python scripts/generate_real_robot_level_a_schedule.py `
@@ -60,12 +64,98 @@ The audit requires every scheduled ID to exist, measured joint limits, at most
 5 deg/s, contiguous times, and constant J2/J3 commands under D2/D3. Record the
 library path, SHA-256, and PASS audit path in the session manifest.
 
+### Raw-tick teaching and single-trial execution
+
+The hardware runner consumes the same operator-labelled library with the five
+additional authoritative columns `j1_raw,...,j5_raw`.  The read-only teaching
+helper appends both raw feedback and the corresponding `j1,...,j5` radians, so
+one CSV can pass the existing Level-A audit and drive the raw-tick executor.
+Nothing infers a trajectory ID, condition, index, or time:
+
+```powershell
+python scripts/capture_real_push_waypoint.py `
+  --output <operator-waypoint-library.csv> `
+  --trajectory-id <operator-validated-id> --condition intact `
+  --waypoint-index 0 --time-s 0 --port COM3
+```
+
+Repeat with explicitly chosen contiguous indices and strictly increasing times.
+The helper only reads STS present-position register 56; it never writes a
+register or enables torque.  Do not place a block in the motion corridor while
+teaching or validating a trajectory.
+
+Before any hardware access, run the executor without `--execute`.  This checks
+raw/radian agreement, raw limits, waypoint order, the 5 deg/s bound, the D2 J2
+or D3 J3 constant target, interpolation, and the frozen camera-settings file:
+
+```powershell
+python scripts/run_real_push_fixed_trajectory.py `
+  --waypoints <operator-waypoint-library.csv> `
+  --trajectory-id <operator-validated-id> --condition intact
+```
+
+The output must say `DRY_RUN_VALIDATED_NO_HARDWARE_ACCESSED`.  That message is
+not a trial result.  Only after the trajectory-library audit, session preflight,
+camera exclusivity check, physical start-pose check, supported-arm check, and
+tested E-stop may the operator add all of the following:
+
+```powershell
+  --execute --trial-id <schedule-trial-id> --port COM3 `
+  --acknowledge-risk I_HAVE_CLEARED_WORKSPACE_SUPPORTED_ARM_AND_TESTED_ESTOP
+```
+
+The runner refuses to overwrite a trial directory.  It records native,
+unannotated MJPG video from Daheng SN `FDE23080341` and DirectShow index 1,
+`frame_timestamps.csv` with per-frame host grab intervals and Daheng hardware
+timestamps when available, `commands.csv`, and a flushed five-servo telemetry
+CSV containing measured/target raw ticks, voltage, temperature, and signed raw
+current.  Camera/feedback loss, undervoltage, current, temperature, measured
+limit, or lock-drift violations request torque-off for IDs 1-6 before cleanup.
+Because STS writes have no acknowledgement packet, the runner first verifies
+torque-off on IDs 1-6, then configures all five goal/acceleration/speed
+registers while torque remains off and before either camera starts.  Static
+phases always send the complete write batch, settle for 100 ms, and only then
+read registers; confirmed mismatches alone receive bounded targeted rewrites,
+while persistent read timeout fails closed.  After camera readiness and
+pre-roll, the runner reads a fresh present-position snapshot, batch-seeds those
+five latest positions, and enables all five torques only in a final independent
+batch with the same settle/readback policy.  Every batch and correction is
+retained in `run_manifest.json`.
+High-frequency one-tick trajectory events write only joints whose target
+changed; reading after every microstep is forbidden because it overloads the
+serial bus.  Instead, all five goal registers are checked after at most ten
+changed-target dispatches or 0.5 seconds, whichever comes first, and once more
+unconditionally after the final event.  Runtime reads use two attempts with a
+10 ms retry interval, within the configured 250 ms communication timeout; an
+axis that remains unreadable fails immediately without correction writes or
+later-axis reads.  A confirmed mismatch is repaired by at most three rounds of
+rewriting only the mismatched axes, settling for 50 ms, and checking the goal
+registers again.  A successful repair is retained as
+`CORRECTED_AFTER_RETRY`; an unresolved mismatch aborts the run.  The original
+mismatch, every correction write/read, policy, and validation outcome are
+stored in the run manifest.
+
+For D2/D3, torque is enabled only after every axis goal is seeded from that
+axis's present position.  A separate `start_alignment` then moves at no more
+than 5 deg/s to the frozen first waypoint.  Damage becomes active only after
+alignment goal readback and locked-axis feedback are within the 3.5 deg gate;
+the locked target cannot change during `fixed_trajectory`.  Alignment is logged
+but is explicitly excluded from the task-trial motion count.
+
+An abort performs an immediate all-ID torque-off sweep and `finally` performs a
+second independent sweep; every write attempt, read value, timeout, still-on
+ID, and uncertain ID is retained in `run_manifest.json`.  A capture must not be
+treated as safely closed when its manifest says `NOT_VERIFIED_OFF` or marks the
+latest torque readback uncertain.
+Normal completion is labelled `ACQUISITION_COMPLETE_UNASSESSED`; the runner
+never assigns reach, contact, success, or a learned-method label.
+
 After the action-library audit passes and all real identifiers/paths are known,
 use `scripts/prepare_real_robot_level_a_session.py --help` to generate the
 session manifest. It reads the measured 5 deg/s and 3.5 deg lock-drift limits,
-hashes the frozen schedule/library, verifies the PASS report, writes the actual
-camera/calibration/data/backup paths, disables learned-method claims, and records
-the freeze time. Do not hand-edit hashes after generation.
+hashes the frozen schedule/library plus the current read-only servo-readiness
+and camera-synchronization PASS audits, writes the actual paths, disables
+learned-method claims, and records the freeze time. Do not hand-edit hashes.
 
 After the strict analyzer accepts the Level-A packet, generate its paper assets
 directly from the JSON (never manually transcribe measurements):
@@ -91,9 +181,11 @@ python scripts/audit_real_robot_schedule_completion.py `
   --output results/real_robot/schedule-completion-audit.json
 ```
 
-This audit allows measurement/video/log fields to be filled but requires every
-trial order, condition, position, method, and trajectory ID to remain identical.
-It does not replace the separate validity and raw-file gate.
+This audit requires every primary row, preserves every abort, and allows only
+the exact preregistered reserve prefix needed to reach ten valid trials per
+condition. It also enforces `success == (endpoint_error_m <= 0.03)` and rejects
+a non-aborted lock error over 3.5 degrees. It does not replace the separate
+raw-file gate.
 
 When collection is complete, run the entire Level-A evidence chain with one
 fail-fast command:

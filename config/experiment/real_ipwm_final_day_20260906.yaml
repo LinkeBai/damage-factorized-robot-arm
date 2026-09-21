@@ -1,0 +1,87 @@
+protocol_id: real_ipwm_final_day_20260906_v1
+status: frozen_before_acquisition
+frozen_date: 2026-09-05
+
+claim_boundary:
+  quantitative: image-space receding-horizon IPWM control under diagnosed joint locks
+  qualitative: cross-condition and fixed-pregrasp grasp feasibility
+  excluded:
+    - universal damage recovery
+    - unobserved-fault diagnosis
+    - grasp-policy learning
+    - pooling historical open-loop runs into closed-loop statistics
+
+hardware:
+  robot: original_5dof_genkiarm_sts3215
+  serial_port: COM3
+  overhead_camera: daheng_FDE23080341
+  wrist_camera: directshow_index1
+  checkpoint: runs/icra_confirmation_d3_query_selective_w10/seed27/model.pt
+  model_config: config/experiment/icra_primary_d2d4_eval_strict_3seed_v1.yaml
+  axis_calibration: results/real_robot/push_axis_current_epoch_20260903.json
+  safety: hardware/safety_limits.yaml
+
+push:
+  goal_gate:
+    mode: axiswise
+    tolerance_px: 5
+    consecutive_frames: 3
+  online_control:
+    planner: IPWM_receding_horizon
+    candidate_count_minimum: 10000
+    horizon: 5
+    execution_reference_index: 4
+    semantics: score_50_step_rollout_then_execute_the_fifth_sampled_short_segment
+    replans_maximum: 8
+    observation_wait_s: 0.35
+  matrices:
+    core_quantitative:
+      distance_px: 20
+      approximate_distance_mm: 35.1
+      conditions: [intact, D1, D2, D3, D4, D5]
+      requested_valid_trials_each: 3
+    multi_lock_coverage:
+      distance_px: 15
+      approximate_distance_mm: 26.3
+      conditions: [J1+J2, J2+J3, J3+J4]
+      requested_valid_trials_each: 3
+      inclusion_rule: execute_only_if_preflight_and_reachability_gate_pass
+  historical_runs:
+    distances_px: [30, 45]
+    use: difficulty-extension and model-guided open-loop feasibility only
+    pooled_with_closed_loop: false
+
+grasp:
+  status: removed_by_user_on_2026-09-05
+  reason: final_real_robot_day_reallocated_to_push_only
+
+trial_accounting:
+  retain_success: true
+  retain_failure: true
+  retain_invalid: true
+  invalid_reasons:
+    - camera_or_detector_loss
+    - serial_or_feedback_timeout
+    - human_intervention_after_start
+    - start_gate_not_satisfied
+    - safety_abort
+  prohibit_overwrite: true
+  prohibit_synthetic_replication: true
+
+required_artifacts:
+  - run_manifest.json
+  - daheng_FDE23080341_raw.avi
+  - directshow_index1_raw.avi
+  - frame_timestamps.csv
+  - commands.csv
+  - servo_telemetry.csv
+  - live_task_gate.json
+  - ipwm_replan_cycles
+  - packet_audit.json
+
+execution_order:
+  - powered_hardware_and_dual_camera_preflight
+  - one_intact_20px_closed_loop_smoke
+  - core_quantitative_round_robin
+  - reachable_multi_lock_15px_round_robin
+  - audit_summary_and_two_copy_backup

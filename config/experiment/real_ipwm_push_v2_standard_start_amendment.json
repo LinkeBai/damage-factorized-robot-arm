@@ -1,0 +1,15 @@
+{
+  "amendment_id": "standard_start_gate_user_correction_20260905",
+  "effective_utc": "2026-09-05T04:35:20.483204+00:00",
+  "base_protocol": "config\\experiment\\real_ipwm_push_v2_h50_e24.yaml",
+  "base_sha256": "3900fc362f6da2d3cf7369cce07437905afebe635f49ba5969dc8b76d94f20cc",
+  "scope": "future_standard_start_attempts_only",
+  "standard_start_tolerance_each_axis_px": 5,
+  "record_actual_start_error": true,
+  "success_gate_unchanged": {
+    "tolerance_each_axis_px": 5,
+    "consecutive_frames": 3
+  },
+  "perturbed_repeats": "retain requested offsets and report actual measured offsets; broad start gate alone does not establish variant assignment",
+  "prior_trials_reclassified": false
+}

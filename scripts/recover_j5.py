@@ -23,16 +23,21 @@ def checksum(data: bytes) -> int:
 
 
 class ServoBus:
+    READ_DEADLINE_S = 0.12
+
     def __init__(self, port: str, baudrate: int = 1_000_000) -> None:
         self.serial = serial.Serial(port, baudrate, timeout=0.08, write_timeout=0.08)
 
     def close(self) -> None:
         self.serial.close()
 
-    def send(self, servo_id: int, instruction: int, params: bytes) -> None:
+    def send(
+        self, servo_id: int, instruction: int, params: bytes, *, flush: bool = True
+    ) -> None:
         core = bytes((servo_id, len(params) + 2, instruction)) + params
         self.serial.write(HEADER + core + bytes((checksum(core),)))
-        self.serial.flush()
+        if flush:
+            self.serial.flush()
 
     def write_u8(self, servo_id: int, address: int, value: int) -> None:
         self.send(servo_id, INST_WRITE, bytes((address, value & 0xFF)))
@@ -44,35 +49,64 @@ class ServoBus:
             bytes((address, value & 0xFF, (value >> 8) & 0xFF)),
         )
 
+    def write_u16_batch(self, writes) -> None:
+        """Send the same ordered write packets with one serial flush."""
+        packets = []
+        for servo_id, address, value in writes:
+            if not (1 <= servo_id <= 253 and 0 <= address <= 254 and 0 <= value <= 65535):
+                raise ValueError("invalid batched register write")
+            params = bytes((address, value & 0xFF, (value >> 8) & 0xFF))
+            core = bytes((servo_id, len(params) + 2, INST_WRITE)) + params
+            packets.append(HEADER + core + bytes((checksum(core),)))
+        if packets:
+            payload = b"".join(packets)
+            if self.serial.write(payload) != len(payload):
+                raise TimeoutError("incomplete batched serial write")
+            self.serial.flush()
+
     def read(self, servo_id: int, address: int, size: int) -> bytes:
+        deadline = time.monotonic() + self.READ_DEADLINE_S
         self.serial.reset_input_buffer()
-        self.send(servo_id, INST_READ, bytes((address, size)))
-        deadline = time.monotonic() + 0.12
+        # ``write`` is already bounded by pyserial's write_timeout.  Avoid an
+        # additional unbounded flush so this request and response share one
+        # aggregate deadline.
+        self.send(servo_id, INST_READ, bytes((address, size)), flush=False)
         packet = bytearray()
-        while time.monotonic() < deadline:
-            byte = self.serial.read(1)
-            if not byte:
-                continue
-            packet += byte
-            while len(packet) >= 2 and packet[:2] != HEADER:
-                del packet[0]
-            if len(packet) >= 4:
-                total = packet[3] + 4
-                if len(packet) >= total:
-                    response = bytes(packet[:total])
-                    if checksum(response[2:-1]) != response[-1]:
-                        del packet[:total]
-                        continue
-                    if response[2] != servo_id:
-                        del packet[:total]
-                        continue
-                    if response[4] != 0:
-                        raise RuntimeError(f"servo error byte {response[4]}")
-                    data = response[5:-1]
-                    if len(data) != size:
-                        del packet[:total]
-                        continue
-                    return data
+        original_timeout = self.serial.timeout
+        try:
+            while True:
+                remaining_s = deadline - time.monotonic()
+                if remaining_s <= 0.0:
+                    break
+                # A fixed per-byte timeout can overrun the aggregate deadline
+                # on the final read.  Bound every blocking read by the actual
+                # remaining budget so READ_DEADLINE_S is a total deadline.
+                self.serial.timeout = min(float(original_timeout), remaining_s)
+                byte = self.serial.read(1)
+                if not byte:
+                    continue
+                packet += byte
+                while len(packet) >= 2 and packet[:2] != HEADER:
+                    del packet[0]
+                if len(packet) >= 4:
+                    total = packet[3] + 4
+                    if len(packet) >= total:
+                        response = bytes(packet[:total])
+                        if checksum(response[2:-1]) != response[-1]:
+                            del packet[:total]
+                            continue
+                        if response[2] != servo_id:
+                            del packet[:total]
+                            continue
+                        if response[4] != 0:
+                            raise RuntimeError(f"servo error byte {response[4]}")
+                        data = response[5:-1]
+                        if len(data) != size:
+                            del packet[:total]
+                            continue
+                        return data
+        finally:
+            self.serial.timeout = original_timeout
         raise TimeoutError("servo did not respond")
 
     def read_u8(self, servo_id: int, address: int) -> int:

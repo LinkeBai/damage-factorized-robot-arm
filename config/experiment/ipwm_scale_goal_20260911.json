@@ -1,0 +1,50 @@
+{
+  "status": "design_before_formal_collection",
+  "reference": {
+    "paper": "ActivePusher, ICRA 2026, Section V",
+    "local_text": "tmp/activepusher-review.txt",
+    "simulation_objects": 4,
+    "pool_per_object": 9000,
+    "pool_total": 36000,
+    "training_samples_per_fit_max": 100,
+    "test_per_object": 1000,
+    "test_total": 4000,
+    "training_repeats": 5,
+    "planning_tasks": 2,
+    "planning_problems_per_task": 100,
+    "planning_repeats": 5
+  },
+  "proposed_targets": {
+    "damage_conditions": ["D1", "D2", "D3", "D4", "D5"],
+    "pool_independent_resets_per_condition": 10000,
+    "prediction_test_independent_resets_per_condition": 1200,
+    "training_seeds": [7, 17, 27, 37, 47, 57],
+    "planning_independent_problems_per_condition_and_distance_band": 120,
+    "planning_distance_bands": 2,
+    "planning_repeats": 6,
+    "candidate_budget": 128,
+    "preserve_deployed_checkpoint": true
+  },
+  "counting_rules": [
+    "Pool, actually consumed training examples, prediction test problems, planning problems, planner repeats, candidates and control steps are separate counters.",
+    "All train/validation/test reset IDs are disjoint. Repeated seeds on the same test problem do not increase independent problem counts.",
+    "Damage conditions do not substitute for object diversity. Only scalar simulation-count comparisons are claimed across the different tasks.",
+    "Fresh training checkpoints do not inherit the existing real-robot evidence. The deployed seed27 checkpoint remains a separately identified model.",
+    "Formal protocol and hashes must be frozen before collecting test evidence. Pilot data are excluded.",
+    "Retain every registered method and seed, including regressions. Completion does not depend on obtaining favorable results."
+  ],
+  "completion_requires": [
+    "validated_pool_count > 36000",
+    "validated_prediction_test_count > 4000",
+    "each_declared_condition_pool_count > 9000",
+    "each_declared_condition_prediction_test_count > 1000",
+    "actual_training_sample_count_per_fit > 100",
+    "complete_training_seed_count > 5",
+    "each_declared_planning_cell_independent_problem_count > 100",
+    "complete_planner_repeat_count > 5",
+    "all_registered_baselines_complete",
+    "no_train_test_overlap_and_no_duplicate_reset_ids",
+    "simulator_validation_passed",
+    "paper_tables_confidence_intervals_and_reproducibility_manifest_written"
+  ]
+}

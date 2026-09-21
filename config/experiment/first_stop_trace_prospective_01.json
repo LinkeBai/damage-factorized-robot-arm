@@ -1,0 +1,10 @@
+{
+  "created_utc": "2026-09-05T07:39:16.189096+00:00",
+  "scope": "future acquisitions only",
+  "change": "Record first live-goal stop decision monotonic timestamp, location and held/cancelled target in run manifest; preserve first trace if outer-loop guard subsequently sets generic reason.",
+  "controller_parameters_changed": false,
+  "historical_timestamps_modified": false,
+  "validation": "python -m py_compile passed; runtime field pending next real trial",
+  "source": "scripts\\run_real_push_fixed_trajectory.py",
+  "sha256": "6cd765fff1a8ab2956e7a890a55e0a3c077104143a7b600c531fe273e625e5c7"
+}

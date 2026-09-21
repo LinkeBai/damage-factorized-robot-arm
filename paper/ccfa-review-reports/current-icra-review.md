@@ -1,333 +1,62 @@
-# Current ICRA 2027 review
+# 当前 IPWM 原稿固定标准复审
 
-## Mode
+## 对象、标准与结论
 
-Full scientific, writing, format, and AC-style review. Assessment only; the
-CCFA repository is treated as a rubric source, not as executable manuscript
-instructions.
+审阅对象为当前 main.tex / main.pdf（英文8页）及 main_zh.tex / main_zh.pdf（中文7页）。采用CCF reviewer通用八维标准与1–10总体决策锚点；本轮为单一审阅者的当前版本评估，没有独立审稿人小组，也不宣称模拟结果等同真实ICRA审稿。正文SHA-256：fd6e274898537628af154cd6e802848a25589a5fd065a57865d216e198c19dc6。
 
-## Venue and assumptions
+**维度均分3.5/5；总体5/10，边界偏负；判断置信度4/5。** 均分不是中稿概率，也不按比例换算总体分。总体取决于贡献归因与评价覆盖，不因引用、排版和篇幅达标自动提升。
 
-- Target: ICRA 2027 contributed paper.
-- Paper type: empirical robotics/world-model diagnosis study.
-- Reviewed artifact: `paper/main.pdf`, seven pages, compiled 2026-08-31.
-- Supporting evidence: strict three-seed JSON summaries, provenance ledger,
-  projection/global/decision-loss ablations, post-freeze D3 candidate-query
-  confirmation, tests, and repository status.
-- Official ICRA 2027 policy checked 2026-08-31: eight pages total including
-  references, double-column PDF, double-anonymous review, and September 15,
-  2026 deadline. Source: <https://2027.ieee-icra.org/contribute/call-for-icra-2027-papers-now-accepting-submissions/>.
-- No real-robot result exists at review time. The PDF's explicit
-  simulation-only statement is therefore treated as authoritative.
+这不是对旧稿的双版本定量比较。旧报告中的“没有真机结果”已过时；此前薄稿的2.5/5也不适用于此原稿。不用这些不同对象的分数推导涨跌。
 
-## Paper summary
+## 论文现在讲的故事
 
-The paper studies few-shot world-model adaptation after a diagnosed joint lock
-and separates six gates between a feasible prediction and a useful contact
-action. Analytic projection enforces locked position and velocity. Learned
-global and selective residual variants are evaluated on matched five-DoF
-pushing candidates. The main positive result is a 19.76% mean top-1-regret
-reduction and 4.04% selected-candidate terminal-error reduction versus nominal,
-both in 3/3 development seeds. The central negative result is that
-contact-response RMSE worsens by 270.04%, and selective IPWM fails to beat a
-same-capacity global residual. Removing projection causes 4.42--8.75 degree
-maximum joint drift, while projection yields exact zero violation.
-After checkpoint freeze, a registered D3 seed-91031 candidate archive gives
-only 9.77% regret reduction (2/3 seeds), 2.00% endpoint reduction (2/3), and
-+2.17 success points (3/3) for global residual versus nominal. Selective IPWM
-again fails matched attribution. Because D3 was historically inspected, this
-is fresh-query evidence rather than pristine unseen-domain confirmation.
+诊断提供关节锁定约束，IPWM通过解析投影满足约束，通过学习物体动力学改善候选预测，再由规划器选动作。选择性变体隔离发布机器人状态与干预物体状态。受控仿真显示，预测RMSE、候选排序和实际所选候选结果并不同步：全局残差降低遗憾和终点误差，响应RMSE却明显变差。选择性发布没有超过同容量全局残差。相同seed27权重在真机视觉重规划中完成18次核心推动，另有5次双锁诊断案例，其中2次失败。
 
-## Likely stance and calibrated score
+## 固定评分表
 
-**Current stance: weak reject / borderline. Overall: 5/10. Scholarly
-confidence: 4/5. Equivalent project score: approximately 3.6/5, not 4+/5.**
+| 维度 | 分数/5 | 证据与扣分原因 | 改变判断的具体条件 |
+|---|---:|---|---|
+| 贡献与新颖性 | 3 | IV节的投影与发布隔离保证成立，但VI节主对照没有证明选择性结构额外收益；不能将19.76%全局残差收益归给它 | 在现有机制和数据内说明结构何时具有非平凡作用、何时退化为等价模型；若主张性能贡献，需对应冻结对照支持 |
+| 问题意义 | 4 | 已诊断关节锁定后的接触操作有明确机器人意义，IX节提供真实执行案例 | 当前短距离平面推动支持有限任务范围；不强制新增任务或拆除后的真机试验 |
+| 技术可靠性 | 4 | 解析投影、私有递归及软遗憾目标具体；方法段已按训练代码修正 | 已核对评测器并修正文义：接触与实际终点是评价标签，仅oracle按实际代价选择；最终结构等价条件已解释 |
+| 证据与评价 | 3 | 三种子同容量、投影与决策损失对照有价值；主表为开发分布开环候选结果；D3曾被查看，真机无匹配基线 | 若需要声称闭环优势，只补同部署接口的仿真配对比较；若不补，必须维持现有执行能力与开环收益的分离，不把写作修复算实验进步 |
+| 表达与结构 | 4 | 英文8页、主表可读，中英模型定义与实际执行方式更明确 | 历史路由、三个命题、两组历史表与多处评价说明仍分散主线；下一步压缩重复，保留有解释作用的负结果 |
+| 近邻定位 | 3 | 15条引用有一手发表依据；已有机制比较及ActivePusher核心段落功能映射；跨论文协议不同，不能据此作性能排名 | 完成少量近邻的“问题—机制—证据—结论”对照，不以引用数量或未经证实的最高评分代替定位；不要求盲目复现所有大模型 |
+| 复现与可核查性 | 3 | 检查点、候选、训练超参数和汇总路径存在，但前置检查点累计训练规模未闭合，正文复现依赖作者工作区 | 形成前置训练→最终训练→选择→评测→部署的文件映射，核实实际数据计数及重建命令；配置推导值不能冒充实际缓存统计 |
+| 限制与规范披露 | 4 | 保留失败、D3历史查看、真机无基线及控制配置变化；含AI致谢，遵守8页总限额 | 完成最终匿名性与投稿材料检查，不额外堆砌泛化风险或苦劳式附录 |
 
-The paper is substantially more credible than the previous selective-IPWM
-victory story because it now exposes the strongest matched baseline and retains
-negative results. The decisive reject axis is not a correctness failure. It is
-that the only stable development task-level advantage belongs to a generic same-capacity
-global residual relative to nominal, while the named selective mechanism fails
-attribution; the post-freeze D3 query does not confirm a large effect; and no physical robot
-result yet substantiates the robotics claim. This combination leaves the work
-as a useful but narrow diagnostic study rather than a clearly differentiated
-ICRA contribution.
+## 主要主张与证据对应
 
-## Quantitative scorecard
-
-| Dimension | Score (1-5) | Confidence (1-5) | Evidence basis | Deduction / score-change condition |
-|:---|:---:|:---:|:---|:---|
-| Contribution and novelty | 3 | 4 | Title/abstract, lines 5--27; contributions, lines 53--65; selective attribution No-Go, lines 310--316 | The six-stage framing and projection audit are useful, but the learned selective mechanism is not supported over the global residual. Raise to 4 only if the paper establishes a reusable diagnostic insight across at least another fault/task/model family or obtains a mechanism-specific result under a frozen confirmation protocol. |
-| Significance and impact | 4 | 3 | Introduction, lines 30--65; limitations, lines 653--676 | Diagnosed joint locks and contact planning are relevant to ICRA, but one planar block-pushing model limits reach. Retain 4 if real-arm evidence shows the diagnosed failure modes; otherwise a strict reviewer may score 3. |
-| Technical soundness | 4 | 4 | Projection equations/propositions; paired soft-regret objective; strict checkpoint loader; provenance ledger | The protocol distinguishes prediction and decision metrics, discloses D3 inspection, and retains the failed fresh-query gate. Remaining concern: open-loop candidate selection does not establish closed-loop recovery. Raise confidence, not necessarily score, with paired real trials. |
-| Evidence and evaluation | 3 | 5 | Strict table, decision/projection ablations, D3 seed-91031 query confirmation, machine summaries | Matched baselines and ablations are strong, but the fresh D3 query misses the preregistered regret gate, there is no real robot, no pristine unseen domain, no receding-horizon MPC, and no second task/arm primary evidence. Raise to 4 with valid real-arm paired trials plus confidence intervals/effect sizes and coherent cross-setting diagnosis. |
-| Clarity and organization | 4 | 4 | Seven-page PDF; new six-stage pass/No-Go figure; historical sections after the primary table | The primary finding is now visually recoverable, but historical simplified/GenkiArm material still occupies disproportionate space. Compress it to protect the new storyline. |
-| Positioning and related work | 3 | 3 | Related work, lines 68--105; 15 references | Representative work is cited, but the closest fault-aware world-model, counterfactual action-ranking, and diagnostic/evaluation papers are not compared experimentally. Raise to 4 with a compact closest-work matrix tied to the exact contribution type and at least one reproduced or directly matched modern baseline. |
-| Reproducibility and auditability | 4 | 5 | One-command reconstruction, raw run summaries, machine-readable JSON, provenance ledger, 60 focused tests, compute ledger | The confirmation archive is deterministically regenerated to the registered SHA-256 and `main` is synchronized. Training checkpoints, environment lock, and training wall time remain incomplete. Raise to 5 with archival checkpoints and a clean-machine end-to-end training/evaluation run. |
-| Ethics, limitations, and responsible research | 4 | 5 | Limitations, lines 653--676; hardware safety protocol; failure ledger | Limitations and absent hardware evidence are disclosed. Add explicit real-arm abort/safety accounting and energy/compute scope after data collection to reach 5. |
-
-### Weighted readiness view
-
-The unweighted scientific mean is approximately 3.6/5. The score is capped below 4 because
-evidence and novelty are both 3/5 and are decision-critical for this paper type.
-Strong reproducibility cannot compensate for missing physical evidence or failed
-mechanism attribution.
-
-## Top strengths
-
-1. The exact projection claim is cleanly falsifiable and passes a matched
-   three-seed removal ablation: learned rollouts drift while projection gives
-   zero position/velocity violation.
-2. The same-candidate protocol makes the 19.76% regret result interpretable;
-   top-1 regret uses realized candidate outcomes rather than model predictions.
-3. The paper reports the uncomfortable result that response RMSE degrades while
-   action selection improves, creating a credible scientific insight rather
-   than hiding a failed metric.
-4. The provenance ledger corrects the earlier partial-checkpoint bug and keeps
-   sequence-model, global-residual, and selective-IPWM results separate.
-5. The manuscript explicitly refuses to call open-loop candidate outcomes MPC
-   and refuses to call D3 untouched confirmation.
-
-## Major or fatal concerns
-
-### M1 — Mechanism attribution fails
-
-**Severity:** major. **Criterion:** novelty and evidence.
-
-The selective method does not beat the same-capacity global residual on
-aggregate, and full-state/selective outputs are identical in the formal rows.
-The title wisely avoids claiming SI-IPWM dominance, but much of the method and
-historical results still foreground state isolation. A reviewer may conclude
-that the learned contribution is a generic residual plus decision-oriented
-training, while the only uniquely validated mechanism is analytic projection.
-
-**Repair condition:** either make the paper explicitly an evaluation/diagnosis
-paper and demonstrate that the six-stage protocol yields consistent new
-knowledge across another fault/task/model family, or obtain a frozen
-mechanism-specific confirmation. Do not claim the latter from current data.
-
-### M2 — No physical robot evidence
-
-**Severity:** major for ICRA, not automatically fatal. **Criterion:** evidence,
-significance, and domain fit.
-
-The paper studies a physical failure mode but currently reports only MuJoCo and
-explicitly states that the model is not a fully identified dynamic twin. The
-planned real-arm protocol is appropriate, but promised experiments are not
-evidence.
-
-**Repair condition:** report every valid/aborted paired nominal versus frozen
-global-residual trial on the original five-DoF arm, with selective IPWM as an
-optional attribution row, including lock drift, reach, contact,
-continuous terminal error, success, camera setup, and failure codes. If method
-benefit is absent, use the real arm to validate the six-stage failure diagnosis
-rather than claiming recovery.
-
-### M3 — Fresh-query confirmation does not confirm a large effect
-
-**Severity:** major. **Criterion:** technical soundness and evidence.
-
-D3 was historically inspected and therefore cannot provide pristine domain
-confirmation. The project nevertheless registered a new candidate seed before
-generation and evaluated all three frozen checkpoints once. Global residual
-improves success in 3/3 seeds but regret by only 9.77% on average with 2/3
-positive, missing the predeclared moderate and strong gates. This bounds rather
-than validates transfer of the 19.76% development effect.
-
-**Repair condition:** retain the negative query result and do not tune on D3.
-Obtain independent evidence through the frozen physical protocol or a truly
-new setting chosen before inspection, with diagnosis rather than dominance as
-the primary hypothesis.
-
-### M4 — Limited task breadth and weak success movement
-
-**Severity:** major. **Criterion:** significance and evidence.
-
-The stable 19.76% regret reduction translates to only 4.04% terminal-error
-reduction and +1.58 percentage points success, with one seed tied on success.
-The evidence is informative, but does not establish broad recovery capability.
-
-**Repair condition:** prioritize continuous paired terminal error and regret;
-do not center binary success. Add a second prespecified fault severity, target
-family, or fixed-pregrasp feasibility panel only if it uses the frozen method
-and does not displace the real push experiment.
-
-## Writing and presentation concerns
-
-### Writing scorecard
-
-| Dimension | Weight | Score | Confidence | Evidence basis | Concrete repair |
-|---|---:|---:|---:|---|---|
-| Storyline and motivation | 10 | 4 | 4 | Abstract and revised introduction | Keep the six-stage question as the sole main line. |
-| Contribution display | 10 | 3 | 4 | Contributions still mix framework, projection, comparison, and result | State one primary diagnostic contribution, one structural mechanism, and one empirical finding. |
-| Paragraph logic | 10 | 3 | 4 | Historical results occupy multiple subsections after the new primary result | Move most historical matrices to a compact failure-boundary table. |
-| Claim-evidence alignment | 12 | 4 | 5 | Abstract/table/conclusion numbers match JSON; limitations are explicit | Add artifact IDs or appendix pointers for every primary row. |
-| Method readability | 9 | 4 | 4 | State-isolation figure plus six-stage evidence chain | The evaluation flow is now visible; keep the global/selective distinction explicit in the caption and method text. |
-| Experiment narration | 9 | 4 | 4 | Primary table is interpreted before historical material | Add confidence intervals and a visual showing where the metric tradeoff arises. |
-| Related-work positioning | 8 | 3 | 3 | Short technical comparison, limited experimental relation | Replace broad listing with closest-work axes. |
-| Terminology consistency | 8 | 3 | 4 | SI-IPWM, selective IPWM, state isolation, global residual, carrier, and historical router coexist | Freeze one name per formal row and label historical models as retrospective at first mention. |
-| Prose discipline and voice | 10 | 3 | 4 | Honest but defensive phrases such as “disclosed failure” recur | Retain limitations but state the positive scientific question before development history. |
-| LaTeX and format discipline | 6 | 4 | 5 | Compiles, seven of eight pages, tables fit, references resolve | Switch to the official double-anonymous class/options and clear PDF metadata before submission. |
-| Reviewer-facing risk | 8 | 4 | 5 | Primary insight is visualized; hardware panel remains absent | Add the real setup/results panel without weakening the six-stage figure. |
-
-**Weighted writing score: 3.54/5. Writing risk: moderate.**
-
-## Format and venue concerns
-
-- Official ICRA 2027 allows eight total pages, including references. The current
-  seven-page PDF passes the length check and leaves approximately one page for
-  the six-stage figure and real-arm panel.
-- The source uses `\documentclass[conference]{IEEEtran}` rather than an explicit
-  double-anonymous review option. “Anonymous Authors” hides names visually, but
-  class/options and PDF metadata still need a final policy audit.
-- The paper contains no external URLs, acknowledgments, or visible affiliations,
-  but repository/archive metadata have not been checked for identifying names.
-- The new six-stage figure now visualizes the strongest validated contribution;
-  a real-arm setup/results panel remains missing.
-- The paper compiles with no undefined references or overfull horizontal boxes.
-
-**Desk rejection risk: low to medium.** The current length and readable PDF are
-safe, but final anonymity/template compliance remains unverified.
-
-## Multi-reviewer panel
-
-### Best-justified reviewer
-
-- **Likely score:** 6/10, weak accept; **confidence:** 4/5.
-- **Positive signal:** a rare honest, controlled demonstration that prediction
-  RMSE and action utility diverge, with exact constraint enforcement and a
-  reusable staged diagnosis.
-- **Negative signal:** scope is narrow and physical validation is absent.
-- **Score-change condition:** valid real-arm failure-stage evidence, even without
-  a large method win, could sustain 6 because the negative D3 query is retained.
-
-### Critical reviewer
-
-- **Likely score:** 4/10, reject; **confidence:** 5/5.
-- **Positive signal:** unusually transparent ablations.
-- **Negative signal:** the named selective innovation loses to a generic matched
-  residual, success gain is tiny, and the D3 query misses its preregistered gate.
-- **Fatal concern:** novelty may collapse to “hard projection plus residual
-  training and a diagnostic checklist.”
-- **Score-change condition:** mechanism-specific confirmation or multi-setting
-  evidence that makes the diagnostic framework itself a substantive result.
-
-### Method and soundness reviewer
-
-- **Likely score:** 5/10; **confidence:** 4/5.
-- **Positive signal:** exact projection and paired regret are well defined.
-- **Negative signal:** the paper does not establish why the global residual
-  improves ranking while response RMSE fails, beyond empirical observation.
-- **Score-change condition:** add per-stage causal analysis or stratified,
-  predeclared evidence linking contact ambiguity to ranking gain.
-
-### Evidence and experiment reviewer
-
-- **Likely score:** 5/10; **confidence:** 5/5.
-- **Positive signal:** 400x128x50 matched evaluation and honest No-Go reporting.
-- **Negative signal:** the post-freeze D3 query misses its regret gate, the
-  manuscript lacks a primary confidence interval, and there is no real robot or
-  closed-loop MPC.
-- **Score-change condition:** paired statistics and complete real-arm evidence.
-
-### Novelty and positioning reviewer
-
-- **Likely score:** 4/10; **confidence:** 3/5.
-- **Positive signal:** six-stage fault-control diagnosis is a useful framing.
-- **Negative signal:** the literature section does not yet prove that this exact
-  evaluation decomposition or joint-lock setting is underexplored.
-- **Score-change condition:** current close-work audit and technically explicit
-  differentiation, without first/SOTA claims.
-
-### Writing and clarity reviewer
-
-- **Likely score:** 5/10; **confidence:** 5/5.
-- **Positive signal:** primary numbers and limitations are easy to recover.
-- **Negative signal:** old historical material still dilutes the new paper.
-- **Score-change condition:** compress retrospective tables and use the recovered
-  space for the real-arm panel.
-
-### Ethics and reproducibility reviewer
-
-- **Likely score:** 7/10; **confidence:** 5/5.
-- **Positive signal:** provenance ledger, invalid-run disclosure, tests, compute
-  ledger, and explicit missing-evidence boundaries.
-- **Negative signal:** end-to-end training package and immutable artifacts are
-  incomplete.
-- **Score-change condition:** archive hashes, environment lock, data/checkpoint
-  availability, and real-arm safety ledger.
-
-### AC or meta-review synthesis
-
-- **Agreement:** the protocol and transparency are strengths; selective
-  attribution fails, D3 transfer is weak, and physical evidence is missing.
-- **Disagreement:** whether the six-stage diagnosis plus regret/RMSE decoupling is
-  itself sufficiently novel for ICRA.
-- **Decisive accept axis:** demonstrate that the diagnosis transfers beyond one
-  development setting and is physically meaningful on the original arm.
-- **Decisive reject axis:** the only task-level gain is reproduced by a generic
-  global residual and remains simulation-development evidence.
-- **Final calibrated stance:** 5/10, weak reject/borderline.
-
-## Concern-to-action table
-
-| Priority | Concern | Required action | Evidence that closes it | Expected movement |
-|---:|---|---|---|---|
-| P0 | No real-arm evidence | Execute frozen low-speed paired push protocol; retain aborts and both videos | Validity ledger, raw hashes, paired terminal/contact/lock table, setup panel | Evidence +0.5 to +1 dimension; overall may move 5→6 if coherent |
-| Done | No post-freeze query confirmation | Registered and ran D3 seed 91031 once with frozen checkpoints; retained the failed gate | Candidate SHA-256, per-seed rows, unchanged model checkpoints | Raises confidence/auditability but not performance score |
-| P0 | Selective attribution failed | Reframe primary contribution as diagnostic unless new frozen evidence changes it | Abstract/introduction/method/figure all agree; no hidden dominance language | Prevents score loss rather than creating novelty |
-| Done | Six-stage insight was not visualized | Added a compact six-stage pipeline with per-stage metrics and pass/No-Go markers | Legible vector Fig. 2 in the compiled PDF | Clarity increased from 3 to 4 |
-| P1 | Historical evidence dominates space | Compress GenkiArm/simplified matrices into one retrospective boundary table | At least half a page recovered for primary evidence | Writing risk moderate→low |
-| P1 | Primary uncertainty absent in PDF | Add seed rows and paired/bootstrap interval or explicitly descriptive range | Machine-generated table/plot matching JSON | Evidence confidence increases |
-| P2 | Packaging incomplete | Archive formal checkpoints and environment lock; run clean-machine end-to-end training/evaluation | Immutable checkpoint manifest and successful clean run | Reproducibility 4→5 |
-| P2 | Anonymity mode unverified | Use official double-anonymous template/options and inspect metadata | Submission PDF desk-check log | Desk risk low |
-
-## Score-change conditions
-
-| Change | Condition | Likely affected dimensions | Expected movement |
+| 主张 | 位置 | 当前证据 | 判断 |
 |---|---|---|---|
-| Raise score | Valid real-arm paired evidence, retained negative D3 query, six-stage figure, and coherent diagnostic framing | Evidence, soundness, clarity, significance | Overall 5→6 is plausible; project score approaches 3.9--4.1/5 |
-| Lower score | Real-arm trials contradict even the constraint/diagnostic story, confirmation reverses regret direction, or a close paper already provides the same six-stage contribution | Evidence, novelty, soundness | Overall 5→4 or lower |
-| No quick change | Making selective IPWM a strong novel mechanism without new evidence | Novelty | Rhetorical editing alone cannot raise the score |
+| 投影保证锁定坐标一致 | 摘要、IV-A、表III | 幂等性推导；三种子去投影与投影对照 | 对预测坐标成立，不等于任务成功保证 |
+| 发布机器人轨迹等于载体 | IV-C、命题2 | 私有状态递归；发布复制机器人块 | 对同初始状态、动作、诊断成立；不能推出不同闭环策略的物理轨迹相同 |
+| 全局残差降低遗憾19.76%、终点4.04% | 表II、VI-A | primary-global-matched-ablation-3seed.json逐种子记录与既有汇总 | 开环候选选择收益，不是重规划MPC优势 |
+| 选择性结构带来额外收益 | VI-A | 相对全局遗憾增加2.07%，严格比较全状态与选择性输出相同 | 不支持；正文已保留该负结果 |
+| 真机18/18核心试验成功 | IX节、表XI | formal_results.csv；23次manifest；checkpoint-correspondence.json | 支持这些短距离协议内执行，不支持优于基线或高置信总体成功率 |
+| 仿真与真机使用同一模型权重 | IX节 | seed27训练、严格评测、D3目录检查点28个张量相等；正式manifest哈希对应 | 权重一致；仿真几何、候选库与执行接口并不因此等同 |
 
-## Recommended next owner
+## 本轮收尾审计
 
-Experiment execution first: real-arm validity packet. The D3 query confirmation
-and six-stage figure are complete. Then compress historical material and perform
-final submission/anonymity checking.
+| 问题 | 当前状态 | 可核查依据与剩余边界 |
+|---|---|---|
+| 评价标签误作模型输入 | 已解决 | V节明确实际接触和终点为评价标签；预测按预测终点代价选择，oracle例外 |
+| 最终选择性/全状态等价 | 已解决 | VI-A解释机器人转移独立于物体状态、载体共享机器人参数；一般隔离性质与当前配置效果分开 |
+| 主结果与投影数字 | 已核验 | numeric-consistency-check.json从逐种子summary重算，不等于重跑原始轨迹 |
+| 历史简化模型数字 | 已核验 | historical-numeric-check.json从六份逐窗口平方误差重算，英中18行表匹配，包含原始/后设计均值与全状态消融 |
+| 校准GenkiArm区间 | 已复算 | genkiarm-bootstrap-check.json及重算结果与原汇总完全一致；复用原脚本，非独立实现；正文注明时间依赖限制 |
+| 训练计数与前置阶段 | 已界定，完整历史重建未闭合 | training-data-check.md与两份cache/stage记录区分实际缓存和配置；历史新旧缓存轨迹不同，不能声称已核实所有阶段唯一总样本数 |
+| 近邻逐段对照 | 核心段落映射已完成 | neighbor-paragraph-comparison.md覆盖引言、方法与实验论证功能；没有公开最高评分证据，不声称最高分 |
+| 同部署接口闭环仿真 | 缺失已界定 | simulation-comparison-gap.md：历史CEM不等同最终H50/索引24适配器；当前正文不主张相对闭环优势，不自动启动新实验 |
+| 真机证据与版本对应 | 已核对档案 | 23次有效运行及checkpoint/controller审计支持18次核心与5次双锁；无匹配基线，不能推出相对优势 |
+| 页面与最终交付 | 已完成本轮页面检查 | 英8页、中7页可编译；最后改动后的受影响页面已复查，哈希见final-artifact-check.json |
 
-## Checks run
+数值核验提高了可核查性，并未改变实验本身，也没有提供新的性能优势。当前评分维持3.5/5、总体5/10；核心缺口仍是选择性机制在最终配置中的非平凡贡献与匹配闭环评价覆盖。写作应清楚陈述这些边界，不能靠增加附录或强调工作量消除。
 
-- Read the complete seven-page PDF and the active LaTeX source.
-- Verified the four primary machine-readable summaries and provenance ledger.
-- Regenerated all primary and D3-query summaries with the one-command script;
-  60 focused tests passed.
-- Independently regenerated the 25,600-row D3 archive and obtained the exact
-  registered SHA-256 `43a00365...72e2702`.
-- Verified GitHub `main` and the working branch at commit `8d49a67`.
-- Compiled the PDF and visually inspected all pages; no clipped table or
-  unresolved reference remains.
-- Checked the official ICRA 2027 call for papers for deadline, page limit,
-  anonymity, and video constraints.
-- Searched the source/checklist for stale “untouched confirmation” language and
-  corrected the submission checklist.
+当前摘要、引言与结论均区分全局残差的开环候选收益、选择性结构未显示额外收益，以及相同选择性权重的真机闭环执行证据。真机首段已统一为朝选中参考点作限速运动，避免被理解为逐点执行候选前缀。没有重训模型、重跑全量仿真或重新解码全部真机录像。
 
-## Unresolved or unverified
+交付收尾已完成：最后修改后的页面检查、状态清单及历史控制、诊断、辅助实验与路由来源对应均有记录，见delivery-audit.md。完整历史训练重建和新增闭环比较是明确的复现/科学证据边界，不能把未完成状态写成已验证。
 
-- No real-arm trial data or setup photograph.
-- No pristine unseen-domain confirmation; the available post-freeze D3 query
-  is explicitly non-pristine and misses its regret gate.
-- No independent clean-machine end-to-end training reproduction.
-- No final PDF metadata/anonymity audit against PaperPlaza's exact template.
-- Novelty relative to the most recent 2025--2026 fault-aware world-model papers
-  has not been re-searched in this review; positioning confidence is therefore
-  3/5 rather than 5/5.
+## 输出自查
 
-## Output self-check
-
-- Scores, confidence, and decision stance are separated.
-- Every score of 3/5 has a deduction and repair condition.
-- No acceptance probability is claimed.
-- Positive, negative, and missing evidence remain distinct.
-- The 19.76%, 4.04%, 270.04%, projection-drift, reachability, and contact values
-  in Fig. 2 match the frozen JSON.
+评分、置信度与接收倾向分别报告；所有3分项有具体扣分和修复条件；未给中稿概率，未伪造独立审稿人，也未要求无边界扩展方法或真机实验。下一步回到writer和来源核查，按上述顺序收尾。
