@@ -1,0 +1,76 @@
+{
+  "config_version": "g2_push_ensemble_v1",
+  "config_path": "config\\experiment\\g2_push_ensemble_v1.yaml",
+  "seed": 37,
+  "members": 3,
+  "epochs": 20,
+  "steps": 150,
+  "device": "cuda",
+  "protocol_sha256": "bfb43ff804f91b538efdcd7c8a22bf5812de901b344d8603afad88eddfe73055",
+  "parameters": {
+    "structured_ensemble": 450906,
+    "ordinary_deep_ensemble": 450906
+  },
+  "train_seconds": {
+    "structured_ensemble": 92.61936399998376,
+    "ordinary_deep_ensemble": 83.73595549998572
+  },
+  "rows": [
+    {
+      "domain": "D2__mixed_composition",
+      "method": "structured_ensemble",
+      "ensemble_rmse": 0.46821120381355286,
+      "mean_member_rmse": 0.5569682518641154,
+      "best_member_rmse": 0.5329422950744629,
+      "uncertainty_error_spearman": 0.8822560111407959,
+      "depth_stratified_spearman": 0.33005270092226613,
+      "aleatoric_depth_spearman": -0.15830039525691697,
+      "total_depth_spearman": 0.24562582345191036,
+      "aleatoric_error_spearman": -0.8180380150025434,
+      "total_error_spearman": 0.511918840751477,
+      "mean_uncertainty": 0.2563905119895935
+    },
+    {
+      "domain": "D2__mixed_composition",
+      "method": "ordinary_deep_ensemble",
+      "ensemble_rmse": 0.4905409812927246,
+      "mean_member_rmse": 0.6547797123591105,
+      "best_member_rmse": 0.6145610809326172,
+      "uncertainty_error_spearman": 0.8849359914534558,
+      "depth_stratified_spearman": 0.2759815546772068,
+      "aleatoric_depth_spearman": -0.026969696969696977,
+      "total_depth_spearman": 0.15923583662714097,
+      "aleatoric_error_spearman": -0.8299632755388093,
+      "total_error_spearman": 0.6980735048897362,
+      "mean_uncertainty": 0.3604685068130493
+    },
+    {
+      "domain": "D3__mixed_composition",
+      "method": "structured_ensemble",
+      "ensemble_rmse": 0.38805070519447327,
+      "mean_member_rmse": 0.5037880937258402,
+      "best_member_rmse": 0.4441426396369934,
+      "uncertainty_error_spearman": 0.9280669369560673,
+      "depth_stratified_spearman": 0.7031225296442687,
+      "aleatoric_depth_spearman": -0.6810803689064558,
+      "total_depth_spearman": 0.32225296442687745,
+      "aleatoric_error_spearman": -0.876487554671052,
+      "total_error_spearman": 0.5559556672707849,
+      "mean_uncertainty": 0.2738989293575287
+    },
+    {
+      "domain": "D3__mixed_composition",
+      "method": "ordinary_deep_ensemble",
+      "ensemble_rmse": 0.44026824831962585,
+      "mean_member_rmse": 0.6319068272908529,
+      "best_member_rmse": 0.5498936772346497,
+      "uncertainty_error_spearman": 0.9267426835029638,
+      "depth_stratified_spearman": 0.6572332015810277,
+      "aleatoric_depth_spearman": -0.6935441370223978,
+      "total_depth_spearman": 0.3500395256916996,
+      "aleatoric_error_spearman": -0.8823132953742984,
+      "total_error_spearman": 0.7411964174308681,
+      "mean_uncertainty": 0.38051626086235046
+    }
+  ]
+}

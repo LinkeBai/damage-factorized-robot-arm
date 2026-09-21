@@ -1,0 +1,598 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-09-03T13:35:54.773499+00:00",
+  "hardware_accessed": false,
+  "target_distance_m": 0.0526383,
+  "tolerance_m": 0.005,
+  "authorized_multilocks": [
+    "J1+J2",
+    "J1+J2+J5",
+    "J1+J3",
+    "J1+J3+J5",
+    "J1+J4",
+    "J1+J4+J5",
+    "J1+J5",
+    "J2+J5",
+    "J3+J5",
+    "J4+J5"
+  ],
+  "rows": [
+    {
+      "locked_joints": [
+        "J1"
+      ],
+      "lock_count": 1,
+      "residual_m": 1.390431057907263e-08,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        1.1800806315656074,
+        0.413092972016109,
+        0.9420001113618224,
+        -0.2575829214694896
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J2"
+      ],
+      "lock_count": 1,
+      "residual_m": 6.205655035007262e-10,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.11308464226425788,
+        0.8728350683069298,
+        1.6054356889754875,
+        -0.4109912413208075,
+        -0.7601975552497716
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J3"
+      ],
+      "lock_count": 1,
+      "residual_m": 2.3334430700971437e-09,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.11097520129672697,
+        0.9893645811689942,
+        0.8360195293976744,
+        0.6641888351157379,
+        -0.661758940187649
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J4"
+      ],
+      "lock_count": 1,
+      "residual_m": 1.6795036577932722e-09,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        -0.012141605938521668,
+        1.2516538977600025,
+        0.26610227548326554,
+        1.0185632431560658,
+        1.2564361317280697
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J5"
+      ],
+      "lock_count": 1,
+      "residual_m": 3.017526304163416e-10,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.0787482328927466,
+        1.2391455551888906,
+        0.2900094999297859,
+        0.9959692264216754,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2"
+      ],
+      "lock_count": 2,
+      "residual_m": 3.6662066573408706e-12,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        1.1507035738485563,
+        0.29916900240938127,
+        -0.257582051269084
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J3"
+      ],
+      "lock_count": 2,
+      "residual_m": 5.398382181472927e-13,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.9872775833474005,
+        0.8360195293976744,
+        0.6172302774189415,
+        -0.2575820512703054
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J4"
+      ],
+      "lock_count": 2,
+      "residual_m": 1.1394282596671289e-12,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        1.2396673677700005,
+        0.2920185843867914,
+        1.0185632431560658,
+        -0.25758205128633366
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J5"
+      ],
+      "lock_count": 2,
+      "residual_m": 0.00499871695621013,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        1.3821109414423758,
+        0.008629948348095747,
+        1.150651236758841,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J2",
+        "J3"
+      ],
+      "lock_count": 2,
+      "residual_m": 0.02168844753277826,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.036702536640603065,
+        0.8728350683069298,
+        0.8360195293976744,
+        0.7320240098300205,
+        0.5833684484783964
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J2",
+        "J4"
+      ],
+      "lock_count": 2,
+      "residual_m": 0.025240679627766098,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.10659502991479677,
+        0.8728350683069298,
+        0.8236199599159054,
+        1.0185632431560658,
+        -1.5707963267948963
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J2",
+        "J5"
+      ],
+      "lock_count": 2,
+      "residual_m": 1.9764517936615496e-12,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.07874823296086167,
+        0.8728350683069298,
+        1.1446160328736938,
+        0.2834211517484813,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J3",
+        "J4"
+      ],
+      "lock_count": 2,
+      "residual_m": 0.024844242245558347,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.10753996682176241,
+        0.8907728851757443,
+        0.8360195293976744,
+        1.0185632431560658,
+        -1.5707963267948963
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J3",
+        "J5"
+      ],
+      "lock_count": 2,
+      "residual_m": 7.859118040056179e-14,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.07874823296079407,
+        0.9856547171549126,
+        0.8360195293976744,
+        0.5938593867215693,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J4",
+        "J5"
+      ],
+      "lock_count": 2,
+      "residual_m": 6.549746534332699e-13,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.0787482329608367,
+        1.258118054530276,
+        0.25205904275894175,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2",
+        "J3"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.022235704250747296,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        0.8360195293976744,
+        0.7688223825725602,
+        -0.13720614736534012
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2",
+        "J4"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.02546836575532835,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        0.8231207413250542,
+        1.0185632431560658,
+        -1.5707963267948963
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2",
+        "J5"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.00499871695621013,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        1.1411111682139299,
+        0.2902865670274656,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J3",
+        "J4"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.025111638020944516,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8905170606763977,
+        0.8360195293976744,
+        1.0185632431560658,
+        -1.5707963267948806
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J3",
+        "J5"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.00499871695621013,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.9848945321171204,
+        0.8360195293976744,
+        0.5962385467818422,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J4",
+        "J5"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.0049987169562101304,
+      "reachability_pass": true,
+      "hardware_lock_authorized_currently": true,
+      "solution_q_rad": [
+        0.09510680884890975,
+        1.25580643329955,
+        0.25557431363178007,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "ELIGIBLE_FOR_COLLISION_LOAD_PREFLIGHT"
+    },
+    {
+      "locked_joints": [
+        "J2",
+        "J3",
+        "J4"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.025465005026831546,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.10709930259234421,
+        0.8728350683069298,
+        0.8360195293976744,
+        1.0185632431560658,
+        -1.5707963267948963
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J2",
+        "J3",
+        "J5"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.022021459610539088,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.08042027752694275,
+        0.8728350683069298,
+        0.8360195293976744,
+        0.7549589577373068,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J2",
+        "J4",
+        "J5"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.03855880378941128,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.08330712855852009,
+        0.8728350683069298,
+        0.7011239754964075,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J3",
+        "J4",
+        "J5"
+      ],
+      "lock_count": 3,
+      "residual_m": 0.04894498942172518,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.08620876839349084,
+        0.8084641945681155,
+        0.8360195293976744,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2",
+        "J3",
+        "J4"
+      ],
+      "lock_count": 4,
+      "residual_m": 0.025709494915342922,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        0.8360195293976744,
+        1.0185632431560658,
+        -1.5707963073768443
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2",
+        "J3",
+        "J5"
+      ],
+      "lock_count": 4,
+      "residual_m": 0.0224573122103281,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        0.8360195293976744,
+        0.7559655471016763,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2",
+        "J4",
+        "J5"
+      ],
+      "lock_count": 4,
+      "residual_m": 0.03871083125370395,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        0.701544058736729,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J3",
+        "J4",
+        "J5"
+      ],
+      "lock_count": 4,
+      "residual_m": 0.049009236256369895,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.808616917277316,
+        0.8360195293976744,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J2",
+        "J3",
+        "J4",
+        "J5"
+      ],
+      "lock_count": 4,
+      "residual_m": 0.05259548836415776,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.08748249018433907,
+        0.8728350683069298,
+        0.8360195293976744,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    },
+    {
+      "locked_joints": [
+        "J1",
+        "J2",
+        "J3",
+        "J4",
+        "J5"
+      ],
+      "lock_count": 5,
+      "residual_m": 0.05263829999999997,
+      "reachability_pass": false,
+      "hardware_lock_authorized_currently": false,
+      "solution_q_rad": [
+        0.09510680884890975,
+        0.8728350683069298,
+        0.8360195293976744,
+        1.0185632431560658,
+        0.016873788666742055
+      ],
+      "hardware_action": "DO_NOT_EXECUTE"
+    }
+  ],
+  "claim_boundary": "Reachability PASS is not hardware authorization; collision, load, contact, speed, and lock-drift gates remain mandatory."
+}
